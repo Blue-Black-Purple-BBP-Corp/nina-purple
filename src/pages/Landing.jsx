@@ -251,7 +251,7 @@ export default function Landing() {
             className="h-8 object-contain opacity-60"
           />
           <div className="text-[#F0E6FF]/30 text-sm text-center">
-            © 2026 Nina Purple · Blue Black Purple (BBP) Corp. · invest@bbp.community
+            © 2026 Nina Purple · Blue Black Purple (BBP) Corp. · contact@NinaPurple.love
           </div>
           <LanguageToggle />
         </div>

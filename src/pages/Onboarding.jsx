@@ -10,13 +10,13 @@ import { base44 } from '@/api/base44Client';
 const STEPS = ['intro', 'age', 'guidelines', 'profile', 'archetype', 'photos', 'questions', 'subscription', 'complete'];
 
 const QUESTIONS_21 = [
-  { id: 'q1', key: 'q1_ethnicity', required: true, en: 'Ethnic origin: Please specify your ethnicity.', fr: 'Origine ethnique : Veuillez préciser votre origine.', options_en: ['Afro descendant', 'Mixed Afro descendant', 'Hispanic or Latino', 'First Nation/Indigenous', 'Asian', 'Caucasian', 'Mixed Others', 'Other'], options_fr: ['Afro-descendant', 'Métis afro-descendant', 'Hispanique ou Latino', 'Première Nation/Autochtone', 'Asiatique', 'Caucasien', 'Mixte autre', 'Autre'] },
-  { id: 'q2', key: 'q2_education', required: true, en: 'Education: Highest degree completed?', fr: 'Éducation : Niveau d\'études le plus élevé ?', options_en: ['High school', 'Some college', 'Trade/Vocational', "Associate's degree", "Bachelor's degree", "Master's degree", 'Doctorate'], options_fr: ['Lycée', 'Quelques cours universitaires', 'Formation professionnelle', 'Baccalauréat', 'Licence', 'Master', 'Doctorat'] },
-  { id: 'q3', key: 'q3_children', required: true, en: 'Children: Are children important in your life?', fr: 'Enfants : Les enfants sont-ils importants dans votre vie ?', multi: true, options_en: ['I have children', 'I might have more one day', "I can't wait to have children", "I don't know currently"], options_fr: ['J\'ai des enfants', 'J\'en aurai peut-être un jour', 'J\'ai hâte d\'en avoir', 'Je ne sais pas actuellement'] },
-  { id: 'q4', key: 'q4_religion', required: true, en: 'Religion: How do you identify?', fr: 'Religion : Comment vous identifiez-vous ?', options_en: ['Agnostic', 'Buddhist', 'Catholic', 'Christian', 'Spiritual', 'Muslim', 'Jewish', 'Sikh', 'Rastafari', 'Other'], options_fr: ['Agnostique', 'Bouddhiste', 'Catholique', 'Chrétien', 'Spirituel', 'Musulman', 'Juif', 'Sikh', 'Rastafari', 'Autre'] },
-  { id: 'q5', key: 'q5_employment', required: true, en: 'Employment: Are you currently...?', fr: 'Emploi : Êtes-vous actuellement... ?', options_en: ['Employed', 'Self-employed', 'Looking for work', 'Student', 'Homemaker', 'Retired', 'Other'], options_fr: ['Employé(e)', 'Travailleur indépendant', 'En recherche d\'emploi', 'Étudiant(e)', 'Au foyer', 'Retraité(e)', 'Autre'] },
-  { id: 'q6', key: 'q6_smoking', required: true, en: 'Tobacco: Do you smoke?', fr: 'Tabac : Fumez-vous ?', options_en: ['Yes', 'Yes, tobacco and cannabis', 'Occasionally', 'No', 'No, but cannabis occasionally'], options_fr: ['Oui', 'Oui, tabac et cannabis', 'Occasionnellement', 'Non', 'Non, mais cannabis occasionnellement'] },
-  { id: 'q7', key: 'q7_alcohol', required: true, en: 'Alcohol: Do you drink?', fr: 'Alcool : Buvez-vous ?', options_en: ['Yes', 'No', 'Occasionally'], options_fr: ['Oui', 'Non', 'Occasionnellement'] },
+  { id: 'q1', key: 'q1_ethnicity', required: false, en: 'Ethnic origin: Please specify your ethnicity.', fr: 'Origine ethnique : Veuillez préciser votre origine.', options_en: ['Afro descendant', 'Mixed Afro descendant', 'Hispanic or Latino', 'First Nation/Indigenous', 'Asian', 'Caucasian', 'Mixed Others', 'Other'], options_fr: ['Afro-descendant', 'Métis afro-descendant', 'Hispanique ou Latino', 'Première Nation/Autochtone', 'Asiatique', 'Caucasien', 'Mixte autre', 'Autre'] },
+  { id: 'q2', key: 'q2_education', required: false, en: 'Education: Highest degree completed?', fr: 'Éducation : Niveau d\'études le plus élevé ?', options_en: ['High school', 'Some college', 'Trade/Vocational', "Associate's degree", "Bachelor's degree", "Master's degree", 'Doctorate'], options_fr: ['Lycée', 'Quelques cours universitaires', 'Formation professionnelle', 'Baccalauréat', 'Licence', 'Master', 'Doctorat'] },
+  { id: 'q3', key: 'q3_children', required: false, en: 'Children: Are children important in your life?', fr: 'Enfants : Les enfants sont-ils importants dans votre vie ?', multi: true, options_en: ['I have children', 'I might have more one day', "I can't wait to have children", "I don't know currently"], options_fr: ['J\'ai des enfants', 'J\'en aurai peut-être un jour', 'J\'ai hâte d\'en avoir', 'Je ne sais pas actuellement'] },
+  { id: 'q4', key: 'q4_religion', required: false, en: 'Religion: How do you identify?', fr: 'Religion : Comment vous identifiez-vous ?', options_en: ['Agnostic', 'Buddhist', 'Catholic', 'Christian', 'Spiritual', 'Muslim', 'Jewish', 'Sikh', 'Rastafari', 'Other'], options_fr: ['Agnostique', 'Bouddhiste', 'Catholique', 'Chrétien', 'Spirituel', 'Musulman', 'Juif', 'Sikh', 'Rastafari', 'Autre'] },
+  { id: 'q5', key: 'q5_employment', required: false, en: 'Employment: Are you currently...?', fr: 'Emploi : Êtes-vous actuellement... ?', options_en: ['Employed', 'Self-employed', 'Looking for work', 'Student', 'Homemaker', 'Retired', 'Other'], options_fr: ['Employé(e)', 'Travailleur indépendant', 'En recherche d\'emploi', 'Étudiant(e)', 'Au foyer', 'Retraité(e)', 'Autre'] },
+  { id: 'q6', key: 'q6_smoking', required: false, en: 'Tobacco: Do you smoke?', fr: 'Tabac : Fumez-vous ?', options_en: ['Yes', 'Yes, tobacco and cannabis', 'Occasionally', 'No', 'No, but cannabis occasionally'], options_fr: ['Oui', 'Oui, tabac et cannabis', 'Occasionnellement', 'Non', 'Non, mais cannabis occasionnellement'] },
+  { id: 'q7', key: 'q7_alcohol', required: false, en: 'Alcohol: Do you drink?', fr: 'Alcool : Buvez-vous ?', options_en: ['Yes', 'No', 'Occasionally'], options_fr: ['Oui', 'Non', 'Occasionnellement'] },
   { id: 'q8', key: 'q8_nutrition', required: false, en: 'Nutrition: What does your regular diet look like?', fr: 'Nutrition : Quel est votre régime alimentaire ?', options_en: ['Omnivorous', 'Vegetarian', 'Vegan', 'Pescatarian', 'Plant-Based', 'Keto', 'Alkaline', 'Other'], options_fr: ['Omnivore', 'Végétarien', 'Végétalien', 'Pescatarien', 'Végétal', 'Keto', 'Alcalin', 'Autre'] },
   { id: 'q9', key: 'q9_long_distance', required: false, en: 'Are you open to long-distance relationships?', fr: 'Êtes-vous ouvert(e) aux relations à distance ?', options_en: ['Yes', 'No', 'Maybe'], options_fr: ['Oui', 'Non', 'Peut-être'] },
   { id: 'q12', key: 'q12_marriage', required: false, en: 'How important is marriage to your overall happiness?', fr: "Quelle est l'importance du mariage pour votre bonheur ?", options_en: ["It's crucial", "I'm open to it", "Not on my radar", "I don't want to marry"], options_fr: ['C\'est crucial', 'Je suis ouvert(e)', 'Pas dans mes plans', 'Je ne veux pas me marier'] },
@@ -271,8 +271,7 @@ export default function Onboarding() {
               <div className="flex items-center justify-between">
                 <span className="text-[#F0E6FF]/40 text-sm">
                   {currentQ + 1} / {QUESTIONS_21.length}
-                  {!QUESTIONS_21[currentQ].required && <span className="ml-2 px-2 py-0.5 rounded-full bg-[rgba(240,230,255,0.05)] text-xs">{t('onboarding.optional_badge')}</span>}
-                  {QUESTIONS_21[currentQ].required && <span className="ml-2 px-2 py-0.5 rounded-full bg-[rgba(245,168,0,0.1)] text-[#F5A800] text-xs">{t('onboarding.required_badge')}</span>}
+                  <span className="ml-2 px-2 py-0.5 rounded-full bg-[rgba(240,230,255,0.05)] text-xs">{t('onboarding.optional_badge')}</span>
                 </span>
               </div>
               <h2 className="font-serif text-2xl text-[#F0E6FF] leading-relaxed">
@@ -318,11 +317,9 @@ export default function Onboarding() {
                   </button>
                 )}
               </div>
-              {currentQ === 6 && (
-                <button onClick={goNext} className="w-full text-center text-[#F0E6FF]/40 text-sm hover:opacity-80">
-                  {t('common.skip')} →
-                </button>
-              )}
+              <button onClick={goNext} className="w-full text-center text-[#F0E6FF]/30 text-sm hover:text-[#F0E6FF]/60 transition-colors">
+                {t('common.skip')} →
+              </button>
             </motion.div>
           )}
 

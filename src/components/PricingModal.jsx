@@ -58,6 +58,50 @@ export default function PricingModal({ isOpen, onClose }) {
               </div>
             </section>
 
+            {/* Membership Plans */}
+            <section>
+              <h3 className="text-xl font-serif text-[#F5A800] mb-6">
+                {lang === 'fr' ? 'Tarifs d\'Abonnement' : 'Membership Plans'}
+              </h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-purple-500/30">
+                      <th className="py-3 px-4 text-purple-200 font-semibold text-sm uppercase tracking-wider">{lang === 'fr' ? 'Durée' : 'Duration'}</th>
+                      <th className="py-3 px-4 text-purple-200 font-semibold text-sm uppercase tracking-wider">Solar</th>
+                      <th className="py-3 px-4 text-purple-200 font-semibold text-sm uppercase tracking-wider">{lang === 'fr' ? 'Lunaire' : 'Lunar'}</th>
+                      <th className="py-3 px-4 text-purple-200 font-semibold text-sm uppercase tracking-wider">{lang === 'fr' ? 'Stellaire' : 'Stellar'}</th>
+                      <th className="py-3 px-4 text-purple-200 font-semibold text-sm uppercase tracking-wider">{lang === 'fr' ? 'Galactique' : 'Galactic'}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-[#F0E6FF]/80">
+                    {[
+                      { label: lang === 'fr' ? '7 jours' : '7 days', solar: 'Free', lunar: 'N/A', stellar: 'N/A', galactic: '$7' },
+                      { label: lang === 'fr' ? '14 jours' : '14 days', solar: 'Free', lunar: '$5', stellar: '$10', galactic: '$14' },
+                      { label: lang === 'fr' ? '1 mois' : '1 month', solar: 'Free', lunar: '$10', stellar: '$15', galactic: '$20' },
+                      { label: lang === 'fr' ? '3 mois' : '3 months', solar: 'Free', lunar: '$27.50', stellar: '$41.25', galactic: '$55' },
+                      { label: lang === 'fr' ? '6 mois' : '6 months', solar: 'Free', lunar: '$55', stellar: '$82.50', galactic: '$110' },
+                      { label: lang === 'fr' ? '1 an' : '1 year', solar: 'Free', lunar: '$110', stellar: '$165', galactic: '$220' },
+                      { label: lang === 'fr' ? 'À vie' : 'Lifetime', solar: 'N/A', lunar: 'N/A', stellar: 'N/A', galactic: '$400' },
+                    ].map((row, idx) => (
+                      <tr key={idx} className="border-b border-purple-900/30 hover:bg-purple-500/5 transition-colors">
+                        <td className="py-3 px-4 font-medium text-sm">{row.label}</td>
+                        <td className="py-3 px-4 text-sm text-[#F0E6FF]/50">{row.solar}</td>
+                        <td className="py-3 px-4 text-sm text-[#7B2FBE] font-medium">{row.lunar}</td>
+                        <td className="py-3 px-4 text-sm text-[#A855F7] font-medium">{row.stellar}</td>
+                        <td className="py-3 px-4 text-[#F5A800] font-bold text-sm">{row.galactic}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="mt-4 p-3 rounded-xl text-xs text-[#F0E6FF]/50 glass-card">
+                {lang === 'fr'
+                  ? '* Plan International : +5$/mois sur tous les plans — accès aux profils hors de votre région.'
+                  : '* International Plan: +$5/month on any plan — access profiles outside your region.'}
+              </div>
+            </section>
+
             {/* Micro Interactions */}
             <section>
               <h3 className="text-xl font-serif text-[#F5A800] mb-6">

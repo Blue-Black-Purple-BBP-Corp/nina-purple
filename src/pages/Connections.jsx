@@ -6,6 +6,7 @@ import { useTranslation, getPricingForCompatibility } from '@/lib/i18n';
 import PricingModal from '@/components/PricingModal';
 import NinaSpeech from '@/components/NinaSpeech';
 
+// Example profiles to show first users what the space is intended for
 const MOCK_PROFILES = [
   { id: '1', name: 'Darrell G.', age: 36, city: 'London', archetype: 'purple', compatibility: 92, pronouns: 'He/Him', status: 'Single', orientation: 'Straight', bio: "I'm athletic, and being outside is a massive part of my life. I'm passionate about genuine connection.", is_unlocked: false },
   { id: '2', name: 'Imani M.', age: 28, city: 'Paris', archetype: 'blue', compatibility: 87, pronouns: 'She/Her', status: 'Single', orientation: 'Fluid', bio: "After being stuck in the house for so long, I realize I want to spend time with good-quality people!", is_unlocked: true },
@@ -63,7 +64,7 @@ export default function Connections() {
     <div className="px-4 py-6 max-w-lg mx-auto">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
         <h1 className="font-serif text-3xl text-[#F0E6FF] mb-1">{t('connections.title')}</h1>
-        <p className="text-[#F0E6FF]/40 text-sm">{t('connections.subtitle')}</p>
+        <p className="text-[#F0E6FF]/40 text-sm">{lang === 'fr' ? 'Exemples pour vous montrer le chemin' : 'Example profiles — yours will appear here once matched'}</p>
       </motion.div>
 
       {/* Filter tabs */}

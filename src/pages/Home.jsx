@@ -7,6 +7,7 @@ import { useTranslation } from '@/lib/i18n';
 import NinaAvatar from '@/components/NinaAvatar';
 import PricingModal from '@/components/PricingModal';
 
+// Example profiles to illustrate what the space is for
 const MOCK_CONNECTIONS = [
   { id: '1', name: 'Darrell G.', age: 36, city: 'London', archetype: 'purple', compatibility: 92, pronouns: 'He/Him' },
   { id: '2', name: 'Imani M.', age: 28, city: 'Paris', archetype: 'blue', compatibility: 87, pronouns: 'She/Her' },
@@ -49,7 +50,7 @@ export default function Home() {
       <motion.div {...fadeUp(0)} className="flex items-center justify-between pt-2">
         <div>
           <h1 className="font-serif text-2xl text-[#F0E6FF]">{lang === 'fr' ? 'Bienvenue' : 'Welcome'}</h1>
-          <p className="text-[#F0E6FF]/40 text-sm">{lang === 'fr' ? 'Votre constellation vous attend' : 'Your constellation awaits'}</p>
+          <p className="text-[#F0E6FF]/40 text-sm">{lang === 'fr' ? 'Exemples pour vous inspirer' : 'Examples to show you the way'}</p>
         </div>
         <div className="flex items-center gap-2">
           <button

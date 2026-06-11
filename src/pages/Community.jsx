@@ -13,6 +13,7 @@ const MOCK_ROOMS = [
   { id: '6', name_en: 'Self-Growth & Development', name_fr: 'Croissance Personnelle', desc_en: 'Sharing resources and journeys of personal transformation.', desc_fr: 'Partager des ressources et des parcours de transformation personnelle.', posts: 54, members: 290, pinned: false },
 ];
 
+// Example posts to show first users what conversations look like here
 const MOCK_POSTS = {
   '1': [
     { id: '1', author: 'Lupita M.', time: '3h ago', content: "I'm looking for a love that looks like this! 💜 But for real, I am looking for a feeling that I've never felt.", likes: 12, comments: 4 },
@@ -126,7 +127,7 @@ export default function Community() {
     <div className="px-4 py-6 max-w-lg mx-auto">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
         <h1 className="font-serif text-3xl text-[#F0E6FF] mb-1">{t('community.title')}</h1>
-        <p className="text-[#F0E6FF]/40 text-sm">{t('community.subtitle')}</p>
+        <p className="text-[#F0E6FF]/40 text-sm">{lang === 'fr' ? 'Exemples de conversations — rejoignez et contribuez !' : 'Example conversations — join and start contributing!'}</p>
       </motion.div>
 
       <div className="space-y-3">
