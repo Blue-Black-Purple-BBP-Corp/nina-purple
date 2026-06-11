@@ -194,9 +194,19 @@ export default function Onboarding() {
   const [selectedPlan, setSelectedPlan] = useState('solar');
   const [currentQ, setCurrentQ] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [ageError, setAgeError] = useState('');
 
   const currentStep = STEPS[step];
   const progress = (step / (STEPS.length - 1)) * 100;
+
+  const isOver18 = (birthdate) => {
+    if (!birthdate) return false;
+    const dob = new Date(birthdate);
+    const today = new Date();
+    const age = today.getFullYear() - dob.getFullYear();
+    const m = today.getMonth() - dob.getMonth();
+    return age > 18 || (age === 18 && (m > 0 || (m === 0 && today.getDate() >= dob.getDate())));
+  };
 
   const goNext = () => setStep(s => Math.min(s + 1, STEPS.length - 1));
   const goPrev = () => setStep(s => Math.max(s - 1, 0));
@@ -366,9 +376,18 @@ export default function Onboarding() {
                 <input
                   type="date"
                   value={profile.birthdate}
-                  onChange={e => setProfile(p => ({ ...p, birthdate: e.target.value }))}
-                  className="w-full glass-card rounded-xl px-4 py-3 text-[#F0E6FF] outline-none focus:border-[rgba(245,168,0,0.4)] transition-all bg-transparent"
+                  onChange={e => {
+                    const val = e.target.value;
+                    setProfile(p => ({ ...p, birthdate: val }));
+                    if (val && !isOver18(val)) {
+                      setAgeError(lang === 'fr' ? 'Vous devez avoir 18 ans ou plus.' : 'You must be 18 years or older.');
+                    } else {
+                      setAgeError('');
+                    }
+                  }}
+                  className={`w-full glass-card rounded-xl px-4 py-3 text-[#F0E6FF] outline-none transition-all bg-transparent ${ageError ? 'border-red-500/60' : 'focus:border-[rgba(245,168,0,0.4)]'}`}
                 />
+                {ageError && <p className="text-red-400 text-xs mt-1">{ageError}</p>}
               </div>
               {[
                 { label: t('onboarding.orientation_label'), key: 'sexual_orientation', options: lang === 'fr' ? ['Hétérosexuel(le)', 'Gay', 'Lesbienne', 'Bisexuel(le)', 'Asexuel(le)', 'Pansexuel(le)', 'Queer', 'Autre'] : ['Straight', 'Gay', 'Lesbian', 'Bisexual', 'Asexual', 'Pansexual', 'Queer', 'Other'] },
@@ -387,8 +406,10 @@ export default function Onboarding() {
                   </select>
                 </div>
               ))}
-              <button onClick={goNext}
-                className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all">
+              <button
+                onClick={() => { if (!ageError && (!profile.birthdate || isOver18(profile.birthdate))) goNext(); }}
+                disabled={!!ageError}
+                className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
                 {t('onboarding.continue')}
               </button>
             </motion.div>

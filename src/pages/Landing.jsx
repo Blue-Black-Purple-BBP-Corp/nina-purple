@@ -40,7 +40,7 @@ export default function Landing() {
       </nav>
 
       {/* Hero */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-20 pb-16 overflow-hidden">
+      <section id="home" className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-20 pb-16 overflow-hidden">
         {/* Radial glow background */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full"
@@ -125,7 +125,7 @@ export default function Landing() {
       <div className="golden-thread w-full" />
 
       {/* Features */}
-      <section className="px-6 py-24 max-w-6xl mx-auto">
+      <section id="mission" className="px-6 py-24 max-w-6xl mx-auto">
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
@@ -260,6 +260,32 @@ export default function Landing() {
       </footer>
 
       <PricingModal isOpen={pricingOpen} onClose={() => setPricingOpen(false)} />
+
+      {/* Mobile bottom nav */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-[rgba(240,230,255,0.08)]"
+        style={{ background: 'rgba(11,5,16,0.95)', backdropFilter: 'blur(20px)' }}>
+        <div className="flex items-stretch">
+          <a href="#home"
+            className="flex-1 flex flex-col items-center justify-center py-3 gap-1 text-[#F0E6FF]/50 hover:text-[#F0E6FF] transition-colors text-xs font-medium tracking-wide">
+            <img src="https://media.base44.com/images/public/user_6a21c0f76d807658e5c95962/36ab8cc0a_NinaPurpleIcon.png"
+              alt="" className="w-5 h-5 object-contain opacity-60" />
+            {lang === 'fr' ? 'Accueil' : 'Home'}
+          </a>
+          <a href="#mission"
+            className="flex-1 flex flex-col items-center justify-center py-3 gap-1 text-[#F0E6FF]/50 hover:text-[#F0E6FF] transition-colors text-xs font-medium tracking-wide">
+            <Star className="w-5 h-5" />
+            {lang === 'fr' ? 'Intention' : 'Intention'}
+          </a>
+          <Link to="/onboarding"
+            className="flex-1 flex flex-col items-center justify-center py-3 gap-1 bg-[#F5A800] text-[#0B0510] text-xs font-bold tracking-wide">
+            <Zap className="w-5 h-5" />
+            {lang === 'fr' ? 'Commencer' : 'Begin'}
+          </Link>
+        </div>
+      </nav>
+
+      {/* Spacer so footer isn't hidden behind mobile nav */}
+      <div className="h-16 md:hidden" />
     </div>
   );
 }
