@@ -10,19 +10,176 @@ import { base44 } from '@/api/base44Client';
 
 const STEPS = ['intro', 'age', 'guidelines', 'profile', 'archetype', 'photos', 'questions', 'subscription', 'complete'];
 
+// Option keys: a, b, c, d map to the algorithm's scoring matrix
 const QUESTIONS_21 = [
-  { id: 'q1', key: 'q1_ethnicity', required: false, en: 'Ethnic origin: Please specify your ethnicity.', fr: 'Origine ethnique : Veuillez préciser votre origine.', options_en: ['Afro descendant', 'Mixed Afro descendant', 'Hispanic or Latino', 'First Nation/Indigenous', 'Asian', 'Caucasian', 'Mixed Others', 'Other'], options_fr: ['Afro-descendant', 'Métis afro-descendant', 'Hispanique ou Latino', 'Première Nation/Autochtone', 'Asiatique', 'Caucasien', 'Mixte autre', 'Autre'] },
-  { id: 'q2', key: 'q2_education', required: false, en: 'Education: Highest degree completed?', fr: 'Éducation : Niveau d\'études le plus élevé ?', options_en: ['High school', 'Some college', 'Trade/Vocational', "Associate's degree", "Bachelor's degree", "Master's degree", 'Doctorate'], options_fr: ['Lycée', 'Quelques cours universitaires', 'Formation professionnelle', 'Baccalauréat', 'Licence', 'Master', 'Doctorat'] },
-  { id: 'q3', key: 'q3_children', required: false, en: 'Children: Are children important in your life?', fr: 'Enfants : Les enfants sont-ils importants dans votre vie ?', multi: true, options_en: ['I have children', 'I might have more one day', "I can't wait to have children", "I don't know currently"], options_fr: ['J\'ai des enfants', 'J\'en aurai peut-être un jour', 'J\'ai hâte d\'en avoir', 'Je ne sais pas actuellement'] },
-  { id: 'q4', key: 'q4_religion', required: false, en: 'Religion: How do you identify?', fr: 'Religion : Comment vous identifiez-vous ?', options_en: ['Agnostic', 'Buddhist', 'Catholic', 'Christian', 'Spiritual', 'Muslim', 'Jewish', 'Sikh', 'Rastafari', 'Other'], options_fr: ['Agnostique', 'Bouddhiste', 'Catholique', 'Chrétien', 'Spirituel', 'Musulman', 'Juif', 'Sikh', 'Rastafari', 'Autre'] },
-  { id: 'q5', key: 'q5_employment', required: false, en: 'Employment: Are you currently...?', fr: 'Emploi : Êtes-vous actuellement... ?', options_en: ['Employed', 'Self-employed', 'Looking for work', 'Student', 'Homemaker', 'Retired', 'Other'], options_fr: ['Employé(e)', 'Travailleur indépendant', 'En recherche d\'emploi', 'Étudiant(e)', 'Au foyer', 'Retraité(e)', 'Autre'] },
-  { id: 'q6', key: 'q6_smoking', required: false, en: 'Tobacco: Do you smoke?', fr: 'Tabac : Fumez-vous ?', options_en: ['Yes', 'Yes, tobacco and cannabis', 'Occasionally', 'No', 'No, but cannabis occasionally'], options_fr: ['Oui', 'Oui, tabac et cannabis', 'Occasionnellement', 'Non', 'Non, mais cannabis occasionnellement'] },
-  { id: 'q7', key: 'q7_alcohol', required: false, en: 'Alcohol: Do you drink?', fr: 'Alcool : Buvez-vous ?', options_en: ['Yes', 'No', 'Occasionally'], options_fr: ['Oui', 'Non', 'Occasionnellement'] },
-  { id: 'q8', key: 'q8_nutrition', required: false, en: 'Nutrition: What does your regular diet look like?', fr: 'Nutrition : Quel est votre régime alimentaire ?', options_en: ['Omnivorous', 'Vegetarian', 'Vegan', 'Pescatarian', 'Plant-Based', 'Keto', 'Alkaline', 'Other'], options_fr: ['Omnivore', 'Végétarien', 'Végétalien', 'Pescatarien', 'Végétal', 'Keto', 'Alcalin', 'Autre'] },
-  { id: 'q9', key: 'q9_long_distance', required: false, en: 'Are you open to long-distance relationships?', fr: 'Êtes-vous ouvert(e) aux relations à distance ?', options_en: ['Yes', 'No', 'Maybe'], options_fr: ['Oui', 'Non', 'Peut-être'] },
-  { id: 'q12', key: 'q12_marriage', required: false, en: 'How important is marriage to your overall happiness?', fr: "Quelle est l'importance du mariage pour votre bonheur ?", options_en: ["It's crucial", "I'm open to it", "Not on my radar", "I don't want to marry"], options_fr: ['C\'est crucial', 'Je suis ouvert(e)', 'Pas dans mes plans', 'Je ne veux pas me marier'] },
-  { id: 'q13', key: 'q13_spirituality', required: false, en: 'How important is your spirituality to you?', fr: 'Quelle est l\'importance de votre spiritualité ?', options_en: ['Extremely important', 'Quite important', 'Important', 'Not very important', 'Not important'], options_fr: ['Extrêmement important', 'Très important', 'Important', 'Peu important', 'Pas important'] },
-  { id: 'q21', key: 'q21_love_language', required: false, en: "Most important way your partner expresses love?", fr: 'La façon la plus importante dont votre partenaire exprime son amour ?', options_en: ['Words of affirmation', 'Acts of service', 'Thoughtful gifts', 'Quality time', 'Physical touch'], options_fr: ['Paroles d\'affirmation', 'Actes de service', 'Cadeaux attentionnés', 'Temps de qualité', 'Contact physique'] },
+  {
+    key: 'q11_core_values',
+    en: 'What are your core values?',
+    fr: 'Quelles sont vos valeurs fondamentales ?',
+    options_en: ['a) Honesty and integrity', 'b) Compassion and empathy', 'c) Ambition and achievement', 'd) Adventure and spontaneity'],
+    options_fr: ['a) Honnêteté et intégrité', 'b) Compassion et empathie', 'c) Ambition et réussite', 'd) Aventure et spontanéité'],
+    opt_keys: ['a', 'b', 'c', 'd'],
+  },
+  {
+    key: 'q12_success',
+    en: 'How do you define success?',
+    fr: 'Comment définissez-vous le succès ?',
+    options_en: ['a) Financial stability and career advancement', 'b) Personal fulfillment and happiness', 'c) Making a positive impact on others', 'd) Continuous growth and self-improvement'],
+    options_fr: ['a) Stabilité financière et évolution professionnelle', 'b) Épanouissement personnel et bonheur', 'c) Avoir un impact positif sur les autres', 'd) Croissance continue et amélioration de soi'],
+    opt_keys: ['a', 'b', 'c', 'd'],
+  },
+  {
+    key: 'q13_conflict',
+    en: 'How do you handle conflicts or disagreements?',
+    fr: 'Comment gérez-vous les conflits ou désaccords ?',
+    options_en: ['a) Open communication and compromise', 'b) Taking time to cool off before discussing', 'c) Seeking a win-win solution', 'd) Avoiding conflicts altogether'],
+    options_fr: ['a) Communication ouverte et compromis', 'b) Prendre du recul avant d\'en parler', 'c) Chercher une solution gagnant-gagnant', 'd) Éviter les conflits'],
+    opt_keys: ['a', 'b', 'c', 'd'],
+  },
+  {
+    key: 'q14_spirituality',
+    en: 'What role does spirituality or religion play in your life?',
+    fr: 'Quel rôle joue la spiritualité ou la religion dans votre vie ?',
+    options_en: ['a) Central part of my life and decision-making', 'b) Provides guidance and moral compass', 'c) Not important to me personally', 'd) Still exploring and defining my beliefs'],
+    options_fr: ['a) Partie centrale de ma vie et de mes décisions', 'b) Un guide et une boussole morale', 'c) Pas important pour moi personnellement', 'd) J\'explore encore mes croyances'],
+    opt_keys: ['a', 'b', 'c', 'd'],
+  },
+  {
+    key: 'q15_personal_growth',
+    en: 'How important is personal growth and self-development to you?',
+    fr: 'Quelle importance accordez-vous à la croissance personnelle ?',
+    options_en: ['a) Extremely important; always seeking self-improvement', 'b) Somewhat important; I take it at my own pace', 'c) Not a priority; I\'m content with who I am', 'd) Unsure; still figuring out my approach'],
+    options_fr: ['a) Extrêmement important; je cherche toujours à m\'améliorer', 'b) Assez important, à mon rythme', 'c) Pas une priorité; je suis satisfait(e) de qui je suis', 'd) Incertain(e); je cherche encore'],
+    opt_keys: ['a', 'b', 'c', 'd'],
+  },
+  {
+    key: 'q16_stress',
+    en: 'How do you handle stress and prioritize self-care?',
+    fr: 'Comment gérez-vous le stress et prenez-vous soin de vous ?',
+    options_en: ['a) Engage in regular exercise and self-care practices', 'b) Seek support from loved ones or professionals', 'c) Get immersed in hobbies or activities I enjoy', 'd) I struggle with managing stress and self-care'],
+    options_fr: ['a) Exercice régulier et pratiques de bien-être', 'b) Je cherche le soutien de proches ou de professionnels', 'c) Je me plonge dans des loisirs', 'd) J\'ai du mal à gérer le stress'],
+    opt_keys: ['a', 'b', 'c', 'd'],
+  },
+  {
+    key: 'q17_living_env',
+    en: 'How do you envision your ideal living environment?',
+    fr: 'Comment imaginez-vous votre environnement de vie idéal ?',
+    options_en: ['a) Urban city life with lots of activities and opportunities', 'b) Peaceful suburban or rural setting close to nature', 'c) A mix of both, depending on my mood', 'd) I\'m flexible and open to different environments'],
+    options_fr: ['a) Vie urbaine dynamique', 'b) Cadre paisible, proche de la nature', 'c) Un mélange des deux selon mon humeur', 'd) Flexible et ouvert(e) à tout environnement'],
+    opt_keys: ['a', 'b', 'c', 'd'],
+  },
+  {
+    key: 'q18_family',
+    en: 'How important is family to you?',
+    fr: 'Quelle importance accordez-vous à la famille ?',
+    options_en: ['a) Family is my top priority and I\'m very close to them', 'b) Family is important, but so are personal goals', 'c) Neutral; I also value independence', 'd) Not a priority; I have a different definition of family'],
+    options_fr: ['a) La famille est ma priorité absolue', 'b) La famille est importante, tout comme mes objectifs personnels', 'c) Neutre; j\'accorde aussi de la valeur à l\'indépendance', 'd) Pas une priorité; j\'ai une vision différente de la famille'],
+    opt_keys: ['a', 'b', 'c', 'd'],
+  },
+  {
+    key: 'q19_work_life',
+    en: 'How do you approach work-life balance?',
+    fr: 'Comment abordez-vous l\'équilibre travail-vie personnelle ?',
+    options_en: ['a) Strive for a healthy balance between work and personal life', 'b) Work is a top priority; personal life takes a backseat', 'c) Personal life is more important than work', 'd) I struggle to maintain a balance'],
+    options_fr: ['a) Je m\'efforce d\'avoir un équilibre sain', 'b) Le travail est prioritaire', 'c) La vie personnelle est plus importante que le travail', 'd) J\'ai du mal à maintenir cet équilibre'],
+    opt_keys: ['a', 'b', 'c', 'd'],
+  },
+  {
+    key: 'q20_relationship_goal',
+    en: 'What are your long-term relationship goals?',
+    fr: 'Quels sont vos objectifs relationnels à long terme ?',
+    options_en: ['a) Companionship and building a life together', 'b) Marriage and starting a family', 'c) Exploring a non-traditional or open relationship', 'd) Uncertain; still figuring out my long-term goals'],
+    options_fr: ['a) Complicité et construire une vie ensemble', 'b) Mariage et fonder une famille', 'c) Explorer une relation non traditionnelle', 'd) Incertain(e); je cherche encore'],
+    opt_keys: ['a', 'b', 'c', 'd'],
+  },
+  {
+    key: 'q21_money',
+    en: 'How do you handle money and financial responsibilities?',
+    fr: 'Comment gérez-vous l\'argent et les responsabilités financières ?',
+    options_en: ['a) Budgeting and saving for the future are important to me', 'b) I\'m comfortable spending and enjoying the present', 'c) I\'m not particularly focused on financial matters', 'd) I struggle with managing money and need guidance'],
+    options_fr: ['a) Le budget et l\'épargne sont importants pour moi', 'b) Je dépense et profite du présent', 'c) Je ne me concentre pas vraiment sur les finances', 'd) J\'ai du mal à gérer l\'argent'],
+    opt_keys: ['a', 'b', 'c', 'd'],
+  },
+  {
+    key: 'q22_gender_roles',
+    en: 'How do you view gender roles in a relationship?',
+    fr: 'Comment percevez-vous les rôles de genre dans une relation ?',
+    options_en: ['a) Embrace traditional gender roles', 'b) Prefer a more egalitarian approach', 'c) Open to discussing and finding a balance', 'd) Unsure; still exploring my views'],
+    options_fr: ['a) J\'adhère aux rôles de genre traditionnels', 'b) Je préfère une approche égalitaire', 'c) Ouvert(e) à en discuter', 'd) Incertain(e); j\'explore encore'],
+    opt_keys: ['a', 'b', 'c', 'd'],
+  },
+  {
+    key: 'q23_leisure',
+    en: 'How do you spend your leisure time?',
+    fr: 'Comment occupez-vous votre temps libre ?',
+    options_en: ['a) Engaging in physical activities and outdoor adventures', 'b) Pursuing creative hobbies and artistic interests', 'c) Relaxing at home with a book or a movie', 'd) Socializing with friends and exploring new places'],
+    options_fr: ['a) Activités physiques et aventures en plein air', 'b) Loisirs créatifs et artistiques', 'c) Me détendre chez moi avec un livre ou un film', 'd) Socialiser et explorer de nouveaux endroits'],
+    opt_keys: ['a', 'b', 'c', 'd'],
+  },
+  {
+    key: 'q24_communication',
+    en: 'How do you define and practice effective communication?',
+    fr: 'Comment définissez-vous et pratiquez-vous une communication efficace ?',
+    options_en: ['a) Active listening and expressing thoughts openly and honestly', 'b) Keeping emotions in check and maintaining a calm demeanor', 'c) Non-verbal cues and understanding body language', 'd) I struggle with effective communication'],
+    options_fr: ['a) Écoute active et expression ouverte et honnête', 'b) Maîtriser ses émotions et rester calme', 'c) Signaux non verbaux et langage corporel', 'd) J\'ai du mal à communiquer efficacement'],
+    opt_keys: ['a', 'b', 'c', 'd'],
+  },
+  {
+    key: 'q25_intellectual',
+    en: 'How important is intellectual stimulation and shared interests?',
+    fr: 'Quelle importance accordez-vous à la stimulation intellectuelle et aux intérêts communs ?',
+    options_en: ['a) Extremely important; I seek mental stimulation and connection', 'b) Moderately important; I enjoy shared interests but it\'s not a must', 'c) Not a priority; I focus more on emotional connection', 'd) Unsure; still figuring out my preferences'],
+    options_fr: ['a) Extrêmement important; je cherche la stimulation mentale', 'b) Modérément important; les intérêts communs sont appréciés', 'c) Pas une priorité; je privilégie la connexion émotionnelle', 'd) Incertain(e); j\'explore encore'],
+    opt_keys: ['a', 'b', 'c', 'd'],
+  },
+  {
+    key: 'q26_boundaries',
+    en: 'How do you approach personal boundaries and respect others\'?',
+    fr: 'Comment abordez-vous les limites personnelles ?',
+    options_en: ['a) I communicate my boundaries clearly and respect others\'', 'b) I adapt to others\' boundaries without asserting my own', 'c) I struggle to establish and maintain personal boundaries', 'd) I\'m still learning about boundaries and their importance'],
+    options_fr: ['a) Je communique clairement mes limites et respecte celles des autres', 'b) Je m\'adapte aux limites des autres sans affirmer les miennes', 'c) J\'ai du mal à établir et maintenir mes limites', 'd) J\'apprends encore l\'importance des limites'],
+    opt_keys: ['a', 'b', 'c', 'd'],
+  },
+  {
+    key: 'q27_change',
+    en: 'How do you handle change and adapt to new situations?',
+    fr: 'Comment gérez-vous le changement et les nouvelles situations ?',
+    options_en: ['a) Embrace change and see it as an opportunity for growth', 'b) Feel uncomfortable with change but try to adapt', 'c) Prefer stability and resist change whenever possible', 'd) I find it difficult to handle change and need support'],
+    options_fr: ['a) J\'embrasse le changement comme une opportunité de croissance', 'b) Je me sens mal à l\'aise mais j\'essaie de m\'adapter', 'c) Je préfère la stabilité et résiste au changement', 'd) J\'ai du mal à gérer le changement'],
+    opt_keys: ['a', 'b', 'c', 'd'],
+  },
+  {
+    key: 'q28_diversity',
+    en: 'How do you handle personal differences and diversity of opinions?',
+    fr: 'Comment gérez-vous les différences et la diversité des opinions ?',
+    options_en: ['a) Respect and appreciate different perspectives', 'b) Engage in healthy debates to understand others\' viewpoints', 'c) Avoid discussing sensitive topics to prevent conflicts', 'd) I struggle to accept differing opinions'],
+    options_fr: ['a) Je respecte et apprécie les perspectives différentes', 'b) Je participe à des débats sains', 'c) J\'évite les sujets sensibles pour prévenir les conflits', 'd) J\'ai du mal à accepter les opinions différentes'],
+    opt_keys: ['a', 'b', 'c', 'd'],
+  },
+  {
+    key: 'q29_activism',
+    en: 'How important is social activism and making a difference?',
+    fr: 'Quelle importance accordez-vous à l\'activisme social ?',
+    options_en: ['a) Actively involved in social causes and making an impact', 'b) Supportive of social causes but not actively engaged', 'c) Not a priority for me; I focus more on personal matters', 'd) Still exploring my views and potential involvement'],
+    options_fr: ['a) Activement impliqué(e) dans des causes sociales', 'b) Favorable aux causes sociales sans engagement actif', 'c) Pas une priorité; je me concentre sur le personnel', 'd) J\'explore encore mes positions'],
+    opt_keys: ['a', 'b', 'c', 'd'],
+  },
+  {
+    key: 'q30_emotional_intimacy',
+    en: 'How do you define and practice emotional intimacy?',
+    fr: 'Comment définissez-vous et pratiquez-vous l\'intimité émotionnelle ?',
+    options_en: ['a) Openly express emotions and create a safe space for vulnerability', 'b) Feel more comfortable with emotional self-sufficiency', 'c) Emotional intimacy is important, but it develops slowly for me', 'd) I struggle with emotional intimacy and need guidance'],
+    options_fr: ['a) J\'exprime ouvertement mes émotions et crée un espace sûr', 'b) Je suis plus à l\'aise avec l\'autosuffisance émotionnelle', 'c) L\'intimité émotionnelle est importante mais se développe lentement chez moi', 'd) J\'ai du mal avec l\'intimité émotionnelle'],
+    opt_keys: ['a', 'b', 'c', 'd'],
+  },
+  {
+    key: 'q31_partner_growth',
+    en: 'How do you approach personal growth and support your partner\'s growth?',
+    fr: 'Comment abordez-vous la croissance personnelle et celle de votre partenaire ?',
+    options_en: ['a) Encourage and support personal growth for both myself and my partner', 'b) Focus on my own personal growth and expect the same from my partner', 'c) Growth is an individual journey; I respect my partner\'s choices', 'd) Unsure; I\'m still figuring out my approach'],
+    options_fr: ['a) J\'encourage et soutiens la croissance mutuelle', 'b) Je me concentre sur ma propre croissance et attends de même', 'c) La croissance est un voyage individuel; je respecte les choix de l\'autre', 'd) Incertain(e); je cherche encore mon approche'],
+    opt_keys: ['a', 'b', 'c', 'd'],
+  },
 ];
 
 export default function Onboarding() {
@@ -83,7 +240,12 @@ export default function Onboarding() {
           language: lang,
           profile_completeness: 60,
         });
-        await base44.entities.MatchingAnswers.create({ user_id: user.id, ...answers, questions_answered: Object.keys(answers).length });
+        // Save answers — values are the option keys (a/b/c/d), not the full text
+        await base44.entities.MatchingAnswers.create({
+          user_id: user.id,
+          ...answers,
+          questions_answered: Object.keys(answers).filter(k => answers[k]).length,
+        });
       }
     } catch (e) {
       // proceed anyway for demo
@@ -294,23 +456,15 @@ export default function Onboarding() {
               <h2 className="font-serif text-2xl text-[#F0E6FF] leading-relaxed">
                 {lang === 'fr' ? QUESTIONS_21[currentQ].fr : QUESTIONS_21[currentQ].en}
               </h2>
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {(lang === 'fr' ? QUESTIONS_21[currentQ].options_fr : QUESTIONS_21[currentQ].options_en).map((opt, i) => {
+              <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                {(lang === 'fr' ? QUESTIONS_21[currentQ].options_fr : QUESTIONS_21[currentQ].options_en).map((label, i) => {
                   const qKey = QUESTIONS_21[currentQ].key;
-                  const selected = QUESTIONS_21[currentQ].multi
-                    ? (answers[qKey] || []).includes(opt)
-                    : answers[qKey] === opt;
+                  const optKey = QUESTIONS_21[currentQ].opt_keys[i];
+                  const selected = answers[qKey] === optKey;
                   return (
-                    <button key={i} onClick={() => {
-                      if (QUESTIONS_21[currentQ].multi) {
-                        const cur = answers[qKey] || [];
-                        handleAnswer(qKey, selected ? cur.filter(v => v !== opt) : [...cur, opt]);
-                      } else {
-                        handleAnswer(qKey, opt);
-                      }
-                    }}
+                    <button key={i} onClick={() => handleAnswer(qKey, optKey)}
                       className={`w-full text-left px-4 py-3 rounded-xl transition-all text-sm ${selected ? 'bg-[rgba(245,168,0,0.12)] border border-[rgba(245,168,0,0.4)] text-[#F5A800]' : 'glass-card hover:border-[rgba(245,168,0,0.2)] text-[#F0E6FF]/80'}`}>
-                      {opt}
+                      {label}
                     </button>
                   );
                 })}

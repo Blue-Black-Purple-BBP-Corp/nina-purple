@@ -5,130 +5,67 @@
     "user_id": {
       "type": "string"
     },
-    "q1_ethnicity": {
+    "q11_core_values": {
       "type": "string"
     },
-    "q1_accept": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "q2_education": {
+    "q12_success": {
       "type": "string"
     },
-    "q2_accept": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "q3_children": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "q3_accept": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "q4_religion": {
+    "q13_conflict": {
       "type": "string"
     },
-    "q4_accept": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "q5_employment": {
+    "q14_spirituality": {
       "type": "string"
     },
-    "q5_accept": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "q6_smoking": {
+    "q15_personal_growth": {
       "type": "string"
     },
-    "q6_accept": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "q7_alcohol": {
+    "q16_stress": {
       "type": "string"
     },
-    "q7_accept": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "q8_nutrition": {
+    "q17_living_env": {
       "type": "string"
     },
-    "q8_accept": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "q9_long_distance": {
+    "q18_family": {
       "type": "string"
     },
-    "q10_pets": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "q11_intention": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "q12_marriage": {
+    "q19_work_life": {
       "type": "string"
     },
-    "q13_spirituality": {
+    "q20_relationship_goal": {
       "type": "string"
     },
-    "q14_free_thinker": {
+    "q21_money": {
       "type": "string"
     },
-    "q15_self_improvement": {
+    "q22_gender_roles": {
       "type": "string"
     },
-    "q16_family": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "q17_mobility": {
+    "q23_leisure": {
       "type": "string"
     },
-    "q18_pda": {
+    "q24_communication": {
       "type": "string"
     },
-    "q19_sexual_drive": {
+    "q25_intellectual": {
       "type": "string"
     },
-    "q20_lifestyle": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
+    "q26_boundaries": {
+      "type": "string"
     },
-    "q21_love_language": {
+    "q27_change": {
+      "type": "string"
+    },
+    "q28_diversity": {
+      "type": "string"
+    },
+    "q29_activism": {
+      "type": "string"
+    },
+    "q30_emotional_intimacy": {
+      "type": "string"
+    },
+    "q31_partner_growth": {
       "type": "string"
     },
     "questions_answered": {
