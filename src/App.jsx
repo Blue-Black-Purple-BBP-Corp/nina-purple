@@ -5,6 +5,8 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-d
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { LanguageProvider } from '@/lib/LanguageContext';
+import { ThemeProvider } from '@/lib/ThemeContext';
+import Privacy from '@/pages/Privacy';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 
 // Page imports
@@ -50,6 +52,7 @@ const AuthenticatedApp = () => {
       {/* Public landing */}
       <Route path="/" element={<Landing />} />
       <Route path="/onboarding" element={<Onboarding />} />
+      <Route path="/privacy" element={<Privacy />} />
 
       {/* App routes with shared layout */}
       <Route element={<AppLayout />}>
@@ -71,10 +74,12 @@ function App() {
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
         <LanguageProvider>
-          <Router>
-            <AuthenticatedApp />
-          </Router>
-          <Toaster />
+          <ThemeProvider>
+            <Router>
+              <AuthenticatedApp />
+            </Router>
+            <Toaster />
+          </ThemeProvider>
         </LanguageProvider>
       </QueryClientProvider>
     </AuthProvider>

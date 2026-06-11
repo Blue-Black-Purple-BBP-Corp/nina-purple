@@ -4,6 +4,40 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Light mode overrides */
+[data-theme="light"] {
+  --bg: #F5F0FF;
+  --fg: #1A0A2E;
+  --card-bg: #FFFFFF;
+  --card-border: rgba(123,47,190,0.15);
+}
+
+[data-theme="dark"] {
+  --bg: #0B0510;
+  --fg: #F0E6FF;
+  --card-bg: rgba(31,16,38,0.7);
+  --card-border: rgba(240,230,255,0.08);
+}
+
+[data-theme="light"] body {
+  background-color: #F5F0FF !important;
+  color: #1A0A2E !important;
+}
+
+[data-theme="light"] .glass-card {
+  background: rgba(255,255,255,0.9) !important;
+  border-color: rgba(123,47,190,0.15) !important;
+}
+
+[data-theme="light"] .glass-card-gold {
+  background: rgba(255,255,255,0.95) !important;
+  border-color: rgba(245,168,0,0.3) !important;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-track {
+  background: #F5F0FF;
+}
+
 @layer base {
   :root {
     /* Nina Purple - Midnight Alchemy Palette */

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Star, Zap, Heart, ChevronDown, Eye, EyeOff } from 'lucide-react';
 import LanguageToggle from '@/components/LanguageToggle';
+import ThemeToggle from '@/components/ThemeToggle';
 import PricingModal from '@/components/PricingModal';
 import { useLang } from '@/lib/LanguageContext';
 import { useTranslation, PRICING_TABLE } from '@/lib/i18n';
@@ -29,6 +30,7 @@ export default function Landing() {
           className="h-10 object-contain"
         />
         <div className="flex items-center gap-4">
+          <ThemeToggle />
           <LanguageToggle />
           <Link
             to="/onboarding"
@@ -254,6 +256,10 @@ export default function Landing() {
           />
           <div className="text-[#F0E6FF]/30 text-sm text-center">
             © 2026 Nina Purple · Blue Black Purple (BBP) Corp. · contact@NinaPurple.love
+            <span className="mx-2">·</span>
+            <Link to="/privacy" className="underline hover:text-[#F5A800] transition-colors">
+              {lang === 'fr' ? 'Confidentialité' : 'Privacy Policy'}
+            </Link>
           </div>
           <LanguageToggle />
         </div>
