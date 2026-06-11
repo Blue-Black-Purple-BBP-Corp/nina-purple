@@ -1,0 +1,108 @@
+{
+  "name": "UserProfile",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "display_name": {
+      "type": "string"
+    },
+    "birthdate": {
+      "type": "string",
+      "format": "date"
+    },
+    "age": {
+      "type": "number"
+    },
+    "zodiac": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "country": {
+      "type": "string"
+    },
+    "sexual_orientation": {
+      "type": "string"
+    },
+    "gender_pronoun": {
+      "type": "string"
+    },
+    "relationship_status": {
+      "type": "string"
+    },
+    "dating_archetype": {
+      "type": "string",
+      "enum": [
+        "blue",
+        "black",
+        "purple"
+      ]
+    },
+    "bio": {
+      "type": "string"
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "photos_private": {
+      "type": "boolean",
+      "default": true
+    },
+    "profile_completeness": {
+      "type": "number",
+      "default": 0
+    },
+    "subscription_tier": {
+      "type": "string",
+      "enum": [
+        "solar",
+        "lunar",
+        "stellar",
+        "galactic"
+      ],
+      "default": "solar"
+    },
+    "credit_balance": {
+      "type": "number",
+      "default": 0
+    },
+    "bbp_rewards": {
+      "type": "number",
+      "default": 0
+    },
+    "is_verified": {
+      "type": "boolean",
+      "default": false
+    },
+    "language": {
+      "type": "string",
+      "enum": [
+        "en",
+        "fr"
+      ],
+      "default": "en"
+    },
+    "onboarding_complete": {
+      "type": "boolean",
+      "default": false
+    },
+    "age_verified": {
+      "type": "boolean",
+      "default": false
+    },
+    "guidelines_accepted": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "user_id",
+    "display_name"
+  ]
+}

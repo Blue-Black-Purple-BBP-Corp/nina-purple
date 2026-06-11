@@ -1,0 +1,142 @@
+{
+  "name": "MatchingAnswers",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "q1_ethnicity": {
+      "type": "string"
+    },
+    "q1_accept": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "q2_education": {
+      "type": "string"
+    },
+    "q2_accept": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "q3_children": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "q3_accept": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "q4_religion": {
+      "type": "string"
+    },
+    "q4_accept": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "q5_employment": {
+      "type": "string"
+    },
+    "q5_accept": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "q6_smoking": {
+      "type": "string"
+    },
+    "q6_accept": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "q7_alcohol": {
+      "type": "string"
+    },
+    "q7_accept": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "q8_nutrition": {
+      "type": "string"
+    },
+    "q8_accept": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "q9_long_distance": {
+      "type": "string"
+    },
+    "q10_pets": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "q11_intention": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "q12_marriage": {
+      "type": "string"
+    },
+    "q13_spirituality": {
+      "type": "string"
+    },
+    "q14_free_thinker": {
+      "type": "string"
+    },
+    "q15_self_improvement": {
+      "type": "string"
+    },
+    "q16_family": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "q17_mobility": {
+      "type": "string"
+    },
+    "q18_pda": {
+      "type": "string"
+    },
+    "q19_sexual_drive": {
+      "type": "string"
+    },
+    "q20_lifestyle": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "q21_love_language": {
+      "type": "string"
+    },
+    "questions_answered": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "user_id"
+  ]
+}

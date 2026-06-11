@@ -1,0 +1,73 @@
+{
+  "name": "Event",
+  "type": "object",
+  "properties": {
+    "title_en": {
+      "type": "string"
+    },
+    "title_fr": {
+      "type": "string"
+    },
+    "description_en": {
+      "type": "string"
+    },
+    "description_fr": {
+      "type": "string"
+    },
+    "host_name": {
+      "type": "string"
+    },
+    "event_date": {
+      "type": "string"
+    },
+    "event_time": {
+      "type": "string"
+    },
+    "location_type": {
+      "type": "string",
+      "enum": [
+        "online",
+        "onsite"
+      ]
+    },
+    "location": {
+      "type": "string"
+    },
+    "topic_en": {
+      "type": "string"
+    },
+    "topic_fr": {
+      "type": "string"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "speed_dating",
+        "meet_greet",
+        "consciousness_talk",
+        "cultural",
+        "workshop"
+      ]
+    },
+    "max_attendees": {
+      "type": "number"
+    },
+    "attendees_count": {
+      "type": "number",
+      "default": 0
+    },
+    "requires_survey": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "title_en",
+    "host_name",
+    "event_date"
+  ]
+}

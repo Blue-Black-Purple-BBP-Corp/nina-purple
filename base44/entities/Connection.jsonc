@@ -1,0 +1,53 @@
+{
+  "name": "Connection",
+  "type": "object",
+  "properties": {
+    "from_user_id": {
+      "type": "string"
+    },
+    "to_user_id": {
+      "type": "string"
+    },
+    "compatibility_score": {
+      "type": "number"
+    },
+    "is_unlocked": {
+      "type": "boolean",
+      "default": false
+    },
+    "unlock_cost_paid": {
+      "type": "number",
+      "default": 0
+    },
+    "gallery_unlocked": {
+      "type": "boolean",
+      "default": false
+    },
+    "photos_shared": {
+      "type": "boolean",
+      "default": false
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "connected",
+        "declined",
+        "blocked"
+      ],
+      "default": "pending"
+    },
+    "messages_count": {
+      "type": "number",
+      "default": 0
+    },
+    "total_spent": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "from_user_id",
+    "to_user_id"
+  ]
+}

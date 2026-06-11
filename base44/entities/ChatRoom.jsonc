@@ -1,0 +1,40 @@
+{
+  "name": "ChatRoom",
+  "type": "object",
+  "properties": {
+    "name_en": {
+      "type": "string"
+    },
+    "name_fr": {
+      "type": "string"
+    },
+    "description_en": {
+      "type": "string"
+    },
+    "description_fr": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
+    "posts_count": {
+      "type": "number",
+      "default": 0
+    },
+    "members_count": {
+      "type": "number",
+      "default": 0
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "pinned": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "name_en"
+  ]
+}
