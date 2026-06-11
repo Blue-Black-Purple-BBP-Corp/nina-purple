@@ -272,8 +272,8 @@ export default function Landing() {
             {lang === 'fr' ? 'Accueil' : 'Home'}
           </a>
           <a href="#mission"
-            className="flex-1 flex flex-col items-center justify-center py-3 gap-1 text-[#F0E6FF]/50 hover:text-[#F0E6FF] transition-colors text-xs font-medium tracking-wide">
-            <Star className="w-5 h-5" />
+            className="flex-1 flex flex-col items-center justify-center py-3 gap-1 text-[#F5A800] transition-colors text-xs font-medium tracking-wide">
+            <Star className="w-5 h-5 text-[#F5A800]" />
             {lang === 'fr' ? 'Intention' : 'Intention'}
           </a>
           <Link to="/onboarding"
