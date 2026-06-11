@@ -5,8 +5,8 @@ import { useLang } from '@/lib/LanguageContext';
 import { useTranslation } from '@/lib/i18n';
 
 const TABS = [
-  { id: 'unlock',      en: 'Profile Unlock',   fr: 'Déverrouillage' },
   { id: 'membership',  en: 'Membership',        fr: 'Abonnement' },
+  { id: 'unlock',      en: 'Profile Unlock',   fr: 'Déverrouillage' },
   { id: 'micro',       en: 'Messaging',         fr: 'Messagerie' },
 ];
 
@@ -47,7 +47,7 @@ export default function PricingModal({ isOpen, onClose }) {
   const scrollRef = useRef(null);
   const { lang } = useLang();
   const { t } = useTranslation(lang);
-  const [activeTab, setActiveTab] = useState('unlock');
+  const [activeTab, setActiveTab] = useState('membership');
 
   useEffect(() => {
     if (isOpen) {
