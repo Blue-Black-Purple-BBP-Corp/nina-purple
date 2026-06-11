@@ -59,12 +59,12 @@ export default function Landing() {
         </div>
 
         <div className="relative z-10 text-center max-w-4xl mx-auto">
-          {/* Logo */}
+          {/* Icon */}
           <motion.div {...fadeUp} className="mb-8 flex justify-center">
             <img
-              src="https://media.base44.com/images/public/user_6a21c0f76d807658e5c95962/42a5e56f8_CopyofNP2.png"
+              src="https://media.base44.com/images/public/user_6a21c0f76d807658e5c95962/36ab8cc0a_NinaPurpleIcon.png"
               alt="Nina Purple"
-              className="w-48 md:w-64 object-contain drop-shadow-[0_0_40px_rgba(123,47,190,0.4)]"
+              className="w-24 h-24 md:w-32 md:h-32 object-contain drop-shadow-[0_0_40px_rgba(123,47,190,0.5)]"
             />
           </motion.div>
 
@@ -177,7 +177,7 @@ export default function Landing() {
           <p className="text-[#F0E6FF]/60 text-lg max-w-xl mx-auto">{t('pricing.subtitle')}</p>
         </motion.div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
             { plan: t('plans.solar'), price: t('plans.free'), desc: t('plans.solar_desc'), color: '#F0E6FF', border: 'rgba(240,230,255,0.1)' },
             { plan: t('plans.lunar'), price: '$10', desc: t('plans.lunar_desc'), color: '#7B2FBE', border: 'rgba(123,47,190,0.3)' },
@@ -190,12 +190,14 @@ export default function Landing() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="glass-card rounded-2xl p-6 text-center"
+              className="glass-card rounded-2xl p-5 flex sm:flex-col items-center sm:text-center gap-4 sm:gap-0"
               style={{ borderColor: p.border }}
             >
-              <div className="font-serif text-lg mb-1" style={{ color: p.color }}>{p.plan}</div>
-              <div className="text-3xl font-bold text-[#F0E6FF] mb-1">{p.price}<span className="text-sm font-normal text-[#F0E6FF]/40">{i > 0 ? t('plans.per_month') : ''}</span></div>
-              <div className="text-sm text-[#F0E6FF]/50">{p.desc}</div>
+              <div className="font-serif text-base sm:text-lg sm:mb-1 min-w-[80px] sm:min-w-0" style={{ color: p.color }}>{p.plan}</div>
+              <div className="text-2xl sm:text-3xl font-bold text-[#F0E6FF] sm:mb-1 flex-1 sm:flex-none">
+                {p.price}<span className="text-xs sm:text-sm font-normal text-[#F0E6FF]/40">{i > 0 ? t('plans.per_month') : ''}</span>
+              </div>
+              <div className="text-xs sm:text-sm text-[#F0E6FF]/50 text-right sm:text-center flex-1 sm:flex-none">{p.desc}</div>
             </motion.div>
           ))}
         </div>
