@@ -278,7 +278,7 @@ export default function Landing() {
           </a>
           <Link to="/onboarding"
             className="flex-1 flex flex-col items-center justify-center py-3 gap-1 bg-[#F5A800] text-[#0B0510] text-xs font-bold tracking-wide">
-            <Zap className="w-5 h-5" />
+            <Heart className="w-5 h-5" />
             {lang === 'fr' ? 'Commencer' : 'Begin'}
           </Link>
         </div>
