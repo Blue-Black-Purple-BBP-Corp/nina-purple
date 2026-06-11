@@ -4,6 +4,8 @@ import { Star, Coins, Shield, Camera, ChevronRight as ChevronRightIcon, Crown, E
 import { useLang } from '@/lib/LanguageContext';
 import { useTranslation } from '@/lib/i18n';
 import PricingModal from '@/components/PricingModal';
+import CreditsModal from '@/components/CreditsModal';
+import CheckoutButton from '@/components/CheckoutButton';
 import NinaAvatar from '@/components/NinaAvatar';
 
 const TIER_META = {
@@ -17,6 +19,8 @@ export default function Profile() {
   const { lang } = useLang();
   const { t } = useTranslation(lang);
   const [pricingOpen, setPricingOpen] = useState(false);
+  const [creditsOpen, setCreditsOpen] = useState(false);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [tier] = useState('solar');
   const tierMeta = TIER_META[tier];
 
@@ -93,7 +97,11 @@ export default function Profile() {
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.25 + i * 0.05 }}
-            onClick={section.label === t('profile.credits') ? () => setPricingOpen(true) : undefined}
+            onClick={
+              section.label === t('profile.credits') ? () => setCreditsOpen(true) :
+              section.label === t('profile.subscription') ? () => setUpgradeOpen(true) :
+              undefined
+            }
             className="w-full glass-card rounded-2xl p-4 flex items-center gap-3 hover:border-[rgba(245,168,0,0.15)] transition-all group text-left">
             <div className="w-10 h-10 rounded-xl bg-[rgba(123,47,190,0.1)] flex items-center justify-center group-hover:bg-[rgba(123,47,190,0.2)] transition-all shrink-0">
               <section.icon className="w-5 h-5 text-[#7B2FBE]" />
@@ -121,6 +129,40 @@ export default function Profile() {
       </div>
 
       <PricingModal isOpen={pricingOpen} onClose={() => setPricingOpen(false)} />
+      <CreditsModal isOpen={creditsOpen} onClose={() => setCreditsOpen(false)} />
+
+      {/* Upgrade subscription modal */}
+      {upgradeOpen && (
+        <>
+          <div className="fixed inset-0 bg-[#0B0510]/80 backdrop-blur-md z-[60]" onClick={() => setUpgradeOpen(false)} />
+          <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center sm:p-4 pointer-events-none">
+            <div className="bg-[#1F1026] w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl border border-purple-500/30 p-6 pointer-events-auto animate-fade-in-up space-y-4">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-serif text-[#F0E6FF]">
+                  {lang === 'fr' ? 'Choisir un Abonnement' : 'Choose a Plan'}
+                </h2>
+                <button onClick={() => setUpgradeOpen(false)} className="text-purple-300 hover:text-white">✕</button>
+              </div>
+              {[
+                { key: 'lunar',   color: '#7B2FBE', label: lang === 'fr' ? 'Lunaire' : 'Lunar',     price: '$10/mo' },
+                { key: 'stellar', color: '#A855F7', label: lang === 'fr' ? 'Stellaire' : 'Stellar',  price: '$15/mo' },
+                { key: 'galactic',color: '#F5A800', label: lang === 'fr' ? 'Galactique' : 'Galactic', price: '$20/mo' },
+              ].map(plan => (
+                <div key={plan.key} className="flex items-center justify-between rounded-2xl bg-[#150C1E] border border-purple-900/30 px-4 py-3">
+                  <span className="font-serif text-lg" style={{ color: plan.color }}>{plan.label}</span>
+                  <CheckoutButton
+                    priceKey={plan.key}
+                    className="px-5 py-2 rounded-full text-sm font-bold text-[#0B0510] hover:opacity-90 transition-all"
+                    style={{ background: plan.color }}
+                  >
+                    {plan.price}
+                  </CheckoutButton>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
