@@ -28,7 +28,7 @@ export const translations = {
     },
     // Onboarding
     onboarding: {
-      welcome: 'Hello, beautiful co-creator!',
+      welcome: 'Hello, dear co-creator!',
       nina_intro: "My name is Nina! I'm here to support your relationship journey.",
       age_question: 'Are you 18 years old or older?',
       age_required: 'You must be 18 or older to use this platform.',
@@ -69,7 +69,7 @@ export const translations = {
       subscription_title: 'Choose Your Plan',
       subscription_intro: 'Your investment determines the depth of your matching experience.',
       complete: 'Welcome to Nina Purple',
-      complete_desc: "You're now part of a conscious community. Let's find your connections.",
+      complete_desc: "You are now part of a conscious community. Let's find your connections.",
       go_home: 'Enter the Sanctuary',
     },
     // Subscriptions
@@ -226,7 +226,7 @@ export const translations = {
       investment_desc: 'Chaque interaction a une signification réelle — et un prix',
     },
     onboarding: {
-      welcome: 'Bonjour, belle co-créatrice !',
+      welcome: 'Bonjour, cher·ère co-créateur·trice !',
       nina_intro: "Je m'appelle Nina ! Je suis ici pour soutenir votre voyage relationnel.",
       age_question: 'Avez-vous 18 ans ou plus ?',
       age_required: 'Vous devez avoir 18 ans ou plus pour utiliser cette plateforme.',
@@ -267,7 +267,7 @@ export const translations = {
       subscription_title: 'Choisissez Votre Plan',
       subscription_intro: 'Votre investissement détermine la profondeur de votre expérience de correspondance.',
       complete: 'Bienvenue chez Nina Purple',
-      complete_desc: "Vous faites maintenant partie d'une communauté consciente. Trouvons vos connexions.",
+      complete_desc: "Vous faites désormais partie d'une communauté consciente. Trouvons vos connexions.",
       go_home: 'Entrer dans le Sanctuaire',
     },
     plans: {
