@@ -490,7 +490,6 @@ export default function Onboarding() {
               <div className="flex items-center justify-between">
                 <span className="text-[#F0E6FF]/40 text-sm">
                   {currentQ + 1} / {QUESTIONS_21.length}
-                  <span className="ml-2 px-2 py-0.5 rounded-full bg-[rgba(240,230,255,0.05)] text-xs">{t('onboarding.optional_badge')}</span>
                 </span>
               </div>
               <h2 className="font-serif text-2xl text-[#F0E6FF] leading-relaxed">
@@ -517,20 +516,21 @@ export default function Onboarding() {
                   </button>
                 )}
                 {currentQ < QUESTIONS_21.length - 1 ? (
-                  <button onClick={() => setCurrentQ(q => q + 1)}
-                    className="flex-1 py-3 bg-[#F5A800] text-[#0B0510] rounded-full font-bold hover:bg-yellow-400 transition-all flex items-center justify-center gap-2">
+                  <button
+                    onClick={() => setCurrentQ(q => q + 1)}
+                    disabled={!answers[QUESTIONS_21[currentQ].key]}
+                    className="flex-1 py-3 bg-[#F5A800] text-[#0B0510] rounded-full font-bold hover:bg-yellow-400 transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
                     {t('onboarding.next')} <ChevronRight className="w-4 h-4" />
                   </button>
                 ) : (
-                  <button onClick={goNext}
-                    className="flex-1 py-3 bg-[#F5A800] text-[#0B0510] rounded-full font-bold hover:bg-yellow-400 transition-all">
+                  <button
+                    onClick={goNext}
+                    disabled={!answers[QUESTIONS_21[currentQ].key]}
+                    className="flex-1 py-3 bg-[#F5A800] text-[#0B0510] rounded-full font-bold hover:bg-yellow-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
                     {t('onboarding.continue')}
                   </button>
                 )}
               </div>
-              <button onClick={goNext} className="w-full text-center text-[#F0E6FF]/30 text-sm hover:text-[#F0E6FF]/60 transition-colors">
-                {t('common.skip')} →
-              </button>
             </motion.div>
           )}
 

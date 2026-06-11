@@ -4,38 +4,118 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Light mode overrides */
+/* ── Light mode overrides ── */
 [data-theme="light"] {
-  --bg: #F5F0FF;
-  --fg: #1A0A2E;
-  --card-bg: #FFFFFF;
-  --card-border: rgba(123,47,190,0.15);
-}
-
-[data-theme="dark"] {
-  --bg: #0B0510;
-  --fg: #F0E6FF;
-  --card-bg: rgba(31,16,38,0.7);
-  --card-border: rgba(240,230,255,0.08);
+  --background: 270 40% 96%;
+  --foreground: 270 60% 10%;
+  --card: 0 0% 100%;
+  --card-foreground: 270 60% 10%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 270 60% 10%;
+  --muted: 270 20% 90%;
+  --muted-foreground: 270 20% 40%;
+  --border: 270 20% 82%;
+  --input: 270 20% 90%;
 }
 
 [data-theme="light"] body {
-  background-color: #F5F0FF !important;
+  background-color: #F0EBF9 !important;
   color: #1A0A2E !important;
 }
 
+[data-theme="light"] html {
+  background-color: #F0EBF9 !important;
+}
+
+/* Nav & fixed panels */
+[data-theme="light"] nav,
+[data-theme="light"] .fixed {
+  --tw-bg-opacity: 1;
+}
+
+/* Glass cards */
 [data-theme="light"] .glass-card {
-  background: rgba(255,255,255,0.9) !important;
-  border-color: rgba(123,47,190,0.15) !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  border-color: rgba(123, 47, 190, 0.18) !important;
+  backdrop-filter: blur(20px);
 }
 
 [data-theme="light"] .glass-card-gold {
-  background: rgba(255,255,255,0.95) !important;
-  border-color: rgba(245,168,0,0.3) !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  border-color: rgba(245, 168, 0, 0.35) !important;
 }
 
+[data-theme="light"] .glass-card-orchid {
+  background: rgba(255, 255, 255, 0.96) !important;
+  border-color: rgba(123, 47, 190, 0.35) !important;
+}
+
+/* Hard-coded dark backgrounds in JSX */
+[data-theme="light"] [style*="background-color: rgb(11, 5, 16)"],
+[data-theme="light"] [style*="background: rgb(11, 5, 16)"],
+[data-theme="light"] [style*="#0B0510"] {
+  background-color: #F0EBF9 !important;
+}
+
+/* Text colour overrides */
+[data-theme="light"] .text-\[\#F0E6FF\],
+[data-theme="light"] .text-starlight {
+  color: #1A0A2E !important;
+}
+
+[data-theme="light"] .text-\[\#F0E6FF\]\/60,
+[data-theme="light"] .text-\[\#F0E6FF\]\/70,
+[data-theme="light"] .text-\[\#F0E6FF\]\/80 {
+  color: rgba(26, 10, 46, 0.65) !important;
+}
+
+[data-theme="light"] .text-\[\#F0E6FF\]\/40,
+[data-theme="light"] .text-\[\#F0E6FF\]\/50,
+[data-theme="light"] .text-\[\#F0E6FF\]\/30 {
+  color: rgba(26, 10, 46, 0.45) !important;
+}
+
+/* Section / page backgrounds */
+[data-theme="light"] .min-h-screen,
+[data-theme="light"] .bg-\[\#0B0510\] {
+  background-color: #F0EBF9 !important;
+}
+
+/* Dark veil backgrounds */
+[data-theme="light"] .bg-\[\#1F1026\],
+[data-theme="light"] .bg-\[\#150C1E\],
+[data-theme="light"] .bg-\[\#2D1B36\] {
+  background-color: #FFFFFF !important;
+}
+
+/* Borders */
+[data-theme="light"] .border-\[rgba\(240\,230\,255\,0\.06\)\],
+[data-theme="light"] .border-\[rgba\(240\,230\,255\,0\.08\)\] {
+  border-color: rgba(123, 47, 190, 0.15) !important;
+}
+
+/* Select dropdowns */
+[data-theme="light"] select,
+[data-theme="light"] select option {
+  background-color: #FFFFFF !important;
+  color: #1A0A2E !important;
+}
+
+/* Input fields */
+[data-theme="light"] input,
+[data-theme="light"] textarea {
+  color: #1A0A2E !important;
+}
+
+/* Scrollbar */
 [data-theme="light"] ::-webkit-scrollbar-track {
-  background: #F5F0FF;
+  background: #F0EBF9;
+}
+
+/* ThemeToggle button in light mode */
+[data-theme="light"] .theme-toggle-btn {
+  background: rgba(240, 235, 249, 0.9) !important;
+  border-color: rgba(123, 47, 190, 0.3) !important;
 }
 
 @layer base {
