@@ -195,6 +195,8 @@ export default function Onboarding() {
   const [currentQ, setCurrentQ] = useState(0);
   const [loading, setLoading] = useState(false);
   const [ageError, setAgeError] = useState('');
+  const [photos, setPhotos] = useState([null, null, null, null, null, null]);
+  const [uploadingPhoto, setUploadingPhoto] = useState(null);
 
   const currentStep = STEPS[step];
   const progress = (step / (STEPS.length - 1)) * 100;
@@ -214,6 +216,16 @@ export default function Onboarding() {
   const handleAnswer = (key, value) => {
     setAnswers(prev => ({ ...prev, [key]: value }));
   };
+
+  const handlePhotoUpload = async (index, file) => {
+    if (!file) return;
+    setUploadingPhoto(index);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    setPhotos(prev => { const next = [...prev]; next[index] = file_url; return next; });
+    setUploadingPhoto(null);
+  };
+
+  const mandatoryPhotosUploaded = photos.slice(0, 3).every(p => p !== null);
 
   const archetypes = [
     { id: 'blue', color: '#60A5FA', name: t('onboarding.blue_name'), desc: t('onboarding.blue_desc') },
@@ -444,23 +456,30 @@ export default function Onboarding() {
               <NinaSpeech message={t('onboarding.photos_desc')} />
               <div className="grid grid-cols-3 gap-3">
                 {[...Array(6)].map((_, i) => (
-                  <div key={i} className={`aspect-square glass-card rounded-2xl flex items-center justify-center cursor-pointer hover:border-[rgba(245,168,0,0.3)] transition-all ${i < 3 ? 'border-[rgba(245,168,0,0.15)]' : ''}`}>
-                    <div className="text-center">
-                      <Upload className={`w-6 h-6 mx-auto mb-1 ${i < 3 ? 'text-[#F5A800]' : 'text-[rgba(240,230,255,0.2)]'}`} />
-                      {i < 3 && <div className="text-[8px] text-[#F5A800]/60">{t('onboarding.required_badge')}</div>}
-                    </div>
-                  </div>
+                  <label key={i} className={`aspect-square glass-card rounded-2xl flex items-center justify-center cursor-pointer hover:border-[rgba(245,168,0,0.3)] transition-all relative overflow-hidden ${i < 3 ? 'border-[rgba(245,168,0,0.15)]' : ''}`}>
+                    <input type="file" accept="image/*" className="hidden" onChange={e => handlePhotoUpload(i, e.target.files[0])} />
+                    {photos[i] ? (
+                      <img src={photos[i]} alt="" className="absolute inset-0 w-full h-full object-cover rounded-2xl" />
+                    ) : uploadingPhoto === i ? (
+                      <div className="text-center">
+                        <div className="w-5 h-5 border-2 border-[#F5A800] border-t-transparent rounded-full animate-spin mx-auto" />
+                      </div>
+                    ) : (
+                      <div className="text-center">
+                        <Upload className={`w-6 h-6 mx-auto mb-1 ${i < 3 ? 'text-[#F5A800]' : 'text-[rgba(240,230,255,0.2)]'}`} />
+                        {i < 3 && <div className="text-[8px] text-[#F5A800]/60">{t('onboarding.required_badge')}</div>}
+                      </div>
+                    )}
+                  </label>
                 ))}
               </div>
               <p className="text-[#F0E6FF]/40 text-sm text-center">{t('onboarding.photos_required')}</p>
-              <div className="flex gap-3">
-                <button onClick={goNext} className="flex-1 py-3 border border-[rgba(240,230,255,0.1)] text-[#F0E6FF]/60 rounded-full text-sm hover:opacity-80 transition-all">
-                  {t('common.skip')}
-                </button>
-                <button onClick={goNext} className="flex-1 py-3 bg-[#F5A800] text-[#0B0510] rounded-full font-bold hover:bg-yellow-400 transition-all">
-                  {t('onboarding.continue')}
-                </button>
-              </div>
+              <button
+                onClick={goNext}
+                disabled={!mandatoryPhotosUploaded}
+                className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold hover:bg-yellow-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+                {t('onboarding.continue')}
+              </button>
             </motion.div>
           )}
 
