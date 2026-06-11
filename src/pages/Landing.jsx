@@ -126,6 +126,64 @@ export default function Landing() {
       {/* Golden thread divider */}
       <div className="golden-thread w-full" />
 
+      {/* New Chapter Section */}
+      <section className="px-6 py-24 max-w-3xl mx-auto text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="space-y-8"
+        >
+          <h2 className="font-serif text-4xl md:text-5xl text-[#F5A800] leading-tight">
+            {lang === 'fr' ? '« Un nouveau chapitre commence maintenant ! »' : '"A new chapter begins right now!"'}
+          </h2>
+          <p className="text-[#F0E6FF]/70 text-lg leading-relaxed">
+            {lang === 'fr'
+              ? 'Prenez une grande respiration et ayez confiance que cet espace vous offre quelque chose de bien différent de ce que vous avez jamais vécu.'
+              : 'Take a deep breath and have faith that being in this space offers you something far different than you have ever experienced.'}
+          </p>
+          <p className="text-[#F0E6FF]/60 text-base leading-relaxed">
+            {lang === 'fr'
+              ? "D'autres se trouvent ici dans un voyage relationnel et, tout comme vous, cherchent des connexions profondes — peut-être pour la première fois."
+              : 'Others find themselves here on a relationship journey and, just like you, are looking towards meaningful connections, maybe for the first time.'}
+          </p>
+
+          {/* Magic Number highlight */}
+          <div className="glass-card-gold rounded-3xl p-8 md:p-10 my-8">
+            <div className="flex items-center justify-center gap-4 mb-4">
+              <span className="text-6xl md:text-7xl font-serif font-bold text-[#F5A800]">21</span>
+              <span className="text-3xl">✨</span>
+            </div>
+            <h3 className="font-serif text-2xl text-[#F0E6FF] mb-3">
+              {lang === 'fr' ? 'Le Nombre Magique' : 'The Magic Number'}
+            </h3>
+            <p className="text-[#F0E6FF]/70 text-base leading-relaxed">
+              {lang === 'fr'
+                ? <>Vous vous correspondez avec les autres selon vos intentions, objectifs et aspirations relationnels en répondant à <strong className="text-[#F0E6FF]">21 questions profondes</strong> sur la façon dont vous aimez être aimé(e).</>
+                : <>You match with others based on your relationship intent, goals, and aspirations by answering <strong className="text-[#F0E6FF]">21 deep questions</strong> about how you like to be loved.</>}
+            </p>
+          </div>
+
+          <p className="text-[#F0E6FF]/80 text-xl font-serif italic">
+            {lang === 'fr'
+              ? 'Cessez de tourbillonner dans les rêves éveillés. Commencez à rencontrer de belles personnes.'
+              : 'Stop swirling in daydreams. Start meeting lovely people.'}
+          </p>
+
+          <div className="golden-thread w-32 mx-auto" />
+
+          <p className="text-[#F0E6FF]/50 text-sm italic">
+            {lang === 'fr'
+              ? '« Nous accueillons votre honnêteté, votre compassion et votre volonté de tout recommencer ! »'
+              : '"We welcome your honesty, compassion, and willingness to start new!"'}
+          </p>
+        </motion.div>
+      </section>
+
+      {/* Golden thread divider */}
+      <div className="golden-thread w-full" />
+
       {/* Features */}
       <section id="mission" className="px-6 py-24 max-w-6xl mx-auto">
         <motion.div
