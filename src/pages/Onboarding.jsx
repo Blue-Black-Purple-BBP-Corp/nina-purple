@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, ChevronRight, ChevronLeft, Upload, Star } from 'lucide-react';
 import NinaSpeech from '@/components/NinaSpeech';
+import LocationAutocomplete from '@/components/LocationAutocomplete';
 import { useLang } from '@/lib/LanguageContext';
 import { useTranslation } from '@/lib/i18n';
 import { base44 } from '@/api/base44Client';
@@ -175,22 +176,38 @@ export default function Onboarding() {
             <motion.div key="profile" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.6 }}
               className="w-full space-y-6">
               <h2 className="font-serif text-3xl text-[#F0E6FF]">{t('onboarding.profile_title')}</h2>
-              {[
-                { label: t('onboarding.name_label'), key: 'display_name', type: 'text' },
-                { label: t('onboarding.location_label'), key: 'city', type: 'text' },
-                { label: t('onboarding.birthdate_label'), key: 'birthdate', type: 'date' },
-              ].map(field => (
-                <div key={field.key}>
-                  <label className="block text-[#F0E6FF]/60 text-sm mb-2">{field.label}</label>
-                  <input
-                    type={field.type}
-                    value={profile[field.key]}
-                    onChange={e => setProfile(p => ({ ...p, [field.key]: e.target.value }))}
-                    className="w-full glass-card rounded-xl px-4 py-3 text-[#F0E6FF] outline-none focus:border-[rgba(245,168,0,0.4)] transition-all bg-transparent"
-                    placeholder={field.label}
-                  />
-                </div>
-              ))}
+              {/* Name */}
+              <div>
+                <label className="block text-[#F0E6FF]/60 text-sm mb-2">{t('onboarding.name_label')}</label>
+                <input
+                  type="text"
+                  value={profile.display_name}
+                  onChange={e => setProfile(p => ({ ...p, display_name: e.target.value }))}
+                  className="w-full glass-card rounded-xl px-4 py-3 text-[#F0E6FF] outline-none focus:border-[rgba(245,168,0,0.4)] transition-all bg-transparent"
+                  placeholder={t('onboarding.name_label')}
+                />
+              </div>
+
+              {/* City — Google Places autocomplete */}
+              <div>
+                <label className="block text-[#F0E6FF]/60 text-sm mb-2">{t('onboarding.location_label')}</label>
+                <LocationAutocomplete
+                  value={profile.city}
+                  onChange={val => setProfile(p => ({ ...p, city: val }))}
+                  placeholder={lang === 'fr' ? 'Rechercher une ville…' : 'Search a city…'}
+                />
+              </div>
+
+              {/* Birthdate */}
+              <div>
+                <label className="block text-[#F0E6FF]/60 text-sm mb-2">{t('onboarding.birthdate_label')}</label>
+                <input
+                  type="date"
+                  value={profile.birthdate}
+                  onChange={e => setProfile(p => ({ ...p, birthdate: e.target.value }))}
+                  className="w-full glass-card rounded-xl px-4 py-3 text-[#F0E6FF] outline-none focus:border-[rgba(245,168,0,0.4)] transition-all bg-transparent"
+                />
+              </div>
               {[
                 { label: t('onboarding.orientation_label'), key: 'sexual_orientation', options: lang === 'fr' ? ['Hétérosexuel(le)', 'Gay', 'Lesbienne', 'Bisexuel(le)', 'Asexuel(le)', 'Pansexuel(le)', 'Queer', 'Autre'] : ['Straight', 'Gay', 'Lesbian', 'Bisexual', 'Asexual', 'Pansexual', 'Queer', 'Other'] },
                 { label: t('onboarding.pronoun_label'), key: 'gender_pronoun', options: ['He/Him', 'She/Her', 'They/Them', 'Non-Binary', lang === 'fr' ? 'Autre' : 'Other'] },
