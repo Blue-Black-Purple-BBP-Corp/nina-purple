@@ -7,6 +7,8 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { LanguageProvider } from '@/lib/LanguageContext';
 import { ThemeProvider } from '@/lib/ThemeContext';
 import Privacy from '@/pages/Privacy';
+import About from '@/pages/About';
+import Contact from '@/pages/Contact';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 
 // Page imports
@@ -53,6 +55,8 @@ const AuthenticatedApp = () => {
       <Route path="/" element={<Landing />} />
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/privacy" element={<Privacy />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/contact" element={<Contact />} />
 
       {/* App routes with shared layout */}
       <Route element={<AppLayout />}>

@@ -5,6 +5,10 @@
     "user_id": {
       "type": "string"
     },
+    "description": {
+      "type": "string",
+      "maxLength": 1000
+    },
     "q11_core_values": {
       "type": "string"
     },

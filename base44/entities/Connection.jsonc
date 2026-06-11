@@ -11,6 +11,10 @@
     "compatibility_score": {
       "type": "number"
     },
+    "description": {
+      "type": "string",
+      "maxLength": 1000
+    },
     "is_unlocked": {
       "type": "boolean",
       "default": false

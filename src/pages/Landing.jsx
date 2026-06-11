@@ -315,6 +315,14 @@ export default function Landing() {
           <div className="text-[#F0E6FF]/30 text-sm text-center">
             © 2026 Nina Purple · Blue Black Purple (BBP) Corp. · contact@NinaPurple.love
             <span className="mx-2">·</span>
+            <Link to="/about" className="underline hover:text-[#F5A800] transition-colors">
+              {lang === 'fr' ? 'À Propos' : 'About'}
+            </Link>
+            <span className="mx-2">·</span>
+            <Link to="/contact" className="underline hover:text-[#F5A800] transition-colors">
+              {lang === 'fr' ? 'Contact' : 'Contact'}
+            </Link>
+            <span className="mx-2">·</span>
             <Link to="/privacy" className="underline hover:text-[#F5A800] transition-colors">
               {lang === 'fr' ? 'Confidentialité' : 'Privacy Policy'}
             </Link>
