@@ -28,9 +28,13 @@
 }
 
 /* Nav & fixed panels */
-[data-theme="light"] nav,
-[data-theme="light"] .fixed {
-  --tw-bg-opacity: 1;
+[data-theme="light"] nav[data-theme-nav] {
+  background: rgba(240, 235, 249, 0.92) !important;
+}
+
+[data-theme="light"] nav {
+  background-color: rgba(240, 235, 249, 0.95) !important;
+  border-color: rgba(123, 47, 190, 0.1) !important;
 }
 
 /* Glass cards */

@@ -131,7 +131,7 @@ export default function PricingModal({ isOpen, onClose }) {
                     </div>
                     <div className="grid grid-cols-4 divide-x divide-purple-900/30">
                       {[
-                        { label: 'Solar',                               val: row.solar,   color: 'text-[#F0E6FF]/50' },
+                        { label: 'Solar',                               val: row.solar,   color: 'text-[#A78BFA]' },
                         { label: lang === 'fr' ? 'Lunaire' : 'Lunar',  val: row.lunar,   color: 'text-[#7B2FBE]' },
                         { label: lang === 'fr' ? 'Stellaire':'Stellar', val: row.stellar, color: 'text-[#A855F7]' },
                         { label: lang === 'fr' ? 'Galactique':'Galactic',val: row.galactic,color: 'text-[#F5A800]' },

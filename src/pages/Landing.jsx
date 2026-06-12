@@ -23,7 +23,8 @@ export default function Landing() {
     <div className="min-h-screen bg-[#0B0510] overflow-x-hidden">
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4 flex items-center justify-between"
-        style={{ background: 'rgba(11,5,16,0.8)', backdropFilter: 'blur(20px)' }}>
+        style={{ background: 'rgba(11,5,16,0.85)', backdropFilter: 'blur(20px)' }}
+        data-theme-nav="true">
         <img
           src="https://media.base44.com/images/public/user_6a21c0f76d807658e5c95962/bcc45d7e3_CopyofNPhorizontalcopia.png"
           alt="Nina Purple"
@@ -239,7 +240,7 @@ export default function Landing() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
-            { plan: t('plans.solar'), price: t('plans.free'), desc: t('plans.solar_desc'), color: '#F0E6FF', border: 'rgba(240,230,255,0.1)' },
+            { plan: t('plans.solar'), price: t('plans.free'), desc: t('plans.solar_desc'), color: '#A78BFA', border: 'rgba(167,139,250,0.2)' },
             { plan: t('plans.lunar'), price: '$10', desc: t('plans.lunar_desc'), color: '#7B2FBE', border: 'rgba(123,47,190,0.3)' },
             { plan: t('plans.stellar'), price: '$15', desc: t('plans.stellar_desc'), color: '#A855F7', border: 'rgba(168,85,247,0.3)' },
             { plan: t('plans.galactic'), price: '$20', desc: t('plans.galactic_desc'), color: '#F5A800', border: 'rgba(245,168,0,0.3)' },

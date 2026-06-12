@@ -13,6 +13,8 @@ const SUBSCRIPTION_TIERS = {
   galactic: 'galactic',
 };
 
+const ADMIN_EMAIL = 'contact@ninapurple.love';
+
 Deno.serve(async (req) => {
   const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
   const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET');
@@ -52,13 +54,11 @@ Deno.serve(async (req) => {
       const profile = profiles[0];
 
       if (SUBSCRIPTION_TIERS[price_key]) {
-        // Update subscription tier
         await base44.asServiceRole.entities.UserProfile.update(profile.id, {
           subscription_tier: SUBSCRIPTION_TIERS[price_key],
         });
         console.info('Updated subscription to', price_key, 'for user:', user_id);
       } else if (CREDIT_AMOUNTS[price_key]) {
-        // Add credits
         const newBalance = (profile.credit_balance || 0) + CREDIT_AMOUNTS[price_key];
         await base44.asServiceRole.entities.UserProfile.update(profile.id, {
           credit_balance: newBalance,
@@ -70,7 +70,6 @@ Deno.serve(async (req) => {
     if (event.type === 'customer.subscription.deleted') {
       const subscription = event.data.object;
       console.info('Subscription cancelled:', subscription.id);
-      // Optionally downgrade to solar tier — requires mapping customer to user_id
     }
 
   } catch (err) {

@@ -45,8 +45,8 @@ export default function AppLayout() {
       </main>
 
       {/* Bottom navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50"
-        style={{ background: 'rgba(11,5,16,0.95)', backdropFilter: 'blur(40px)', borderTop: '0.5px solid rgba(240,230,255,0.08)' }}>
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#0B0510] [data-theme='light']_&:bg-white"
+        style={{ backdropFilter: 'blur(40px)', borderTop: '0.5px solid rgba(240,230,255,0.08)' }}>
         <div className="flex items-center justify-around px-2 py-2 max-w-lg mx-auto">
           {navItems.map(({ path, icon: Icon, label }) => (
             <Link
