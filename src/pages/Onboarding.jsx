@@ -9,8 +9,8 @@ import { useTranslation } from '@/lib/i18n';
 import { base44 } from '@/api/base44Client';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 
-// Steps: register → age → guidelines → profile → archetype → photos → questions → subscription → complete
-const STEPS = ['register', 'age', 'guidelines', 'profile', 'archetype', 'photos', 'questions', 'subscription', 'complete'];
+// Steps: age → guidelines → profile → archetype → photos → questions → subscription → register → complete
+const STEPS = ['age', 'guidelines', 'profile', 'archetype', 'photos', 'questions', 'subscription', 'register', 'complete'];
 
 const QUESTIONS_21 = [
   { key: 'q11_core_values', en: 'What are your core values?', fr: 'Quelles sont vos valeurs fondamentales ?', options_en: ['a) Honesty and integrity', 'b) Compassion and empathy', 'c) Ambition and achievement', 'd) Adventure and spontaneity'], options_fr: ['a) Honnêteté et intégrité', 'b) Compassion et empathie', 'c) Ambition et réussite', 'd) Aventure et spontanéité'], opt_keys: ['a','b','c','d'] },
@@ -105,8 +105,8 @@ export default function Onboarding() {
     if (result?.access_token) {
       base44.auth.setToken(result.access_token);
     }
-    setLoading(false);
-    goNext(); // move to age step
+    // After verification, save profile & answers then proceed
+    await handleComplete();
   };
 
   const handleResendOtp = async () => {
@@ -124,6 +124,7 @@ export default function Onboarding() {
   const mandatoryPhotosUploaded = photos.slice(0, 3).every(p => p !== null);
 
   // ── Save profile & answers, then handle plan ──
+  // Called after OTP verification (user is now authenticated)
   const handleComplete = async () => {
     setLoading(true);
     const user = await base44.auth.me();
@@ -153,15 +154,13 @@ export default function Onboarding() {
       questions_answered: Object.keys(answers).filter(k => answers[k]).length,
     });
 
-    setLoading(false);
-
     // For paid plans, redirect to Stripe checkout
     if (selectedPlan !== 'solar') {
-      // Block checkout inside iframe (preview mode)
       if (window.self !== window.top) {
         alert(lang === 'fr'
-          ? 'Le paiement fonctionne uniquement depuis l\'application publiée, pas dans l\'aperçu.'
+          ? "Le paiement fonctionne uniquement depuis l'application publiée, pas dans l'aperçu."
           : 'Payment only works from the published app, not the preview.');
+        setLoading(false);
         goNext();
         return;
       }
@@ -177,7 +176,8 @@ export default function Onboarding() {
       }
     }
 
-    goNext();
+    setLoading(false);
+    goNext(); // → complete
   };
 
   const archetypes = [
@@ -257,7 +257,7 @@ export default function Onboarding() {
                   {lang === 'fr' ? 'Créez votre compte' : 'Create your account'}
                 </h1>
                 <p className="text-[#F0E6FF]/50 text-sm mt-1">
-                  {lang === 'fr' ? 'Commencez votre voyage conscient' : 'Begin your conscious journey'}
+                  {lang === 'fr' ? 'Dernière étape — sauvegardez votre profil' : 'Last step — save your profile'}
                 </p>
               </div>
 
@@ -613,13 +613,9 @@ export default function Onboarding() {
                   )}
                 </div>
               ))}
-              <button onClick={handleComplete} disabled={loading}
-                className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2">
-                {loading
-                  ? <><Loader2 className="w-4 h-4 animate-spin" /> {lang === 'fr' ? 'Enregistrement...' : 'Saving...'}</>
-                  : selectedPlan === 'solar'
-                    ? t('onboarding.continue')
-                    : (lang === 'fr' ? `Continuer vers le paiement →` : `Continue to payment →`)}
+              <button onClick={goNext}
+                className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all mt-2">
+                {t('onboarding.continue')}
               </button>
             </motion.div>
           )}
@@ -647,8 +643,8 @@ export default function Onboarding() {
           )}
         </AnimatePresence>
 
-        {/* Back button — not on register or complete */}
-        {step > 1 && step < STEPS.length - 1 && (
+        {/* Back button — not on first step, register step, or complete */}
+        {step > 0 && currentStep !== 'register' && currentStep !== 'complete' && (
           <button onClick={goPrev} className="mt-6 flex items-center gap-1 text-[#F0E6FF]/30 text-sm hover:text-[#F0E6FF]/60 transition-colors">
             <ChevronLeft className="w-4 h-4" /> {t('common.back')}
           </button>
