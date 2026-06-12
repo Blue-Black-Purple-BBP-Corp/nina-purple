@@ -2,14 +2,10 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 import Stripe from 'npm:stripe@14';
 
 const PRICE_MAP = {
-  // Subscriptions
-  lunar:   'price_1ThCcABrrsVkreVl5kqxhruH',
-  stellar: 'price_1ThCcABrrsVkreVlnwHIwrzA',
-  galactic:'price_1ThCcABrrsVkreVlX9hwaRyS',
-  // Credit packs
-  credits_10: 'price_1ThCcABrrsVkreVlgKiZtBWo',
-  credits_25: 'price_1ThCcABrrsVkreVlCNOKL9so',
-  credits_50: 'price_1ThCcABrrsVkreVlBPuTfQhj',
+  // Subscriptions (live)
+  lunar:   'price_1ThadzJyNPXqDP7PjdEodCzY',
+  stellar: 'price_1Thae3JyNPXqDP7PyHoUSP8x',
+  galactic:'price_1Thae5JyNPXqDP7PXCLj24hR',
 };
 
 Deno.serve(async (req) => {
