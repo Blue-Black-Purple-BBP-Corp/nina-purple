@@ -213,6 +213,8 @@ export default function Onboarding() {
   const goNext = () => setStep(s => Math.min(s + 1, STEPS.length - 1));
   const goPrev = () => setStep(s => Math.max(s - 1, 0));
 
+  const allQuestionsAnswered = QUESTIONS_21.every(q => answers[q.key]);
+
   const handleAnswer = (key, value) => {
     setAnswers(prev => ({ ...prev, [key]: value }));
   };
@@ -327,7 +329,8 @@ export default function Onboarding() {
                   {t('onboarding.yes')}
                 </button>
                 <button
-                  className="py-4 glass-card rounded-2xl text-[#F0E6FF]/50 font-medium text-lg cursor-not-allowed">
+                  onClick={() => navigate('/')}
+                  className="py-4 glass-card rounded-2xl text-[#F0E6FF]/50 font-medium text-lg hover:bg-[rgba(240,230,255,0.04)] transition-all">
                   {t('onboarding.no')}
                 </button>
               </div>
@@ -360,9 +363,12 @@ export default function Onboarding() {
             <motion.div key="profile" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.6 }}
               className="w-full space-y-6">
               <h2 className="font-serif text-3xl text-[#F0E6FF]">{t('onboarding.profile_title')}</h2>
+
               {/* Name */}
               <div>
-                <label className="block text-[#F0E6FF]/60 text-sm mb-2">{t('onboarding.name_label')}</label>
+                <label className="block text-[#F0E6FF]/60 text-sm mb-2">
+                  {t('onboarding.name_label')} <span className="text-[#F5A800]">*</span>
+                </label>
                 <input
                   type="text"
                   value={profile.display_name}
@@ -374,7 +380,9 @@ export default function Onboarding() {
 
               {/* City — Google Places autocomplete */}
               <div>
-                <label className="block text-[#F0E6FF]/60 text-sm mb-2">{t('onboarding.location_label')}</label>
+                <label className="block text-[#F0E6FF]/60 text-sm mb-2">
+                  {t('onboarding.location_label')} <span className="text-[#F5A800]">*</span>
+                </label>
                 <LocationAutocomplete
                   value={profile.city}
                   onChange={val => setProfile(p => ({ ...p, city: val }))}
@@ -384,10 +392,13 @@ export default function Onboarding() {
 
               {/* Birthdate */}
               <div>
-                <label className="block text-[#F0E6FF]/60 text-sm mb-2">{t('onboarding.birthdate_label')}</label>
+                <label className="block text-[#F0E6FF]/60 text-sm mb-2">
+                  {t('onboarding.birthdate_label')} <span className="text-[#F5A800]">*</span>
+                </label>
                 <input
                   type="date"
                   value={profile.birthdate}
+                  max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
                   onChange={e => {
                     const val = e.target.value;
                     setProfile(p => ({ ...p, birthdate: val }));
@@ -401,13 +412,16 @@ export default function Onboarding() {
                 />
                 {ageError && <p className="text-red-400 text-xs mt-1">{ageError}</p>}
               </div>
+
               {[
                 { label: t('onboarding.orientation_label'), key: 'sexual_orientation', options: lang === 'fr' ? ['Hétérosexuel(le)', 'Gay', 'Lesbienne', 'Bisexuel(le)', 'Asexuel(le)', 'Pansexuel(le)', 'Queer', 'Autre'] : ['Straight', 'Gay', 'Lesbian', 'Bisexual', 'Asexual', 'Pansexual', 'Queer', 'Other'] },
                 { label: t('onboarding.pronoun_label'), key: 'gender_pronoun', options: ['He/Him', 'She/Her', 'They/Them', 'Non-Binary', lang === 'fr' ? 'Autre' : 'Other'] },
                 { label: t('onboarding.status_label'), key: 'relationship_status', options: lang === 'fr' ? ['Célibataire', 'Séparé(e)', 'Veuf/Veuve', 'Divorcé(e)', 'Relation ouverte', 'Autre'] : ['Single', 'Separated', 'Widowed', 'Divorced', 'Open Relationship', 'Other'] },
               ].map(sel => (
                 <div key={sel.key}>
-                  <label className="block text-[#F0E6FF]/60 text-sm mb-2">{sel.label}</label>
+                  <label className="block text-[#F0E6FF]/60 text-sm mb-2">
+                    {sel.label} <span className="text-[#F5A800]">*</span>
+                  </label>
                   <select
                     value={profile[sel.key]}
                     onChange={e => setProfile(p => ({ ...p, [sel.key]: e.target.value }))}
@@ -418,12 +432,26 @@ export default function Onboarding() {
                   </select>
                 </div>
               ))}
-              <button
-                onClick={() => { if (!ageError && (!profile.birthdate || isOver18(profile.birthdate))) goNext(); }}
-                disabled={!!ageError}
-                className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
-                {t('onboarding.continue')}
-              </button>
+
+              {(() => {
+                const profileComplete =
+                  profile.display_name.trim() &&
+                  profile.city.trim() &&
+                  profile.birthdate &&
+                  isOver18(profile.birthdate) &&
+                  !ageError &&
+                  profile.sexual_orientation &&
+                  profile.gender_pronoun &&
+                  profile.relationship_status;
+                return (
+                  <button
+                    onClick={() => { if (profileComplete) goNext(); }}
+                    disabled={!profileComplete}
+                    className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+                    {t('onboarding.continue')}
+                  </button>
+                );
+              })()}
             </motion.div>
           )}
 
@@ -491,6 +519,13 @@ export default function Onboarding() {
                 <span className="text-[#F0E6FF]/40 text-sm">
                   {currentQ + 1} / {QUESTIONS_21.length}
                 </span>
+                {/* Mini progress bar */}
+                <div className="flex-1 mx-4 h-1 rounded-full bg-[rgba(240,230,255,0.08)] overflow-hidden">
+                  <div
+                    className="h-full bg-[#F5A800] rounded-full transition-all duration-300"
+                    style={{ width: `${((currentQ + 1) / QUESTIONS_21.length) * 100}%` }}
+                  />
+                </div>
               </div>
               <h2 className="font-serif text-2xl text-[#F0E6FF] leading-relaxed">
                 {lang === 'fr' ? QUESTIONS_21[currentQ].fr : QUESTIONS_21[currentQ].en}
@@ -501,7 +536,15 @@ export default function Onboarding() {
                   const optKey = QUESTIONS_21[currentQ].opt_keys[i];
                   const selected = answers[qKey] === optKey;
                   return (
-                    <button key={i} onClick={() => handleAnswer(qKey, optKey)}
+                    <button
+                      key={i}
+                      onClick={() => {
+                        handleAnswer(qKey, optKey);
+                        // Auto-advance after short delay when an option is picked
+                        if (currentQ < QUESTIONS_21.length - 1) {
+                          setTimeout(() => setCurrentQ(q => q + 1), 350);
+                        }
+                      }}
                       className={`w-full text-left px-4 py-3 rounded-xl transition-all text-sm ${selected ? 'bg-[rgba(245,168,0,0.12)] border border-[rgba(245,168,0,0.4)] text-[#F5A800]' : 'glass-card hover:border-[rgba(245,168,0,0.2)] text-[#F0E6FF]/80'}`}>
                       {label}
                     </button>
@@ -515,14 +558,7 @@ export default function Onboarding() {
                     <ChevronLeft className="w-5 h-5" />
                   </button>
                 )}
-                {currentQ < QUESTIONS_21.length - 1 ? (
-                  <button
-                    onClick={() => setCurrentQ(q => q + 1)}
-                    disabled={!answers[QUESTIONS_21[currentQ].key]}
-                    className="flex-1 py-3 bg-[#F5A800] text-[#0B0510] rounded-full font-bold hover:bg-yellow-400 transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
-                    {t('onboarding.next')} <ChevronRight className="w-4 h-4" />
-                  </button>
-                ) : (
+                {currentQ === QUESTIONS_21.length - 1 && (
                   <button
                     onClick={goNext}
                     disabled={!answers[QUESTIONS_21[currentQ].key]}
@@ -554,10 +590,15 @@ export default function Onboarding() {
                   </div>
                 </button>
               ))}
-              <button onClick={handleComplete} disabled={loading}
-                className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all disabled:opacity-50">
+              <button onClick={handleComplete} disabled={loading || !allQuestionsAnswered}
+                className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
                 {loading ? t('common.loading') : t('onboarding.continue')}
               </button>
+              {!allQuestionsAnswered && (
+                <p className="text-[#F0E6FF]/40 text-xs text-center">
+                  {lang === 'fr' ? 'Veuillez répondre à toutes les questions d\'abord.' : 'Please answer all 21 questions first.'}
+                </p>
+              )}
             </motion.div>
           )}
 
