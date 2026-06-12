@@ -62,9 +62,12 @@ export default function Contact() {
           </div>
           <div>
             <div className="text-[#F0E6FF]/50 text-xs uppercase tracking-widest mb-0.5">
-              {lang === 'fr' ? 'Entreprise' : 'Company'}
+              {lang === 'fr' ? 'Société mère' : 'Parent Company'}
             </div>
             <div className="text-[#F0E6FF] font-medium">Blue Black Purple (BBP) Corp.</div>
+            <div className="text-[#F0E6FF]/50 text-xs mt-0.5">
+              {lang === 'fr' ? 'Société : Nina Purple' : 'Company: Nina Purple'}
+            </div>
           </div>
         </div>
       </div>
