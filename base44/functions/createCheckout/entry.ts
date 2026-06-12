@@ -22,6 +22,12 @@ const PRICE_MAP = {
   galactic_6m: 'price_1Thag7JyNPXqDP7PFJR0Ml55',  // $110
   galactic_1y: 'price_1Thag9JyNPXqDP7P12m7udNQ',  // $220
   galactic_life:'price_1ThagCJyNPXqDP7PIlBniKEg',  // $400
+  // Wallet top-ups (one-time, USD)
+  wallet_5:   'price_1ThakXJyNPXqDP7P47WbhGto',   // $5
+  wallet_10:  'price_1ThakZJyNPXqDP7Pka3g4Hjx',   // $10
+  wallet_25:  'price_1ThakcJyNPXqDP7PAEbkpudR',   // $25
+  wallet_50:  'price_1ThakfJyNPXqDP7PS3HisLEp',   // $50
+  wallet_100: 'price_1ThakiJyNPXqDP7PY4jAmmcD',   // $100
 };
 
 Deno.serve(async (req) => {
@@ -37,7 +43,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Invalid price key' }, { status: 400 });
     }
 
-    const isSubscription = ['lunar', 'stellar', 'galactic'].includes(price_key);
+    const isSubscription = ['lunar_1m', 'stellar_1m', 'galactic_1m'].includes(price_key);
 
     const session = await stripe.checkout.sessions.create({
       mode: isSubscription ? 'subscription' : 'payment',
