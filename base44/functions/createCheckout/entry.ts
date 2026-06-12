@@ -2,10 +2,26 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 import Stripe from 'npm:stripe@14';
 
 const PRICE_MAP = {
-  // Subscriptions (live)
-  lunar:   'price_1ThadzJyNPXqDP7PjdEodCzY',
-  stellar: 'price_1Thae3JyNPXqDP7PyHoUSP8x',
-  galactic:'price_1Thae5JyNPXqDP7PXCLj24hR',
+  // Lunar
+  lunar_1m:   'price_1ThadzJyNPXqDP7PjdEodCzY',  // $10/month recurring
+  lunar_14d:  'price_1ThafYJyNPXqDP7PF2dar2xZ',   // $5
+  lunar_3m:   'price_1ThafcJyNPXqDP7PhTApILWe',   // $27.50
+  lunar_6m:   'price_1ThafeJyNPXqDP7PHPWBv7p4',   // $55
+  lunar_1y:   'price_1ThafhJyNPXqDP7PepZOW4EJ',   // $110
+  // Stellar
+  stellar_14d:'price_1ThafmJyNPXqDP7P5zJeW8cV',   // $10
+  stellar_1m: 'price_1Thae3JyNPXqDP7PyHoUSP8x',   // $15/month recurring
+  stellar_3m: 'price_1ThafpJyNPXqDP7PpqGREGjI',   // $41.25
+  stellar_6m: 'price_1ThafsJyNPXqDP7PiwZ9brVs',   // $82.50
+  stellar_1y: 'price_1ThafvJyNPXqDP7PpbkUmOBQ',   // $165
+  // Galactic
+  galactic_7d: 'price_1ThafyJyNPXqDP7PChh0i70e',  // $7
+  galactic_14d:'price_1Thag1JyNPXqDP7PBFMCP4a9',  // $14
+  galactic_1m: 'price_1Thae5JyNPXqDP7PXCLj24hR',  // $20/month recurring
+  galactic_3m: 'price_1Thag4JyNPXqDP7PkHPOIPQa',  // $55
+  galactic_6m: 'price_1Thag7JyNPXqDP7PFJR0Ml55',  // $110
+  galactic_1y: 'price_1Thag9JyNPXqDP7P12m7udNQ',  // $220
+  galactic_life:'price_1ThagCJyNPXqDP7PIlBniKEg',  // $400
 };
 
 Deno.serve(async (req) => {

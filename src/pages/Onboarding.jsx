@@ -46,6 +46,7 @@ export default function Onboarding() {
   const [profile, setProfile] = useState({ display_name: '', city: '', birthdate: '', sexual_orientation: '', gender_pronoun: '', relationship_status: '' });
   const [archetype, setArchetype] = useState('');
   const [selectedPlan, setSelectedPlan] = useState('solar');
+  const [selectedDuration, setSelectedDuration] = useState('1m');
   const [currentQ, setCurrentQ] = useState(0);
   const [loading, setLoading] = useState(false);
   const [ageError, setAgeError] = useState('');
@@ -166,7 +167,7 @@ export default function Onboarding() {
       }
       const origin = window.location.origin;
       const res = await base44.functions.invoke('createCheckout', {
-        price_key: selectedPlan,
+        price_key: getPriceKey(selectedPlan, selectedDuration),
         success_url: `${origin}/home?payment=success`,
         cancel_url: `${origin}/onboarding`,
       });
@@ -186,11 +187,46 @@ export default function Onboarding() {
   ];
 
   const plans = [
-    { id: 'solar', name: t('plans.solar'), price: t('plans.free'), desc: t('plans.solar_desc'), color: '#F0E6FF' },
-    { id: 'lunar', name: t('plans.lunar'), price: '$10', desc: t('plans.lunar_desc'), color: '#7B2FBE' },
-    { id: 'stellar', name: t('plans.stellar'), price: '$15', desc: t('plans.stellar_desc'), color: '#A855F7' },
-    { id: 'galactic', name: t('plans.galactic'), price: '$20', desc: t('plans.galactic_desc'), color: '#F5A800' },
+    { id: 'solar', name: t('plans.solar'), color: '#F0E6FF', desc: t('plans.solar_desc'),
+      durations: [] },
+    { id: 'lunar', name: t('plans.lunar'), color: '#7B2FBE', desc: t('plans.lunar_desc'),
+      durations: [
+        { key: '14d', label: lang === 'fr' ? '14 jours' : '14 days', price: '$5' },
+        { key: '1m',  label: lang === 'fr' ? '1 mois' : '1 month',  price: '$10' },
+        { key: '3m',  label: lang === 'fr' ? '3 mois' : '3 months', price: '$27.50' },
+        { key: '6m',  label: lang === 'fr' ? '6 mois' : '6 months', price: '$55' },
+        { key: '1y',  label: lang === 'fr' ? '1 an' : '1 year',     price: '$110' },
+      ]},
+    { id: 'stellar', name: t('plans.stellar'), color: '#A855F7', desc: t('plans.stellar_desc'),
+      durations: [
+        { key: '14d', label: lang === 'fr' ? '14 jours' : '14 days', price: '$10' },
+        { key: '1m',  label: lang === 'fr' ? '1 mois' : '1 month',  price: '$15' },
+        { key: '3m',  label: lang === 'fr' ? '3 mois' : '3 months', price: '$41.25' },
+        { key: '6m',  label: lang === 'fr' ? '6 mois' : '6 months', price: '$82.50' },
+        { key: '1y',  label: lang === 'fr' ? '1 an' : '1 year',     price: '$165' },
+      ]},
+    { id: 'galactic', name: t('plans.galactic'), color: '#F5A800', desc: t('plans.galactic_desc'),
+      durations: [
+        { key: '7d',   label: lang === 'fr' ? '7 jours' : '7 days',    price: '$7' },
+        { key: '14d',  label: lang === 'fr' ? '14 jours' : '14 days',  price: '$14' },
+        { key: '1m',   label: lang === 'fr' ? '1 mois' : '1 month',    price: '$20' },
+        { key: '3m',   label: lang === 'fr' ? '3 mois' : '3 months',   price: '$55' },
+        { key: '6m',   label: lang === 'fr' ? '6 mois' : '6 months',   price: '$110' },
+        { key: '1y',   label: lang === 'fr' ? '1 an' : '1 year',       price: '$220' },
+        { key: 'life', label: lang === 'fr' ? 'À vie' : 'Lifetime',    price: '$400' },
+      ]},
   ];
+
+  const getPriceKey = (planId, duration) => {
+    if (planId === 'solar') return null;
+    return `${planId}_${duration}`;
+  };
+
+  const getSelectedPrice = () => {
+    const plan = plans.find(p => p.id === selectedPlan);
+    if (!plan || !plan.durations.length) return null;
+    return plan.durations.find(d => d.key === selectedDuration) || plan.durations[0];
+  };
 
   const pageVariants = {
     initial: { opacity: 0, x: 40 },
@@ -531,31 +567,54 @@ export default function Onboarding() {
           {/* ── SUBSCRIPTION ── */}
           {currentStep === 'subscription' && (
             <motion.div key="subscription" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.6 }}
-              className="w-full space-y-6">
+              className="w-full space-y-4">
               <NinaSpeech message={t('onboarding.subscription_intro')} />
               <h2 className="font-serif text-3xl text-[#F0E6FF]">{t('onboarding.subscription_title')}</h2>
               {plans.map(plan => (
-                <button key={plan.id} onClick={() => setSelectedPlan(plan.id)}
-                  className="w-full glass-card rounded-2xl p-5 text-left flex items-center justify-between transition-all duration-300"
-                  style={{ borderColor: selectedPlan === plan.id ? plan.color : 'rgba(240,230,255,0.08)', boxShadow: selectedPlan === plan.id ? `0 0 20px ${plan.color}20` : '' }}>
-                  <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0"
-                      style={{ borderColor: plan.color, background: selectedPlan === plan.id ? plan.color : 'transparent' }}>
-                      {selectedPlan === plan.id && <div className="w-2 h-2 rounded-full bg-[#0B0510]" />}
+                <div key={plan.id}>
+                  <button onClick={() => { setSelectedPlan(plan.id); if (plan.durations.length) setSelectedDuration(plan.durations[0].key); }}
+                    className="w-full glass-card rounded-2xl p-4 text-left flex items-center justify-between transition-all duration-300"
+                    style={{ borderColor: selectedPlan === plan.id ? plan.color : 'rgba(240,230,255,0.08)', boxShadow: selectedPlan === plan.id ? `0 0 20px ${plan.color}20` : '' }}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0"
+                        style={{ borderColor: plan.color, background: selectedPlan === plan.id ? plan.color : 'transparent' }}>
+                        {selectedPlan === plan.id && <div className="w-2 h-2 rounded-full bg-[#0B0510]" />}
+                      </div>
+                      <div>
+                        <div className="font-serif text-lg" style={{ color: plan.color }}>{plan.name}</div>
+                        <div className="text-[#F0E6FF]/50 text-xs">{plan.desc}</div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="font-serif text-xl" style={{ color: plan.color }}>{plan.name}</div>
-                      <div className="text-[#F0E6FF]/50 text-sm">{plan.desc}</div>
+                    <div className="text-right shrink-0">
+                      {plan.id === 'solar'
+                        ? <div className="text-xl font-bold text-[#F0E6FF]">{t('plans.free')}</div>
+                        : selectedPlan === plan.id && getSelectedPrice()
+                          ? <div className="text-xl font-bold text-[#F0E6FF]">{getSelectedPrice().price}</div>
+                          : <div className="text-sm text-[#F0E6FF]/40">{lang === 'fr' ? 'Sélectionner' : 'Select'}</div>
+                      }
                     </div>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <div className="text-2xl font-bold text-[#F0E6FF]">{plan.price}</div>
-                    {plan.id !== 'solar' && <div className="text-[#F0E6FF]/40 text-xs">{t('plans.per_month')}</div>}
-                  </div>
-                </button>
+                  </button>
+
+                  {/* Duration selector — shown only when this plan is selected and has durations */}
+                  {selectedPlan === plan.id && plan.durations.length > 0 && (
+                    <div className="mt-2 ml-4 flex flex-wrap gap-2">
+                      {plan.durations.map(dur => (
+                        <button key={dur.key} onClick={() => setSelectedDuration(dur.key)}
+                          className="px-3 py-1.5 rounded-full text-xs font-medium transition-all"
+                          style={{
+                            background: selectedDuration === dur.key ? plan.color : 'rgba(240,230,255,0.05)',
+                            color: selectedDuration === dur.key ? '#0B0510' : 'rgba(240,230,255,0.6)',
+                            border: `1px solid ${selectedDuration === dur.key ? plan.color : 'rgba(240,230,255,0.1)'}`,
+                          }}>
+                          {dur.label} · {dur.price}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               ))}
               <button onClick={handleComplete} disabled={loading}
-                className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2">
                 {loading
                   ? <><Loader2 className="w-4 h-4 animate-spin" /> {lang === 'fr' ? 'Enregistrement...' : 'Saving...'}</>
                   : selectedPlan === 'solar'
