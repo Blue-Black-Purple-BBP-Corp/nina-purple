@@ -37,5 +37,33 @@
     "from_user_id",
     "to_user_id",
     "content"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "data.from_user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.from_user_id": "{{user.id}}"
+        },
+        {
+          "data.to_user_id": "{{user.id}}"
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.from_user_id": "{{user.id}}"
+        },
+        {
+          "data.to_user_id": "{{user.id}}"
+        }
+      ]
+    },
+    "delete": {
+      "data.from_user_id": "{{user.id}}"
+    }
+  }
 }
