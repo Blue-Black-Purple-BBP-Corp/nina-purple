@@ -53,17 +53,32 @@ export default function About() {
       </motion.div>
 
       {/* Mission */}
-      <motion.div {...fadeUp} className="glass-card-gold rounded-3xl p-8 mb-10 space-y-4">
+      <motion.div {...fadeUp} className="glass-card-gold rounded-3xl p-8 mb-10 space-y-5">
         <h2 className="font-serif text-2xl text-[#F5A800]">{fr ? 'Notre Mission' : 'Our Mission'}</h2>
-        <p className="text-foreground/80 leading-relaxed">
+        <p className="text-foreground/85 leading-relaxed">
           {fr
-            ? "Nina Purple est né d'une conviction simple : les rencontres en ligne méritent mieux. Nous avons éliminé le glissement d'écran, les photos filtrées et les interactions creuses — pour les remplacer par des connexions fondées sur les valeurs, les objectifs et la façon dont vous aimez."
-            : "Nina Purple was born from one simple belief: online dating deserves better. We removed the swiping, the filtered photos, and the hollow interactions — replacing them with connections built on values, goals, and how you love."}
+            ? "Nina Purple est né d'une conviction tranquille : les personnes qui prennent l'amour au sérieux méritent mieux qu'un algorithme qui mesure l'attirance en quelques secondes."
+            : "Nina Purple was built on a quiet conviction: that the people most serious about love deserve more than an algorithm that measures attraction in seconds."}
         </p>
         <p className="text-foreground/80 leading-relaxed">
           {fr
-            ? "Notre algorithme de compatibilité repose sur 21 questions profondes. La plateforme est conçue pour des adultes intentionnels — célibataires, séparé·es ou en transition — qui cherchent des relations authentiques et durables."
-            : "Our compatibility algorithm is powered by 21 deep questions. The platform is designed for intentional adults — singles, separated, or in transition — seeking authentic, meaningful relationships."}
+            ? "Nous avons supprimé la mise en scène — les photos soigneusement choisies, le glissement d'écran sans fin, les petites conversations qui ne mènent nulle part — pour construire quelque chose de différent. Un espace où la compatibilité se mesure à ce qui nourrit vraiment une relation : vos valeurs, votre vision de l'avenir, et la façon dont vous donnez et recevez l'amour."
+            : "We stripped away the performance — the curated photos, the endless swiping, the small talk that goes nowhere — and built something different. A space where compatibility is measured by what actually sustains a relationship: your values, your vision for the future, and the way you give and receive love."}
+        </p>
+        <p className="text-foreground/80 leading-relaxed">
+          {fr
+            ? "Au cœur de la plateforme se trouvent 21 questions conçues non pas pour vous cataloguer, mais pour vous révéler. Parce que la vraie connexion ne commence pas par une photo. Elle commence par être véritablement vu·e."
+            : "At the heart of the platform are 21 questions designed not to profile you, but to reveal you. Because the right connection doesn't begin with a picture. It begins with being truly seen."}
+        </p>
+        <p className="text-foreground/80 leading-relaxed">
+          {fr
+            ? "Nina Purple est pour les adultes intentionnels — ceux qui ont assez vécu pour savoir ce qu'ils veulent, et qui sont prêts à le poursuivre avec honnêteté et profondeur. Que vous soyez célibataire, en transition, ou en train de vous reconstruire après une perte, vous avez votre place ici."
+            : "Nina Purple is for intentional adults — those who have lived enough to know what they want, and who are ready to pursue it with honesty and depth. Whether you are single, navigating a transition, or rebuilding after loss, you belong here."}
+        </p>
+        <p className="text-foreground font-serif italic text-lg">
+          {fr
+            ? "Il ne s'agit pas de rendre les rencontres plus faciles. Il s'agit de rendre l'amour à la hauteur."
+            : "This is not about making dating easier. It is about making love worth it."}
         </p>
       </motion.div>
 

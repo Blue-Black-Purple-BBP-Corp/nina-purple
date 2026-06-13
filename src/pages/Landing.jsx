@@ -137,17 +137,17 @@ export default function Landing() {
           className="space-y-8"
         >
           <h2 className="font-serif text-4xl md:text-5xl text-[#F5A800] leading-tight">
-            {lang === 'fr' ? '« Un nouveau chapitre commence maintenant ! »' : '"A new chapter begins right now!"'}
+            {lang === 'fr' ? '« La vraie connexion commence par être véritablement vu·e. »' : '"The right connection begins with being truly seen."'}
           </h2>
           <p className="text-[#F0E6FF]/70 text-lg leading-relaxed">
             {lang === 'fr'
-              ? 'Prenez une grande respiration et ayez confiance que cet espace vous offre quelque chose de bien différent de ce que vous avez jamais vécu.'
-              : 'Take a deep breath and have faith that being in this space offers you something far different than you have ever experienced.'}
+              ? "Il faut du courage pour chercher une vraie connexion. Vous êtes ici parce que vous savez que quelque chose de plus profond est possible — et vous avez raison."
+              : 'It takes courage to seek real connection. You are here because you know something deeper is possible — and you are right.'}
           </p>
           <p className="text-[#F0E6FF]/60 text-base leading-relaxed">
             {lang === 'fr'
-              ? "D'autres se trouvent ici dans un voyage relationnel et, tout comme vous, cherchent des connexions profondes — peut-être pour la première fois."
-              : 'Others find themselves here on a relationship journey and, just like you, are looking towards meaningful connections, maybe for the first time.'}
+              ? "D'autres partagent ce même voyage. Non pas à la recherche d'une distraction, mais d'une présence authentique — peut-être pour la première fois de leur vie."
+              : 'Others share this same journey. Not searching for distraction, but for genuine presence — perhaps for the first time in their lives.'}
           </p>
 
           {/* Magic Number highlight */}
@@ -168,16 +168,16 @@ export default function Landing() {
 
           <p className="text-[#F0E6FF]/80 text-xl font-serif italic">
             {lang === 'fr'
-              ? 'Cessez de tourbillonner dans les rêves éveillés. Commencez à rencontrer de belles personnes.'
-              : 'Stop swirling in daydreams. Start meeting lovely people.'}
+              ? "Ce n'est pas une question de rendre les rencontres plus faciles. C'est une question de rendre l'amour à la hauteur."
+              : 'This is not about making dating easier. It is about making love worth it.'}
           </p>
 
           <div className="golden-thread w-32 mx-auto" />
 
           <p className="text-[#F0E6FF]/50 text-sm italic">
             {lang === 'fr'
-              ? '« Nous accueillons votre honnêteté, votre compassion et votre volonté de tout recommencer ! »'
-              : '"We welcome your honesty, compassion, and willingness to start new!"'}
+              ? '« Nous accueillons votre honnêteté, votre profondeur et votre courage d\'aimer. »'
+              : '"We welcome your honesty, your depth, and your courage to love."'}
           </p>
         </motion.div>
       </section>
@@ -289,12 +289,12 @@ export default function Landing() {
             className="w-20 h-20 mx-auto mb-6 drop-shadow-[0_0_20px_rgba(245,168,0,0.4)] object-contain"
           />
           <h2 className="font-serif text-4xl md:text-5xl text-[#F0E6FF] mb-6">
-            {lang === 'fr' ? 'Prêt(e) à commencer ?' : 'Ready to begin?'}
+            {lang === 'fr' ? 'Vous appartenez ici.' : 'You belong here.'}
           </h2>
           <p className="text-[#F0E6FF]/60 text-lg mb-8">
             {lang === 'fr'
-              ? 'Rejoignez une communauté qui valorise votre temps et votre cœur.'
-              : 'Join a community that values your time and your heart.'}
+              ? 'Que vous soyez célibataire, en transition, ou en train de vous reconstruire — cet espace a été construit pour vous.'
+              : 'Whether single, navigating a transition, or rebuilding after loss — this space was built for you.'}
           </p>
           <Link
             to="/onboarding"
