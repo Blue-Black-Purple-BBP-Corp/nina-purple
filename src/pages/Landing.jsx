@@ -250,19 +250,7 @@ export default function Landing() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="rounded-2xl p-6 flex flex-col gap-4 relative overflow-hidden"
-                style={{
-                  background: isGalactic
-                    ? `linear-gradient(160deg, ${plan.color}12 0%, rgba(31,16,38,0.9) 60%)`
-                    : 'rgba(31,16,38,0.5)',
-                  border: isGalactic
-                    ? `1.5px solid ${plan.color}40`
-                    : `1px solid rgba(240,230,255,0.08)`,
-                  backdropFilter: 'blur(20px)',
-                  boxShadow: isGalactic
-                    ? `0 8px 40px ${plan.color}18, inset 0 1px 0 ${plan.color}15`
-                    : 'none',
-                }}
+                className={`rounded-2xl p-6 flex flex-col gap-4 relative overflow-hidden ${isGalactic ? 'glass-card-gold' : 'glass-card'}`}
               >
                 {/* Galactic badge */}
                 {isGalactic && (
@@ -299,7 +287,7 @@ export default function Landing() {
                 </div>
 
                 {/* Divider */}
-                <div style={{ height: '1px', background: isGalactic ? `${plan.color}30` : 'rgba(240,230,255,0.06)' }} />
+                <div className="border-t border-border/60" />
 
                 {/* Perks */}
                 <ul className="space-y-2 flex-1">
