@@ -313,7 +313,7 @@ export default function Landing() {
             className="w-20 h-20 mx-auto mb-6 drop-shadow-[0_0_20px_rgba(245,168,0,0.4)] object-contain"
           />
           <h2 className="font-serif text-4xl md:text-5xl text-[#F0E6FF] mb-6">
-            {lang === 'fr' ? 'Vous appartenez ici.' : 'You belong here.'}
+            {lang === 'fr' ? 'Votre place est ici.' : 'You belong here.'}
           </h2>
           <p className="text-[#F0E6FF]/60 text-lg mb-8">
             {lang === 'fr'
