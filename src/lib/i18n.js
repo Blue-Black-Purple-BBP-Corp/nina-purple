@@ -13,7 +13,7 @@ export const translations = {
     landing: {
       tagline: 'Conscious Dating.',
       tagline2: 'Real Depth.',
-      tagline3: 'Love Worth It.',
+      tagline3: 'Love That Holds.',
       subtitle: 'For those who have lived enough to know what they want — and who are ready to pursue it with honesty and depth.',
       cta_join: 'Begin Your Journey',
       cta_learn: 'How It Works',
@@ -23,7 +23,7 @@ export const translations = {
       no_swipe_desc: 'No swiping. No curated profiles. Compatibility built on who you truly are — not how you photograph.',
       conscious: 'Truly Seen',
       conscious_desc: '21 questions designed not to profile you, but to reveal you.',
-      investment: 'Love Worth It',
+      investment: 'Love That Holds',
       investment_desc: 'Every connection is an investment. The deeper the match, the lower the cost.',
     },
     // Onboarding
@@ -212,7 +212,7 @@ export const translations = {
     landing: {
       tagline: 'Rencontres Conscientes.',
       tagline2: 'Vraie Profondeur.',
-      tagline3: 'L\'Amour qui en Vaut la Peine.',
+      tagline3: 'L\'amour qui tient.',
       subtitle: 'Pour ceux qui ont assez vécu pour savoir ce qu\'ils veulent — et qui sont prêts à le poursuivre avec honnêteté et profondeur.',
       cta_join: 'Commencer Votre Voyage',
       cta_learn: 'Comment Ça Marche',
@@ -222,7 +222,7 @@ export const translations = {
       no_swipe_desc: 'Pas de glissement d\'écran. Pas de profils façonnés. Une compatibilité fondée sur qui vous êtes vraiment — pas sur la façon dont vous vous photographiez.',
       conscious: 'Véritablement Vu·e',
       conscious_desc: '21 questions conçues non pas pour vous cataloguer, mais pour vous révéler.',
-      investment: 'L\'Amour qui en Vaut la Peine',
+      investment: 'L\'amour qui tient',
       investment_desc: 'Chaque connexion est un investissement. Plus la correspondance est profonde, plus le coût est bas.',
     },
     onboarding: {
