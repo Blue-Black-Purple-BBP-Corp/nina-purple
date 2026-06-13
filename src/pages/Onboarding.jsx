@@ -7,6 +7,7 @@ import LocationAutocomplete from '@/components/LocationAutocomplete';
 import { useLang } from '@/lib/LanguageContext';
 import { useTranslation } from '@/lib/i18n';
 import { base44 } from '@/api/base44Client';
+import { ALL_PLANS } from '@/lib/plans';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import ThemeToggle from '@/components/ThemeToggle';
 import LanguageToggle from '@/components/LanguageToggle';
@@ -214,40 +215,18 @@ export default function Onboarding() {
     { id: 'purple', color: '#A855F7', name: t('onboarding.purple_name'), desc: t('onboarding.purple_desc') },
   ];
 
-  const plans = [
-    { id: 'solar', name: t('plans.solar'), color: '#A78BFA', desc: t('plans.solar_desc'),
-      startingPrice: lang === 'fr' ? 'Gratuit' : 'Free',
-      durations: [] },
-    { id: 'lunar', name: t('plans.lunar'), color: '#7B2FBE', desc: t('plans.lunar_desc'),
-      startingPrice: lang === 'fr' ? 'Dès $5' : 'From $5',
-      durations: [
-        { key: '14d', label: lang === 'fr' ? '14 jours' : '14 days', price: '$5' },
-        { key: '1m',  label: lang === 'fr' ? '1 mois' : '1 month',  price: '$10' },
-        { key: '3m',  label: lang === 'fr' ? '3 mois' : '3 months', price: '$27.50' },
-        { key: '6m',  label: lang === 'fr' ? '6 mois' : '6 months', price: '$55' },
-        { key: '1y',  label: lang === 'fr' ? '1 an' : '1 year',     price: '$110' },
-      ]},
-    { id: 'stellar', name: t('plans.stellar'), color: '#A855F7', desc: t('plans.stellar_desc'),
-      startingPrice: lang === 'fr' ? 'Dès $10' : 'From $10',
-      durations: [
-        { key: '14d', label: lang === 'fr' ? '14 jours' : '14 days', price: '$10' },
-        { key: '1m',  label: lang === 'fr' ? '1 mois' : '1 month',  price: '$15' },
-        { key: '3m',  label: lang === 'fr' ? '3 mois' : '3 months', price: '$41.25' },
-        { key: '6m',  label: lang === 'fr' ? '6 mois' : '6 months', price: '$82.50' },
-        { key: '1y',  label: lang === 'fr' ? '1 an' : '1 year',     price: '$165' },
-      ]},
-    { id: 'galactic', name: t('plans.galactic'), color: '#F5A800', desc: t('plans.galactic_desc'),
-      startingPrice: lang === 'fr' ? 'Dès $7' : 'From $7',
-      durations: [
-        { key: '7d',   label: lang === 'fr' ? '7 jours' : '7 days',    price: '$7' },
-        { key: '14d',  label: lang === 'fr' ? '14 jours' : '14 days',  price: '$14' },
-        { key: '1m',   label: lang === 'fr' ? '1 mois' : '1 month',    price: '$20' },
-        { key: '3m',   label: lang === 'fr' ? '3 mois' : '3 months',   price: '$55' },
-        { key: '6m',   label: lang === 'fr' ? '6 mois' : '6 months',   price: '$110' },
-        { key: '1y',   label: lang === 'fr' ? '1 an' : '1 year',       price: '$220' },
-        { key: 'life', label: lang === 'fr' ? 'À vie' : 'Lifetime',    price: '$400' },
-      ]},
-  ];
+  const plans = ALL_PLANS.map(plan => ({
+    id: plan.key,
+    name: lang === 'fr' ? plan.label_fr : plan.label_en,
+    color: plan.color,
+    desc: lang === 'fr' ? plan.desc_fr : plan.desc_en,
+    startingPrice: lang === 'fr' ? plan.price_fr : plan.price_en,
+    durations: plan.durations.map(d => ({
+      key: d.key.replace(`${plan.key}_`, ''),
+      label: lang === 'fr' ? d.label_fr : d.label_en,
+      price: d.price,
+    })),
+  }));
 
   const getPriceKey = (planId, duration) => {
     if (planId === 'solar') return null;
