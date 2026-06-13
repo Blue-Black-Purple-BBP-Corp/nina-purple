@@ -716,6 +716,16 @@ export default function Onboarding() {
             <ChevronLeft className="w-4 h-4" /> {t('common.back')}
           </button>
         )}
+
+        {/* Cancel — always visible on every step except complete */}
+        {currentStep !== 'complete' && (
+          <a
+            href="https://www.NinaPurple.Love"
+            className="mt-3 block text-center text-[#F0E6FF]/20 text-xs hover:text-[#F0E6FF]/40 transition-colors"
+          >
+            {lang === 'fr' ? '✕ Annuler et revenir à NinaPurple.Love' : '✕ Cancel and return to NinaPurple.Love'}
+          </a>
+        )}
       </div>
     </div>
   );

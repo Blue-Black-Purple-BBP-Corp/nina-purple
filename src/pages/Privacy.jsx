@@ -24,19 +24,17 @@ function PrivacyEN() {
         <p className="text-sm opacity-50 mb-10">Last updated: {LAST_UPDATED}</p>
 
         <Section title="1. Who We Are">
-          <p>Nina Purple is operated by <strong>Blue Black Purple (BBP) Corp.</strong>, a Wyoming Statutory Close Corporation (Incorporation ID: 2025-001581162), with a mailing address at 302-9410 Notre-Dame East, Montreal, Quebec, Canada H1L 3N9.</p>
-          <p className="mt-2">Contact: <a href="mailto:contact@NinaPurple.love" className="text-[#F5A800] underline">contact@NinaPurple.love</a> · Phone: 1-514-812-4250</p>
+          <p>Nina Purple is a Wyoming Statutory Close Corporation (Incorporation ID: 2025-001581162), with a mailing address at 30 N Gould St Ste R, Sheridan, WY 82801, USA.</p>
+          <p className="mt-2">Contact: <a href="mailto:contact@NinaPurple.love" className="text-[#F5A800] underline">contact@NinaPurple.love</a></p>
         </Section>
 
         <Section title="2. Scope & Applicable Laws">
           <p>This Privacy Policy applies to all users of Nina Purple globally. It is designed to comply with:</p>
           <ul className="list-disc ml-5 mt-2 space-y-1">
-            <li><strong>PIPEDA</strong> (Personal Information Protection and Electronic Documents Act, Canada)</li>
-            <li><strong>Quebec Law 25</strong> (Act Respecting the Protection of Personal Information in the Private Sector, as amended by Bill 64)</li>
-            <li><strong>GDPR</strong> (EU General Data Protection Regulation 2016/679)</li>
-            <li><strong>Wyoming Consumer Protection Act</strong> (W.S. § 40-12-101 et seq.)</li>
+            <li><strong>Wyoming Statutory Close Corporation Act</strong> (W.S. § 17-17-101 et seq.) and <strong>Wyoming Consumer Protection Act</strong> (W.S. § 40-12-101 et seq.)</li>
             <li><strong>COPPA</strong> (Children's Online Privacy Protection Act, USA — our platform is strictly 18+)</li>
-            <li><strong>CAN-SPAM Act</strong> (USA) and <strong>CASL</strong> (Canada's Anti-Spam Legislation)</li>
+            <li><strong>CAN-SPAM Act</strong> (USA) — governing commercial email communications</li>
+            <li><strong>GDPR</strong> (EU General Data Protection Regulation 2016/679) — to the extent applicable for EU-based users</li>
           </ul>
         </Section>
 
@@ -130,25 +128,14 @@ function PrivacyEN() {
           <p>We implement industry-standard security measures including TLS encryption for data in transit, encrypted storage, access controls, and regular security assessments. No system is 100% secure; in the event of a data breach, we will notify affected users and relevant authorities as required by applicable law (72 hours under GDPR, and per Quebec Law 25 requirements).</p>
         </Section>
 
-        <Section title="14. Quebec-Specific Rights (Law 25 / Bill 64)">
-          <p>Quebec residents have additional rights under Quebec's Act Respecting the Protection of Personal Information in the Private Sector:</p>
-          <ul className="list-disc ml-5 mt-2 space-y-1">
-            <li>Right to de-indexation (removal from search results)</li>
-            <li>Right to refuse automated decision-making that produces legal or significant effects</li>
-            <li>Right to be informed of any privacy incident (breach) affecting their information</li>
-            <li>Our Privacy Officer can be reached at: <a href="mailto:contact@NinaPurple.love" className="text-[#F5A800] underline">contact@NinaPurple.love</a></li>
-          </ul>
-        </Section>
-
-        <Section title="15. Changes to This Policy">
+        <Section title="14. Changes to This Policy">
           <p>We may update this Privacy Policy periodically. Material changes will be communicated via email or an in-app notice at least 30 days prior to taking effect. Continued use of the platform after that date constitutes acceptance of the updated policy.</p>
         </Section>
 
-        <Section title="16. Contact & Data Controller">
-          <p><strong>Blue Black Purple (BBP) Corp. / Nina Purple</strong><br />
-          302-9410 Notre-Dame East, Montreal, Quebec, Canada H1L 3N9<br />
-          Email: <a href="mailto:contact@NinaPurple.love" className="text-[#F5A800] underline">contact@NinaPurple.love</a><br />
-          Phone: 1-514-812-4250</p>
+        <Section title="15. Contact & Data Controller">
+          <p><strong>Nina Purple</strong><br />
+          30 N Gould St Ste R, Sheridan, WY 82801, USA<br />
+          Email: <a href="mailto:contact@NinaPurple.love" className="text-[#F5A800] underline">contact@NinaPurple.love</a></p>
         </Section>
       </div>
     </div>
@@ -166,19 +153,17 @@ function PrivacyFR() {
         <p className="text-sm opacity-50 mb-10">Dernière mise à jour : {LAST_UPDATED_FR}</p>
 
         <Section title="1. Qui sommes-nous ?">
-          <p>Nina Purple est exploité par <strong>Blue Black Purple (BBP) Corp.</strong>, une société fermée de droit du Wyoming (ID d'incorporation : 2025-001581162), avec adresse postale au 302-9410 Notre-Dame Est, Montréal, Québec, Canada H1L 3N9.</p>
-          <p className="mt-2">Contact : <a href="mailto:contact@NinaPurple.love" className="text-[#F5A800] underline">contact@NinaPurple.love</a> · Téléphone : 1-514-812-4250</p>
+          <p>Nina Purple est une société fermée de droit du Wyoming (Wyoming Statutory Close Corporation, ID d'incorporation : 2025-001581162), avec adresse postale au 30 N Gould St Ste R, Sheridan, WY 82801, États-Unis.</p>
+          <p className="mt-2">Contact : <a href="mailto:contact@NinaPurple.love" className="text-[#F5A800] underline">contact@NinaPurple.love</a></p>
         </Section>
 
         <Section title="2. Champ d'application et lois applicables">
           <p>Cette politique s'applique à tous les utilisateurs de Nina Purple dans le monde et est conforme aux lois suivantes :</p>
           <ul className="list-disc ml-5 mt-2 space-y-1">
-            <li><strong>LPRPDE</strong> (Loi sur la protection des renseignements personnels et les documents électroniques, Canada)</li>
-            <li><strong>Loi 25 du Québec</strong> (Loi modernisant des dispositions législatives en matière de protection des renseignements personnels)</li>
-            <li><strong>RGPD</strong> (Règlement général sur la protection des données, UE 2016/679)</li>
-            <li><strong>Loi sur la protection des consommateurs du Wyoming</strong> (W.S. § 40-12-101 et suiv.)</li>
+            <li><strong>Wyoming Statutory Close Corporation Act</strong> (W.S. § 17-17-101 et suiv.) et <strong>Loi sur la protection des consommateurs du Wyoming</strong> (W.S. § 40-12-101 et suiv.)</li>
             <li><strong>COPPA</strong> (États-Unis) — notre plateforme est strictement réservée aux 18 ans et plus</li>
-            <li><strong>LCAP</strong> (Loi canadienne anti-pourriel)</li>
+            <li><strong>CAN-SPAM Act</strong> (États-Unis) — communications par courriel</li>
+            <li><strong>RGPD</strong> (UE 2016/679) — dans la mesure applicable aux utilisateurs de l'UE</li>
           </ul>
         </Section>
 
@@ -256,32 +241,22 @@ function PrivacyFR() {
           <p>Nina Purple est strictement réservé aux personnes de 18 ans et plus. Une vérification de l'âge est requise lors de l'inscription. Si nous apprenons qu'un mineur a créé un compte, nous supprimerons immédiatement toutes ses données.</p>
         </Section>
 
-        <Section title="11. Droits spécifiques au Québec (Loi 25)">
-          <ul className="list-disc ml-5 mt-2 space-y-1">
-            <li>Droit à la désindexation</li>
-            <li>Droit de refus de décisions automatisées ayant des effets significatifs</li>
-            <li>Droit d'être informé en cas d'incident de confidentialité</li>
-          </ul>
-          <p className="mt-2">Notre responsable de la protection des renseignements personnels : <a href="mailto:contact@NinaPurple.love" className="text-[#F5A800] underline">contact@NinaPurple.love</a></p>
+        <Section title="11. Transferts internationaux">
+          <p>Vos données peuvent être traitées aux États-Unis et dans l'Espace économique européen. Pour les transferts depuis l'EEE, nous nous appuyons sur les clauses contractuelles types du RGPD.</p>
         </Section>
 
-        <Section title="12. Transferts internationaux">
-          <p>Vos données peuvent être traitées au Canada, aux États-Unis et dans l'EEE. Pour les transferts depuis l'EEE, nous nous appuyons sur les clauses contractuelles types du RGPD. Pour les utilisateurs canadiens, les transferts respectent le principe de responsabilité de la LPRPDE.</p>
+        <Section title="12. Sécurité">
+          <p>Nous utilisons le chiffrement TLS, le stockage chiffré et des contrôles d'accès stricts. En cas d'incident de sécurité, nous notifierons les utilisateurs concernés dans les meilleurs délais.</p>
         </Section>
 
-        <Section title="13. Sécurité">
-          <p>Nous utilisons le chiffrement TLS, le stockage chiffré et des contrôles d'accès stricts. En cas d'incident de sécurité, nous notifierons les utilisateurs concernés et les autorités compétentes dans les délais requis (72 heures pour le RGPD ; délais prévus par la Loi 25).</p>
-        </Section>
-
-        <Section title="14. Modifications de cette politique">
+        <Section title="13. Modifications de cette politique">
           <p>Nous pouvons mettre à jour cette politique. Tout changement important sera communiqué par courriel ou notification dans l'application au moins 30 jours avant son entrée en vigueur.</p>
         </Section>
 
-        <Section title="15. Contact et responsable du traitement">
-          <p><strong>Blue Black Purple (BBP) Corp. / Nina Purple</strong><br />
-          302-9410 Notre-Dame Est, Montréal, Québec, Canada H1L 3N9<br />
-          Courriel : <a href="mailto:contact@NinaPurple.love" className="text-[#F5A800] underline">contact@NinaPurple.love</a><br />
-          Téléphone : 1-514-812-4250</p>
+        <Section title="14. Contact et responsable du traitement">
+          <p><strong>Nina Purple</strong><br />
+          30 N Gould St Ste R, Sheridan, WY 82801, États-Unis<br />
+          Courriel : <a href="mailto:contact@NinaPurple.love" className="text-[#F5A800] underline">contact@NinaPurple.love</a></p>
         </Section>
       </div>
     </div>

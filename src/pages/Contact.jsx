@@ -55,21 +55,6 @@ export default function Contact() {
             </div>
           </div>
         </a>
-
-        <div className="flex items-center gap-4 glass-card rounded-2xl px-6 py-5">
-          <div className="w-12 h-12 rounded-xl bg-[rgba(245,168,0,0.1)] border border-[rgba(245,168,0,0.2)] flex items-center justify-center shrink-0">
-            <Heart className="w-5 h-5 text-[#F5A800]" />
-          </div>
-          <div>
-            <div className="text-[#F0E6FF]/50 text-xs uppercase tracking-widest mb-0.5">
-              {lang === 'fr' ? 'Société mère' : 'Parent Company'}
-            </div>
-            <div className="text-[#F0E6FF] font-medium">Blue Black Purple (BBP) Corp.</div>
-            <div className="text-[#F0E6FF]/50 text-xs mt-0.5">
-              {lang === 'fr' ? 'Société : Nina Purple' : 'Company: Nina Purple'}
-            </div>
-          </div>
-        </div>
       </div>
 
       <div className="mt-12 pt-8 border-t border-[rgba(240,230,255,0.08)]">
