@@ -1,65 +1,7 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import CheckoutButton from '@/components/CheckoutButton';
-
-const ALL_PLANS = [
-  {
-    key: 'solar', color: '#A78BFA', icon: '☀️',
-    label_en: 'Solar', label_fr: 'Solaire',
-    desc_en: 'Free forever',
-    desc_fr: 'Gratuit pour toujours',
-    perks_en: ['Browse compatible profiles', 'Answer 21 matching questions', 'Join community rooms', '5 free messages/month'],
-    perks_fr: ['Parcourir les profils compatibles', 'Répondre aux 21 questions', 'Rejoindre les salons communautaires', '5 messages gratuits/mois'],
-    durations: [],
-  },
-  {
-    key: 'lunar', color: '#7B2FBE', icon: '🌙',
-    label_en: 'Lunar', label_fr: 'Lunaire',
-    desc_en: 'Deepen your search',
-    desc_fr: 'Approfondissez votre recherche',
-    perks_en: ['Everything in Solar', 'Unlock up to 10 profiles/month', '30 messages/month', 'See who viewed your profile'],
-    perks_fr: ['Tout ce qui est dans Solaire', "Débloquer jusqu'à 10 profils/mois", '30 messages/mois', 'Voir qui a consulté votre profil'],
-    durations: [
-      { key: 'lunar_14d', label_en: '14 days', label_fr: '14 jours', price: '$5' },
-      { key: 'lunar_1m',  label_en: '1 month',  label_fr: '1 mois',  price: '$10' },
-      { key: 'lunar_3m',  label_en: '3 months', label_fr: '3 mois',  price: '$27.50' },
-      { key: 'lunar_6m',  label_en: '6 months', label_fr: '6 mois',  price: '$55' },
-      { key: 'lunar_1y',  label_en: '1 year',   label_fr: '1 an',    price: '$110' },
-    ],
-  },
-  {
-    key: 'stellar', color: '#A855F7', icon: '⭐',
-    label_en: 'Stellar', label_fr: 'Stellaire',
-    desc_en: 'Expand your horizons',
-    desc_fr: 'Élargissez vos horizons',
-    perks_en: ['Everything in Lunar', 'Unlock up to 25 profiles/month', '100 messages/month', 'Nina AI conversation suggestions', 'Priority in search results'],
-    perks_fr: ['Tout ce qui est dans Lunaire', "Débloquer jusqu'à 25 profils/mois", '100 messages/mois', 'Suggestions IA de Nina', 'Priorité dans les résultats'],
-    durations: [
-      { key: 'stellar_14d', label_en: '14 days', label_fr: '14 jours', price: '$10' },
-      { key: 'stellar_1m',  label_en: '1 month',  label_fr: '1 mois',  price: '$15' },
-      { key: 'stellar_3m',  label_en: '3 months', label_fr: '3 mois',  price: '$41.25' },
-      { key: 'stellar_6m',  label_en: '6 months', label_fr: '6 mois',  price: '$82.50' },
-      { key: 'stellar_1y',  label_en: '1 year',   label_fr: '1 an',    price: '$165' },
-    ],
-  },
-  {
-    key: 'galactic', color: '#F5A800', icon: '🌌',
-    label_en: 'Galactic', label_fr: 'Galactique',
-    desc_en: 'Unlimited consciousness',
-    desc_fr: 'Conscience illimitée',
-    perks_en: ['Everything in Stellar', 'Unlimited profile unlocks', 'Unlimited messages', 'Gallery unlock included', 'BBP rewards on every interaction', 'Lifetime option available'],
-    perks_fr: ['Tout ce qui est dans Stellaire', 'Déblocages de profil illimités', 'Messages illimités', 'Déverrouillage de galerie inclus', 'Récompenses BBP sur chaque interaction', 'Option à vie disponible'],
-    durations: [
-      { key: 'galactic_7d',   label_en: '7 days',   label_fr: '7 jours',  price: '$7' },
-      { key: 'galactic_14d',  label_en: '14 days',  label_fr: '14 jours', price: '$14' },
-      { key: 'galactic_1m',   label_en: '1 month',  label_fr: '1 mois',   price: '$20' },
-      { key: 'galactic_3m',   label_en: '3 months', label_fr: '3 mois',   price: '$55' },
-      { key: 'galactic_6m',   label_en: '6 months', label_fr: '6 mois',   price: '$110' },
-      { key: 'galactic_1y',   label_en: '1 year',   label_fr: '1 an',     price: '$220' },
-      { key: 'galactic_life', label_en: 'Lifetime', label_fr: 'À vie',    price: '$400' },
-    ],
-  },
-];
+import { ALL_PLANS } from '@/lib/plans';
 
 const PLANS = ALL_PLANS.filter(p => p.key !== 'solar');
 

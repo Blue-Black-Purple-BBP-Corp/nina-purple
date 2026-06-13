@@ -7,6 +7,7 @@ import ThemeToggle from '@/components/ThemeToggle';
 import PricingModal from '@/components/PricingModal';
 import { useLang } from '@/lib/LanguageContext';
 import { useTranslation, PRICING_TABLE } from '@/lib/i18n';
+import { ALL_PLANS } from '@/lib/plans';
 
 export default function Landing() {
   const { lang } = useLang();
@@ -239,26 +240,49 @@ export default function Landing() {
         </motion.div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          {[
-            { plan: t('plans.solar'), price: t('plans.free'), desc: t('plans.solar_desc'), color: '#A78BFA', border: 'rgba(167,139,250,0.2)' },
-            { plan: t('plans.lunar'), price: '$10', desc: t('plans.lunar_desc'), color: '#7B2FBE', border: 'rgba(123,47,190,0.3)' },
-            { plan: t('plans.stellar'), price: '$15', desc: t('plans.stellar_desc'), color: '#A855F7', border: 'rgba(168,85,247,0.3)' },
-            { plan: t('plans.galactic'), price: '$20', desc: t('plans.galactic_desc'), color: '#F5A800', border: 'rgba(245,168,0,0.3)' },
-          ].map((p, i) => (
+          {ALL_PLANS.map((plan, i) => (
             <motion.div
-              key={i}
+              key={plan.key}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="glass-card rounded-2xl p-5 flex sm:flex-col items-center sm:text-center gap-4 sm:gap-0"
-              style={{ borderColor: p.border }}
+              className="glass-card rounded-2xl p-5 flex flex-col gap-3"
+              style={{ borderColor: `${plan.color}40` }}
             >
-              <div className="font-serif text-base sm:text-lg sm:mb-1 min-w-[80px] sm:min-w-0" style={{ color: p.color }}>{p.plan}</div>
-              <div className="text-2xl sm:text-3xl font-bold text-[#F0E6FF] sm:mb-1 flex-1 sm:flex-none">
-                {p.price}<span className="text-xs sm:text-sm font-normal text-[#F0E6FF]/40">{i > 0 ? t('plans.per_month') : ''}</span>
+              {/* Header */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="font-serif text-lg font-semibold" style={{ color: plan.color }}>
+                    {plan.icon} {lang === 'fr' ? plan.label_fr : plan.label_en}
+                  </div>
+                  <div className="text-[#F0E6FF]/40 text-xs mt-0.5">
+                    {lang === 'fr' ? plan.desc_fr : plan.desc_en}
+                  </div>
+                </div>
+                <div className="text-right shrink-0 ml-2">
+                  <div className="font-bold text-base" style={{ color: plan.color }}>
+                    {lang === 'fr' ? plan.price_fr : plan.price_en}
+                  </div>
+                </div>
               </div>
-              <div className="text-xs sm:text-sm text-[#F0E6FF]/50 text-right sm:text-center flex-1 sm:flex-none">{p.desc}</div>
+              {/* Divider */}
+              <div style={{ height: '0.5px', background: `${plan.color}25` }} />
+              {/* Perks */}
+              <ul className="space-y-1.5">
+                {(lang === 'fr' ? plan.perks_fr : plan.perks_en).map((perk, j) => (
+                  <li key={j} className="flex items-start gap-2 text-xs text-[#F0E6FF]/65">
+                    <span style={{ color: plan.color }} className="mt-0.5 shrink-0">✓</span>
+                    {perk}
+                  </li>
+                ))}
+              </ul>
+              {/* CTA */}
+              <Link to="/onboarding"
+                className="mt-auto block text-center text-xs font-semibold py-2 rounded-full transition-all"
+                style={{ background: `${plan.color}18`, color: plan.color, border: `1px solid ${plan.color}35` }}>
+                {lang === 'fr' ? 'Commencer' : 'Get Started'}
+              </Link>
             </motion.div>
           ))}
         </div>
