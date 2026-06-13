@@ -115,7 +115,7 @@ function PrivacyEN() {
         </Section>
 
         <Section title="12. International Data Transfers">
-          <p>Nina Purple operates internationally. Your data may be processed in Canada, the United States, and European Economic Area countries. For transfers from the EEA, we rely on Standard Contractual Clauses (SCCs) as per GDPR Chapter V. For Canadian users, data transfers comply with PIPEDA's accountability principle.</p>
+          <p>Nina Purple is a Wyoming-based company operating under United States law. While users may access the platform from anywhere in the world, all legal obligations, data handling practices, and dispute resolution are governed exclusively by the laws of the State of Wyoming and applicable federal U.S. law. By using Nina Purple, international users acknowledge that their data may be processed in the United States.</p>
         </Section>
 
         <Section title="13. Security">
@@ -231,7 +231,7 @@ function PrivacyFR() {
         </Section>
 
         <Section title="11. Transferts internationaux">
-          <p>Vos données peuvent être traitées aux États-Unis et dans l'Espace économique européen. Pour les transferts depuis l'EEE, nous nous appuyons sur les clauses contractuelles types du RGPD.</p>
+          <p>Nina Purple est une société basée dans le Wyoming, opérant sous le droit américain. Bien que des utilisateurs puissent accéder à la plateforme depuis n'importe où dans le monde, toutes les obligations légales et pratiques de traitement des données sont régies exclusivement par les lois de l'État du Wyoming et le droit fédéral américain applicable. En utilisant Nina Purple, les utilisateurs internationaux reconnaissent que leurs données peuvent être traitées aux États-Unis.</p>
         </Section>
 
         <Section title="12. Sécurité">
