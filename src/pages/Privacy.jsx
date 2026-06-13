@@ -78,14 +78,8 @@ function PrivacyEN() {
         </Section>
 
         <Section title="7. Data Sharing & Third Parties">
-          <p>We share data only as necessary with:</p>
-          <ul className="list-disc ml-5 mt-2 space-y-1">
-            <li><strong>Stripe:</strong> Payment processing (Stripe's Privacy Policy applies to cardholder data)</li>
-            <li><strong>Cloud infrastructure:</strong> Hosting and data storage (data stored in secure cloud environments)</li>
-            <li><strong>Google Places API:</strong> City autocomplete (only query strings are sent; no personal data)</li>
-            <li><strong>Legal authorities:</strong> When required by law, court order, or to protect rights and safety</li>
-          </ul>
-          <p className="mt-2">All third-party processors are bound by data processing agreements consistent with GDPR Article 28 and PIPEDA requirements.</p>
+          <p>We do not sell your personal data. We share it only when strictly necessary to operate the platform — with trusted payment processors, hosting providers, and mapping services. We may also disclose data when required by law or to protect the safety of our users.</p>
+          <p className="mt-2">All third-party service providers are contractually bound to protect your data and may only use it for the purposes we specify.</p>
         </Section>
 
         <Section title="8. Data Retention">
@@ -206,13 +200,8 @@ function PrivacyFR() {
         </Section>
 
         <Section title="7. Partage et tiers">
-          <ul className="list-disc ml-5 mt-2 space-y-1">
-            <li><strong>Stripe :</strong> traitement des paiements</li>
-            <li><strong>Infrastructure cloud :</strong> hébergement et stockage sécurisé</li>
-            <li><strong>Google Places API :</strong> autocomplétion de ville (aucune donnée personnelle transmise)</li>
-            <li><strong>Autorités légales :</strong> uniquement si requis par la loi</li>
-          </ul>
-          <p className="mt-2">Tous les sous-traitants sont liés par des accords de traitement conformes à l'article 28 du RGPD et à la LPRPDE.</p>
+          <p>Nous ne vendons pas vos données personnelles. Nous les partageons uniquement lorsque c'est strictement nécessaire au fonctionnement de la plateforme — avec des prestataires de paiement, d'hébergement et de cartographie de confiance. Nous pouvons également divulguer des données lorsque la loi l'exige ou pour protéger la sécurité de nos utilisateurs.</p>
+          <p className="mt-2">Tous nos prestataires sont contractuellement tenus de protéger vos données et ne peuvent les utiliser qu'aux fins que nous définissons.</p>
         </Section>
 
         <Section title="8. Conservation des données">
