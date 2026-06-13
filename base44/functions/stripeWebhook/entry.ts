@@ -2,18 +2,12 @@ import Stripe from 'npm:stripe@14';
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 const CREDIT_AMOUNTS = {
-  credits_10: 10,
-  credits_25: 25,
-  credits_50: 50,
+  wallet_5: 5,
+  wallet_10: 10,
+  wallet_25: 25,
+  wallet_50: 50,
+  wallet_100: 100,
 };
-
-const SUBSCRIPTION_TIERS = {
-  lunar: 'lunar',
-  stellar: 'stellar',
-  galactic: 'galactic',
-};
-
-const ADMIN_EMAIL = 'contact@ninapurple.love';
 
 Deno.serve(async (req) => {
   const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
@@ -53,11 +47,15 @@ Deno.serve(async (req) => {
 
       const profile = profiles[0];
 
-      if (SUBSCRIPTION_TIERS[price_key]) {
+      // Extract tier from price_key (e.g., "galactic_1m" → "galactic")
+      const tier = price_key ? price_key.split('_')[0] : '';
+      const validTiers = ['lunar', 'stellar', 'galactic'];
+
+      if (validTiers.includes(tier)) {
         await base44.asServiceRole.entities.UserProfile.update(profile.id, {
-          subscription_tier: SUBSCRIPTION_TIERS[price_key],
+          subscription_tier: tier,
         });
-        console.info('Updated subscription to', price_key, 'for user:', user_id);
+        console.info('Updated subscription to', tier, 'for user:', user_id);
       } else if (CREDIT_AMOUNTS[price_key]) {
         const newBalance = (profile.credit_balance || 0) + CREDIT_AMOUNTS[price_key];
         await base44.asServiceRole.entities.UserProfile.update(profile.id, {

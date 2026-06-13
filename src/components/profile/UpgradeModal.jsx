@@ -1,13 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import CheckoutButton from '@/components/CheckoutButton';
 import { ALL_PLANS } from '@/lib/plans';
+import { base44 } from '@/api/base44Client';
 
 const PLANS = ALL_PLANS.filter(p => p.key !== 'solar');
 
 export default function UpgradeModal({ isOpen, onClose, lang, currentTier }) {
   const [selectedPlan, setSelectedPlan] = useState('galactic');
-  const [selectedDuration, setSelectedDuration] = useState('galactic_1m');
+  const [selectedDuration, setSelectedDuration] = useState('1m');
+  const [userId, setUserId] = useState('');
+
+  useEffect(() => {
+    if (isOpen) {
+      base44.auth.me().then(u => u && setUserId(u.id)).catch(() => {});
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -102,7 +110,8 @@ export default function UpgradeModal({ isOpen, onClose, lang, currentTier }) {
             </button>
           ) : (
             <CheckoutButton
-              priceKey={selectedDuration}
+              priceKey={`${selectedPlan}_${selectedDuration}`}
+              userId={userId}
               className="w-full py-4 rounded-full font-bold text-sm text-[#0B0510] hover:opacity-90 transition-all shadow-[0_0_20px_rgba(245,168,0,0.2)]"
               style={{ background: activePlan?.color || '#F5A800' }}>
               {lang === 'fr' ? 'Continuer vers le paiement' : 'Continue to Payment'}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Wallet, Loader2 } from 'lucide-react';
 import { useLang } from '@/lib/LanguageContext';
 import { base44 } from '@/api/base44Client';
@@ -14,6 +14,13 @@ const WALLET_PACKS = [
 export default function CreditsModal({ isOpen, onClose }) {
   const { lang } = useLang();
   const [loading, setLoading] = useState(null);
+  const [userId, setUserId] = useState('');
+
+  useEffect(() => {
+    if (isOpen) {
+      base44.auth.me().then(u => u && setUserId(u.id)).catch(() => {});
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -31,6 +38,7 @@ export default function CreditsModal({ isOpen, onClose }) {
         price_key: key,
         success_url: `${origin}/home?wallet=funded`,
         cancel_url: `${origin}/home`,
+        user_id: userId,
       });
       if (res.data?.url) {
         window.location.href = res.data.url;

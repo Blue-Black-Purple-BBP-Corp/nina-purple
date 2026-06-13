@@ -201,6 +201,7 @@ export default function Onboarding() {
         price_key: getPriceKey(selectedPlan, selectedDuration),
         success_url: `${origin}/home?payment=success`,
         cancel_url: `${origin}/onboarding`,
+        user_id: user.id,
       });
       if (res.data?.url) {
         window.location.href = res.data.url;

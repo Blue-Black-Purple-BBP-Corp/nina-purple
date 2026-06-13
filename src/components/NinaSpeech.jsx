@@ -14,7 +14,7 @@ export default function NinaSpeech({ message, className = '' }) {
       <div className="relative max-w-lg">
         {/* Speech bubble */}
         <div
-          className="glass-card rounded-2xl rounded-tl-none px-5 py-4 text-[#F0E6FF] text-base leading-relaxed"
+          className="glass-card rounded-2xl rounded-tl-none px-5 py-4 text-foreground text-base leading-relaxed"
           style={{ borderColor: 'rgba(245,168,0,0.2)', boxShadow: '0 0 20px rgba(245,168,0,0.05)' }}
         >
           {message}
