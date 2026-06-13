@@ -239,52 +239,93 @@ export default function Landing() {
           <p className="text-[#F0E6FF]/60 text-lg max-w-xl mx-auto">{t('pricing.subtitle')}</p>
         </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          {ALL_PLANS.map((plan, i) => (
-            <motion.div
-              key={plan.key}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className="glass-card rounded-2xl p-5 flex flex-col gap-3"
-              style={{ borderColor: `${plan.color}40` }}
-            >
-              {/* Header */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="font-serif text-lg font-semibold" style={{ color: plan.color }}>
-                    {plan.icon} {lang === 'fr' ? plan.label_fr : plan.label_en}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+          {ALL_PLANS.map((plan, i) => {
+            const isGalactic = plan.key === 'galactic';
+            const isSolar = plan.key === 'solar';
+            return (
+              <motion.div
+                key={plan.key}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="rounded-2xl p-6 flex flex-col gap-4 relative overflow-hidden"
+                style={{
+                  background: isGalactic
+                    ? `linear-gradient(160deg, ${plan.color}12 0%, rgba(31,16,38,0.9) 60%)`
+                    : 'rgba(31,16,38,0.5)',
+                  border: isGalactic
+                    ? `1.5px solid ${plan.color}40`
+                    : `1px solid rgba(240,230,255,0.08)`,
+                  backdropFilter: 'blur(20px)',
+                  boxShadow: isGalactic
+                    ? `0 8px 40px ${plan.color}18, inset 0 1px 0 ${plan.color}15`
+                    : 'none',
+                }}
+              >
+                {/* Galactic badge */}
+                {isGalactic && (
+                  <div className="absolute -top-0.5 left-1/2 -translate-x-1/2 px-4 py-0.5 rounded-b-full text-[10px] font-bold uppercase tracking-widest"
+                    style={{ background: plan.color, color: '#0B0510' }}>
+                    {lang === 'fr' ? 'Populaire' : 'Popular'}
                   </div>
-                  <div className="text-muted-foreground text-xs mt-0.5">
+                )}
+
+                {/* Icon + Name */}
+                <div className="text-center">
+                  <div className="text-2xl mb-1.5">{plan.icon}</div>
+                  <h3 className="font-serif text-xl font-bold" style={{ color: plan.color }}>
+                    {lang === 'fr' ? plan.label_fr : plan.label_en}
+                  </h3>
+                  <p className="text-muted-foreground text-xs mt-0.5">
                     {lang === 'fr' ? plan.desc_fr : plan.desc_en}
-                  </div>
+                  </p>
                 </div>
-                <div className="text-right shrink-0 ml-2">
-                  <div className="font-bold text-base" style={{ color: plan.color }}>
-                    {lang === 'fr' ? plan.price_fr : plan.price_en}
-                  </div>
+
+                {/* Price */}
+                <div className="text-center">
+                  {isSolar ? (
+                    <span className="text-3xl font-serif font-bold" style={{ color: plan.color }}>
+                      {lang === 'fr' ? 'Gratuit' : 'Free'}
+                    </span>
+                  ) : (
+                    <div>
+                      <span className="text-2xl font-serif font-bold text-foreground">
+                        {lang === 'fr' ? plan.price_fr : plan.price_en}
+                      </span>
+                    </div>
+                  )}
                 </div>
-              </div>
-              {/* Divider */}
-              <div style={{ height: '0.5px', background: `${plan.color}25` }} />
-              {/* Perks */}
-              <ul className="space-y-1.5">
-                {(lang === 'fr' ? plan.perks_fr : plan.perks_en).map((perk, j) => (
-                  <li key={j} className="flex items-start gap-2 text-xs text-foreground/70">
-                    <span style={{ color: plan.color }} className="mt-0.5 shrink-0">✓</span>
-                    {perk}
-                  </li>
-                ))}
-              </ul>
-              {/* CTA */}
-              <Link to="/onboarding"
-                className="mt-auto block text-center text-xs font-semibold py-2 rounded-full transition-all"
-                style={{ background: `${plan.color}18`, color: plan.color, border: `1px solid ${plan.color}35` }}>
-                {lang === 'fr' ? 'Commencer' : 'Get Started'}
-              </Link>
-            </motion.div>
-          ))}
+
+                {/* Divider */}
+                <div style={{ height: '1px', background: isGalactic ? `${plan.color}30` : 'rgba(240,230,255,0.06)' }} />
+
+                {/* Perks */}
+                <ul className="space-y-2 flex-1">
+                  {(lang === 'fr' ? plan.perks_fr : plan.perks_en).map((perk, j) => (
+                    <li key={j} className="flex items-start gap-2.5 text-xs text-foreground/65 leading-relaxed">
+                      <span className="mt-0.5 shrink-0 flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold"
+                        style={{ background: `${plan.color}18`, color: plan.color }}>✓</span>
+                      {perk}
+                    </li>
+                  ))}
+                </ul>
+
+                {/* CTA */}
+                <Link to="/onboarding"
+                  className="block text-center text-sm font-bold py-3 rounded-full transition-all duration-300"
+                  style={isSolar
+                    ? { background: 'transparent', color: plan.color, border: `1.5px solid ${plan.color}40` }
+                    : isGalactic
+                      ? { background: plan.color, color: '#0B0510', boxShadow: `0 4px 20px ${plan.color}30` }
+                      : { background: `${plan.color}20`, color: plan.color, border: `1px solid ${plan.color}30` }
+                  }>
+                  {lang === 'fr' ? 'Commencer' : 'Get Started'}
+                </Link>
+              </motion.div>
+            );
+          })}
         </div>
 
         <div className="text-center">
