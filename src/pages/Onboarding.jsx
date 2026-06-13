@@ -509,14 +509,34 @@ export default function Onboarding() {
               className="w-full space-y-6">
               <NinaSpeech message={t('onboarding.archetype_intro')} />
               <h2 className="font-serif text-3xl text-[#F0E6FF]">{t('onboarding.archetype_title')}</h2>
-              {archetypes.map(a => (
-                <button key={a.id} onClick={() => setArchetype(a.id)}
-                  className="w-full glass-card rounded-2xl p-5 text-left transition-all duration-300"
-                  style={{ borderColor: archetype === a.id ? a.color : 'rgba(240,230,255,0.08)', boxShadow: archetype === a.id ? `0 0 20px ${a.color}30` : '' }}>
-                  <div className="font-serif text-xl mb-1" style={{ color: a.color }}>{a.name}</div>
-                  <div className="text-[#F0E6FF]/60 text-sm leading-relaxed">{a.desc}</div>
-                </button>
-              ))}
+              {archetypes.map(a => {
+                const isSelected = archetype === a.id;
+                return (
+                  <button key={a.id} onClick={() => setArchetype(a.id)}
+                    className="w-full rounded-2xl p-5 text-left transition-all duration-300 relative overflow-hidden"
+                    style={{
+                      background: isSelected
+                        ? `linear-gradient(135deg, ${a.color}22 0%, ${a.color}0a 100%)`
+                        : 'rgba(31,16,38,0.7)',
+                      border: `2px solid ${isSelected ? a.color : 'rgba(240,230,255,0.08)'}`,
+                      boxShadow: isSelected ? `0 0 28px ${a.color}40, inset 0 0 20px ${a.color}08` : 'none',
+                      backdropFilter: 'blur(40px)',
+                    }}>
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="font-serif text-xl" style={{ color: a.color }}>{a.name}</div>
+                      {isSelected && (
+                        <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
+                          style={{ background: a.color }}>
+                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                            <path d="M2 6l3 3 5-5" stroke="#0B0510" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                    <div className={`text-sm leading-relaxed transition-colors ${isSelected ? 'text-[#F0E6FF]/85' : 'text-[#F0E6FF]/50'}`}>{a.desc}</div>
+                  </button>
+                );
+              })}
               <button onClick={goNext} disabled={!archetype}
                 className={`w-full py-4 rounded-full font-bold uppercase tracking-widest transition-all ${archetype ? 'bg-[#F5A800] text-[#0B0510] hover:bg-yellow-400' : 'bg-[rgba(240,230,255,0.05)] text-[rgba(240,230,255,0.2)] cursor-not-allowed'}`}>
                 {t('onboarding.continue')}
