@@ -4,122 +4,125 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Light mode overrides ── */
+/* ── Light mode ── */
 [data-theme="light"] {
+  /* Semantic token overrides */
   --background: 270 40% 96%;
-  --foreground: 270 60% 10%;
+  --foreground: 270 60% 8%;
   --card: 0 0% 100%;
-  --card-foreground: 270 60% 10%;
+  --card-foreground: 270 60% 8%;
   --popover: 0 0% 100%;
-  --popover-foreground: 270 60% 10%;
+  --popover-foreground: 270 60% 8%;
   --muted: 270 20% 90%;
-  --muted-foreground: 270 20% 40%;
-  --border: 270 20% 82%;
-  --input: 270 20% 90%;
+  --muted-foreground: 270 20% 35%;
+  --border: 270 20% 80%;
+  --input: 270 20% 88%;
+
+  /* Custom Nina tokens — light values */
+  --void: #F0EBF9;
+  --veil: #FFFFFF;
+  --veil-deep: #F5F0FF;
+  --veil-light: #EDE6F8;
+  --starlight: #1A0A2E;
+  --starlight-dim: rgba(26, 10, 46, 0.65);
+  --starlight-ghost: rgba(26, 10, 46, 0.12);
 }
 
+[data-theme="light"] html,
 [data-theme="light"] body {
   background-color: #F0EBF9 !important;
   color: #1A0A2E !important;
 }
 
-[data-theme="light"] html {
+/* ── Page/section backgrounds ── */
+[data-theme="light"] .min-h-screen {
   background-color: #F0EBF9 !important;
 }
+[data-theme="light"] .bg-\[\#0B0510\] { background-color: #F0EBF9 !important; }
+[data-theme="light"] .bg-\[\#1F1026\] { background-color: #FFFFFF !important; }
+[data-theme="light"] .bg-\[\#150C1E\] { background-color: #F5F0FF !important; }
+[data-theme="light"] .bg-\[\#2D1B36\] { background-color: #EDE6F8 !important; }
 
-/* Nav & fixed panels */
-[data-theme="light"] nav[data-theme-nav] {
-  background: rgba(240, 235, 249, 0.92) !important;
-}
-
+/* ── Navigation ── */
 [data-theme="light"] nav {
   background-color: rgba(240, 235, 249, 0.95) !important;
-  border-color: rgba(123, 47, 190, 0.1) !important;
+  border-color: rgba(123, 47, 190, 0.12) !important;
 }
 
-/* Glass cards */
+/* ── Glass cards ── */
 [data-theme="light"] .glass-card {
-  background: rgba(255, 255, 255, 0.92) !important;
-  border-color: rgba(123, 47, 190, 0.18) !important;
+  background: rgba(255, 255, 255, 0.90) !important;
+  border-color: rgba(123, 47, 190, 0.15) !important;
   backdrop-filter: blur(20px);
 }
-
 [data-theme="light"] .glass-card-gold {
-  background: rgba(255, 255, 255, 0.96) !important;
-  border-color: rgba(245, 168, 0, 0.35) !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(245, 168, 0, 0.30) !important;
+  box-shadow: 0 0 20px rgba(245, 168, 0, 0.06) !important;
 }
-
 [data-theme="light"] .glass-card-orchid {
-  background: rgba(255, 255, 255, 0.96) !important;
-  border-color: rgba(123, 47, 190, 0.35) !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(123, 47, 190, 0.30) !important;
 }
 
-/* Hard-coded dark backgrounds in JSX */
-[data-theme="light"] [style*="background-color: rgb(11, 5, 16)"],
-[data-theme="light"] [style*="background: rgb(11, 5, 16)"],
-[data-theme="light"] [style*="#0B0510"] {
-  background-color: #F0EBF9 !important;
-}
+/* ── Text: starlight palette → dark ── */
+[data-theme="light"] .text-\[\#F0E6FF\]  { color: #1A0A2E !important; }
+[data-theme="light"] .text-starlight      { color: #1A0A2E !important; }
 
-/* Text colour overrides */
-[data-theme="light"] .text-\[\#F0E6FF\],
-[data-theme="light"] .text-starlight {
-  color: #1A0A2E !important;
-}
+/* opacity variants — map to dark-on-light equivalents */
+[data-theme="light"] .text-\[\#F0E6FF\]\/80 { color: rgba(26, 10, 46, 0.80) !important; }
+[data-theme="light"] .text-\[\#F0E6FF\]\/70 { color: rgba(26, 10, 46, 0.70) !important; }
+[data-theme="light"] .text-\[\#F0E6FF\]\/60 { color: rgba(26, 10, 46, 0.60) !important; }
+[data-theme="light"] .text-\[\#F0E6FF\]\/50 { color: rgba(26, 10, 46, 0.55) !important; }
+[data-theme="light"] .text-\[\#F0E6FF\]\/40 { color: rgba(26, 10, 46, 0.45) !important; }
+[data-theme="light"] .text-\[\#F0E6FF\]\/30 { color: rgba(26, 10, 46, 0.35) !important; }
+[data-theme="light"] .text-\[\#F0E6FF\]\/20 { color: rgba(26, 10, 46, 0.25) !important; }
 
-[data-theme="light"] .text-\[\#F0E6FF\]\/60,
-[data-theme="light"] .text-\[\#F0E6FF\]\/70,
-[data-theme="light"] .text-\[\#F0E6FF\]\/80 {
-  color: rgba(26, 10, 46, 0.65) !important;
-}
-
-[data-theme="light"] .text-\[\#F0E6FF\]\/40,
-[data-theme="light"] .text-\[\#F0E6FF\]\/50,
-[data-theme="light"] .text-\[\#F0E6FF\]\/30 {
-  color: rgba(26, 10, 46, 0.45) !important;
-}
-
-/* Section / page backgrounds */
-[data-theme="light"] .min-h-screen,
-[data-theme="light"] .bg-\[\#0B0510\] {
-  background-color: #F0EBF9 !important;
-}
-
-/* Dark veil backgrounds */
-[data-theme="light"] .bg-\[\#1F1026\],
-[data-theme="light"] .bg-\[\#150C1E\],
-[data-theme="light"] .bg-\[\#2D1B36\] {
-  background-color: #FFFFFF !important;
-}
-
-/* Borders */
+/* ── Borders using starlight-ghost palette ── */
+[data-theme="light"] .border-\[rgba\(240\,230\,255\,0\.08\)\],
 [data-theme="light"] .border-\[rgba\(240\,230\,255\,0\.06\)\],
-[data-theme="light"] .border-\[rgba\(240\,230\,255\,0\.08\)\] {
+[data-theme="light"] .border-\[rgba\(240\,230\,255\,0\.12\)\],
+[data-theme="light"] .border-\[rgba\(240\,230\,255\,0\.15\)\] {
   border-color: rgba(123, 47, 190, 0.15) !important;
 }
 
-/* Select dropdowns */
+/* ── Form elements ── */
+[data-theme="light"] input,
+[data-theme="light"] textarea {
+  color: #1A0A2E !important;
+  background-color: rgba(255, 255, 255, 0.9) !important;
+}
+[data-theme="light"] input::placeholder,
+[data-theme="light"] textarea::placeholder {
+  color: rgba(26, 10, 46, 0.35) !important;
+}
 [data-theme="light"] select,
 [data-theme="light"] select option {
   background-color: #FFFFFF !important;
   color: #1A0A2E !important;
 }
 
-/* Input fields */
-[data-theme="light"] input,
-[data-theme="light"] textarea {
-  color: #1A0A2E !important;
+/* ── Modals / overlays ── */
+[data-theme="light"] .bg-\[\#1F1026\].rounded-t-3xl,
+[data-theme="light"] .bg-\[\#1F1026\].rounded-3xl {
+  background-color: #FFFFFF !important;
+}
+[data-theme="light"] .bg-\[\#0B0510\]\/80 {
+  background-color: rgba(26, 10, 46, 0.5) !important;
 }
 
-/* Scrollbar */
-[data-theme="light"] ::-webkit-scrollbar-track {
-  background: #F0EBF9;
-}
+/* ── Scrollbar ── */
+[data-theme="light"] ::-webkit-scrollbar-track { background: #F0EBF9; }
 
-/* ThemeToggle button in light mode */
+/* ── ThemeToggle ── */
 [data-theme="light"] .theme-toggle-btn {
   background: rgba(240, 235, 249, 0.9) !important;
   border-color: rgba(123, 47, 190, 0.3) !important;
+}
+
+/* ── Golden thread divider ── */
+[data-theme="light"] .golden-thread {
+  background: linear-gradient(90deg, transparent, rgba(245, 168, 0, 0.3), transparent);
 }
 
 @layer base {
@@ -196,13 +199,13 @@
   }
 
   html {
-    background-color: #0B0510;
+    background-color: var(--void, #0B0510);
   }
 
   body {
     @apply bg-background text-foreground font-body;
-    background-color: #0B0510;
-    color: #F0E6FF;
+    background-color: var(--void, #0B0510);
+    color: var(--starlight, #F0E6FF);
     font-size: 17px;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
@@ -221,6 +224,7 @@
     backdrop-filter: blur(40px);
     -webkit-backdrop-filter: blur(40px);
     border: 1px solid rgba(240, 230, 255, 0.08);
+    transition: background 0.3s, border-color 0.3s;
   }
 
   .glass-card-gold {
@@ -229,6 +233,7 @@
     -webkit-backdrop-filter: blur(40px);
     border: 1px solid rgba(245, 168, 0, 0.2);
     box-shadow: 0 0 30px rgba(245, 168, 0, 0.05), inset 0 0 30px rgba(245, 168, 0, 0.02);
+    transition: background 0.3s, border-color 0.3s;
   }
 
   .glass-card-orchid {
@@ -237,6 +242,7 @@
     -webkit-backdrop-filter: blur(40px);
     border: 1px solid rgba(123, 47, 190, 0.3);
     box-shadow: 0 0 30px rgba(123, 47, 190, 0.08);
+    transition: background 0.3s, border-color 0.3s;
   }
 
   /* Glow effects */
