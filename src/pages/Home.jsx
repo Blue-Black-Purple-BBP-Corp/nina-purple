@@ -28,6 +28,7 @@ export default function Home() {
   const [userProfile, setUserProfile] = useState(null);
   const [authUser, setAuthUser] = useState(null);
   const [connections, setConnections] = useState([]);
+  const [matchProfiles, setMatchProfiles] = useState({});
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -46,9 +47,22 @@ export default function Home() {
       base44.entities.ChatRoom.filter({ is_active: true }, '-posts_count', 3),
     ]);
 
-    setUserProfile(profiles[0] || null);
+    const profile = profiles[0] || null;
+    setUserProfile(profile);
     setConnections(conns);
     setRooms(chatRooms);
+
+    // Load display names for connections
+    if (conns.length > 0) {
+      const toIds = [...new Set(conns.map(c => c.to_user_id))];
+      const matchProfiles = {};
+      await Promise.all(toIds.map(async uid => {
+        const res = await base44.entities.UserProfile.filter({ user_id: uid });
+        if (res[0]) matchProfiles[uid] = res[0];
+      }));
+      setMatchProfiles(matchProfiles);
+    }
+
     setLoading(false);
   };
 
@@ -150,16 +164,25 @@ export default function Home() {
           </div>
         ) : (
           <div className="space-y-3">
-            {connections.slice(0, 3).map((conn, i) => (
-              <motion.div key={conn.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.25 + i * 0.08 }}
-                className="glass-card rounded-2xl p-4 flex items-center justify-between">
-                <div>
-                  <p className="text-[#F0E6FF] font-medium text-sm">{conn.to_user_id}</p>
-                  <p className="text-[#F0E6FF]/40 text-xs capitalize">{conn.status}</p>
-                </div>
-                {conn.compatibility_score && <CompatibilityOrb score={conn.compatibility_score} />}
-              </motion.div>
-            ))}
+            {connections.slice(0, 3).map((conn, i) => {
+              const mp = matchProfiles[conn.to_user_id];
+              return (
+                <motion.div key={conn.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.25 + i * 0.08 }}
+                  className="glass-card rounded-2xl p-4 flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#7B2FBE] to-[#A855F7] flex items-center justify-center shrink-0 overflow-hidden">
+                    {mp?.photos?.[0]
+                      ? <img src={mp.photos[0]} alt="" className="w-full h-full object-cover" />
+                      : <span className="text-white text-sm font-serif">{(mp?.display_name || '?')[0]}</span>
+                    }
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[#F0E6FF] font-medium text-sm">{mp?.display_name || '—'}</p>
+                    <p className="text-[#F0E6FF]/40 text-xs">{mp?.city || ''}</p>
+                  </div>
+                  {conn.compatibility_score && <CompatibilityOrb score={conn.compatibility_score} />}
+                </motion.div>
+              );
+            })}
           </div>
         )}
       </motion.div>
