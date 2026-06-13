@@ -256,7 +256,7 @@ export default function Landing() {
                   <div className="font-serif text-lg font-semibold" style={{ color: plan.color }}>
                     {plan.icon} {lang === 'fr' ? plan.label_fr : plan.label_en}
                   </div>
-                  <div className="text-[#F0E6FF]/40 text-xs mt-0.5">
+                  <div className="text-muted-foreground text-xs mt-0.5">
                     {lang === 'fr' ? plan.desc_fr : plan.desc_en}
                   </div>
                 </div>
@@ -271,7 +271,7 @@ export default function Landing() {
               {/* Perks */}
               <ul className="space-y-1.5">
                 {(lang === 'fr' ? plan.perks_fr : plan.perks_en).map((perk, j) => (
-                  <li key={j} className="flex items-start gap-2 text-xs text-[#F0E6FF]/65">
+                  <li key={j} className="flex items-start gap-2 text-xs text-foreground/70">
                     <span style={{ color: plan.color }} className="mt-0.5 shrink-0">✓</span>
                     {perk}
                   </li>
