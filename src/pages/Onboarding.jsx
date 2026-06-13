@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, ChevronLeft, Upload, Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Check, ChevronLeft, Upload, Mail, Lock, Eye, EyeOff, Loader2, X } from 'lucide-react';
 import NinaSpeech from '@/components/NinaSpeech';
 import LocationAutocomplete from '@/components/LocationAutocomplete';
 import { useLang } from '@/lib/LanguageContext';
@@ -51,7 +51,9 @@ export default function Onboarding() {
   const [loading, setLoading] = useState(false);
   const [ageError, setAgeError] = useState('');
   const [photos, setPhotos] = useState([null, null, null, null, null, null]);
+  const [photoFingerprints, setPhotoFingerprints] = useState([null, null, null, null, null, null]);
   const [uploadingPhoto, setUploadingPhoto] = useState(null);
+  const [photoError, setPhotoError] = useState('');
   const [formError, setFormError] = useState('');
 
   // Registration state
@@ -114,13 +116,37 @@ export default function Onboarding() {
   };
 
   // ── Photo upload ──
+  const getFingerprint = (file) => `${file.name}_${file.size}_${file.lastModified}`;
+
   const handlePhotoUpload = async (index, file) => {
     if (!file) return;
+    setPhotoError('');
+
+    // Check for duplicate image (same file used in another slot)
+    const fp = getFingerprint(file);
+    const duplicateIndex = photoFingerprints.findIndex((f, i) => f === fp && i !== index);
+    if (duplicateIndex !== -1) {
+      setPhotoError(
+        lang === 'fr'
+          ? `Cette photo est déjà utilisée (emplacement ${duplicateIndex + 1}). Veuillez choisir une image différente.`
+          : `This photo is already used (slot ${duplicateIndex + 1}). Please choose a different image.`
+      );
+      return;
+    }
+
     setUploadingPhoto(index);
     const { file_url } = await base44.integrations.Core.UploadFile({ file });
     setPhotos(prev => { const next = [...prev]; next[index] = file_url; return next; });
+    setPhotoFingerprints(prev => { const next = [...prev]; next[index] = fp; return next; });
     setUploadingPhoto(null);
   };
+
+  const handlePhotoRemove = (index) => {
+    setPhotos(prev => { const next = [...prev]; next[index] = null; return next; });
+    setPhotoFingerprints(prev => { const next = [...prev]; next[index] = null; return next; });
+    setPhotoError('');
+  };
+
   const mandatoryPhotosUploaded = photos.slice(0, 3).every(p => p !== null);
 
   // ── Save profile & answers, then handle plan ──
@@ -498,21 +524,37 @@ export default function Onboarding() {
               <NinaSpeech message={t('onboarding.photos_desc')} />
               <div className="grid grid-cols-3 gap-3">
                 {[...Array(6)].map((_, i) => (
-                  <label key={i} className={`aspect-square glass-card rounded-2xl flex items-center justify-center cursor-pointer hover:border-[rgba(245,168,0,0.3)] transition-all relative overflow-hidden ${i < 3 ? 'border-[rgba(245,168,0,0.15)]' : ''}`}>
-                    <input type="file" accept="image/*" className="hidden" onChange={e => handlePhotoUpload(i, e.target.files[0])} />
-                    {photos[i] ? (
-                      <img src={photos[i]} alt="" className="absolute inset-0 w-full h-full object-cover rounded-2xl" />
-                    ) : uploadingPhoto === i ? (
-                      <div className="w-5 h-5 border-2 border-[#F5A800] border-t-transparent rounded-full animate-spin mx-auto" />
-                    ) : (
-                      <div className="text-center">
-                        <Upload className={`w-6 h-6 mx-auto mb-1 ${i < 3 ? 'text-[#F5A800]' : 'text-[rgba(240,230,255,0.2)]'}`} />
-                        {i < 3 && <div className="text-[8px] text-[#F5A800]/60">{t('onboarding.required_badge')}</div>}
-                      </div>
+                  <div key={i} className="relative aspect-square">
+                    <label className={`w-full h-full glass-card rounded-2xl flex items-center justify-center cursor-pointer hover:border-[rgba(245,168,0,0.3)] transition-all relative overflow-hidden block ${i < 3 ? 'border-[rgba(245,168,0,0.15)]' : ''}`}>
+                      <input type="file" accept="image/*" className="hidden" onChange={e => { if (e.target.files[0]) handlePhotoUpload(i, e.target.files[0]); e.target.value = ''; }} />
+                      {photos[i] ? (
+                        <img src={photos[i]} alt="" className="absolute inset-0 w-full h-full object-cover rounded-2xl" />
+                      ) : uploadingPhoto === i ? (
+                        <div className="w-5 h-5 border-2 border-[#F5A800] border-t-transparent rounded-full animate-spin mx-auto" />
+                      ) : (
+                        <div className="text-center">
+                          <Upload className={`w-6 h-6 mx-auto mb-1 ${i < 3 ? 'text-[#F5A800]' : 'text-[rgba(240,230,255,0.2)]'}`} />
+                          {i < 3 && <div className="text-[8px] text-[#F5A800]/60">{t('onboarding.required_badge')}</div>}
+                        </div>
+                      )}
+                    </label>
+                    {/* Remove button */}
+                    {photos[i] && (
+                      <button
+                        onClick={() => handlePhotoRemove(i)}
+                        className="absolute top-1.5 right-1.5 z-10 w-6 h-6 rounded-full bg-[rgba(11,5,16,0.8)] border border-[rgba(240,230,255,0.2)] flex items-center justify-center hover:bg-red-500/80 transition-all"
+                      >
+                        <X className="w-3 h-3 text-[#F0E6FF]" />
+                      </button>
                     )}
-                  </label>
+                  </div>
                 ))}
               </div>
+              {photoError && (
+                <div className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+                  {photoError}
+                </div>
+              )}
               <p className="text-[#F0E6FF]/40 text-sm text-center">{t('onboarding.photos_required')}</p>
               <button onClick={goNext} disabled={!mandatoryPhotosUploaded}
                 className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold hover:bg-yellow-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
