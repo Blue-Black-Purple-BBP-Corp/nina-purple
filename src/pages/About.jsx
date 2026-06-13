@@ -30,7 +30,7 @@ export default function About() {
   const values = fr ? VALUES_FR : VALUES_EN;
 
   return (
-    <div className="min-h-screen bg-[#0B0510] px-6 py-20 max-w-3xl mx-auto">
+    <div className="min-h-screen px-6 py-20 max-w-3xl mx-auto">
       <Link to="/" className="text-[#F5A800] text-sm hover:opacity-80 transition-opacity mb-10 inline-block">
         ← {fr ? 'Retour' : 'Back'}
       </Link>
@@ -42,10 +42,10 @@ export default function About() {
           alt="Nina Purple"
           className="w-20 h-20 mx-auto mb-6 drop-shadow-[0_0_30px_rgba(123,47,190,0.5)] object-contain"
         />
-        <h1 className="font-serif text-4xl md:text-5xl text-[#F0E6FF] mb-5">
+        <h1 className="font-serif text-4xl md:text-5xl text-foreground mb-5">
           {fr ? 'À Propos de Nina Purple' : 'About Nina Purple'}
         </h1>
-        <p className="text-[#F0E6FF]/65 text-xl leading-relaxed max-w-2xl mx-auto">
+        <p className="text-foreground/70 text-xl leading-relaxed max-w-2xl mx-auto">
           {fr
             ? "Une plateforme de rencontres conscientes qui place la profondeur avant l'apparence, et l'intention avant l'impulsion."
             : 'A conscious dating platform that places depth before appearance, and intention before impulse.'}
@@ -55,12 +55,12 @@ export default function About() {
       {/* Mission */}
       <motion.div {...fadeUp} className="glass-card-gold rounded-3xl p-8 mb-10 space-y-4">
         <h2 className="font-serif text-2xl text-[#F5A800]">{fr ? 'Notre Mission' : 'Our Mission'}</h2>
-        <p className="text-[#F0E6FF]/75 leading-relaxed">
+        <p className="text-foreground/80 leading-relaxed">
           {fr
             ? "Nina Purple est né d'une conviction simple : les rencontres en ligne méritent mieux. Nous avons éliminé le glissement d'écran, les photos filtrées et les interactions creuses — pour les remplacer par des connexions fondées sur les valeurs, les objectifs et la façon dont vous aimez."
             : "Nina Purple was born from one simple belief: online dating deserves better. We removed the swiping, the filtered photos, and the hollow interactions — replacing them with connections built on values, goals, and how you love."}
         </p>
-        <p className="text-[#F0E6FF]/75 leading-relaxed">
+        <p className="text-foreground/80 leading-relaxed">
           {fr
             ? "Notre algorithme de compatibilité repose sur 21 questions profondes. La plateforme est conçue pour des adultes intentionnels — célibataires, séparé·es ou en transition — qui cherchent des relations authentiques et durables."
             : "Our compatibility algorithm is powered by 21 deep questions. The platform is designed for intentional adults — singles, separated, or in transition — seeking authentic, meaningful relationships."}
@@ -69,14 +69,14 @@ export default function About() {
 
       {/* Values grid */}
       <motion.div {...fadeUp}>
-        <h2 className="font-serif text-2xl text-[#F0E6FF] mb-6">{fr ? 'Ce qui nous définit' : 'What Defines Us'}</h2>
+        <h2 className="font-serif text-2xl text-foreground mb-6">{fr ? 'Ce qui nous définit' : 'What Defines Us'}</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
           {values.map((v, i) => (
             <motion.div key={i}
-              initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.08 }}
               className="glass-card rounded-2xl p-5 space-y-2"
-              style={{ borderColor: `${v.color}20` }}>
+              style={{ borderColor: `${v.color}30` }}>
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
                   style={{ background: `${v.color}15`, border: `1px solid ${v.color}30` }}>
@@ -84,7 +84,7 @@ export default function About() {
                 </div>
                 <h3 className="font-serif text-base" style={{ color: v.color }}>{v.title}</h3>
               </div>
-              <p className="text-[#F0E6FF]/55 text-sm leading-relaxed">{v.desc}</p>
+              <p className="text-foreground/70 text-sm leading-relaxed">{v.desc}</p>
             </motion.div>
           ))}
         </div>
@@ -93,8 +93,8 @@ export default function About() {
       {/* The magic number */}
       <motion.div {...fadeUp} className="glass-card rounded-3xl p-8 mb-10 text-center" style={{ borderColor: 'rgba(245,168,0,0.15)' }}>
         <div className="font-serif text-6xl font-bold text-[#F5A800] mb-2">21</div>
-        <h3 className="font-serif text-xl text-[#F0E6FF] mb-3">{fr ? 'Le Nombre Magique' : 'The Magic Number'}</h3>
-        <p className="text-[#F0E6FF]/60 text-sm leading-relaxed max-w-lg mx-auto">
+        <h3 className="font-serif text-xl text-foreground mb-3">{fr ? 'Le Nombre Magique' : 'The Magic Number'}</h3>
+        <p className="text-foreground/70 text-sm leading-relaxed max-w-lg mx-auto">
           {fr
             ? "Vous vous connectez avec les autres selon vos intentions relationnelles en répondant à 21 questions profondes sur la façon dont vous aimez être aimé·e. Ce ne sont pas des détails de surface — ce sont vos valeurs fondamentales."
             : "You connect with others based on your relationship intentions by answering 21 deep questions about how you like to be loved. These aren't surface-level details — they are your core values."}
@@ -109,11 +109,11 @@ export default function About() {
         </Link>
       </motion.div>
 
-      <div className="pt-8 border-t border-[rgba(240,230,255,0.08)] flex gap-6">
+      <div className="pt-8 border-t border-foreground/10 flex gap-6">
         <Link to="/contact" className="text-[#F5A800] hover:opacity-80 transition-opacity text-sm">
           {fr ? 'Nous Contacter →' : 'Contact Us →'}
         </Link>
-        <Link to="/privacy" className="text-[#F0E6FF]/40 hover:text-[#F0E6FF]/70 transition-colors text-sm">
+        <Link to="/privacy" className="text-foreground/50 hover:text-foreground/80 transition-colors text-sm">
           {fr ? 'Confidentialité' : 'Privacy Policy'}
         </Link>
       </div>

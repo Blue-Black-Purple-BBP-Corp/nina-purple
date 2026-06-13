@@ -15,13 +15,13 @@ export default function Privacy() {
 
 function PrivacyEN() {
   return (
-    <div className="min-h-screen bg-[var(--bg)] text-[var(--fg)] py-12 px-6">
+    <div className="min-h-screen py-12 px-6">
       <div className="max-w-3xl mx-auto">
         <Link to="/" className="inline-flex items-center gap-1 text-sm text-[#F5A800] hover:opacity-80 mb-8">
           <ChevronLeft className="w-4 h-4" /> Back
         </Link>
-        <h1 className="font-serif text-4xl mb-2">Privacy Policy</h1>
-        <p className="text-sm opacity-50 mb-10">Last updated: {LAST_UPDATED}</p>
+        <h1 className="font-serif text-4xl mb-2 text-foreground">Privacy Policy</h1>
+        <p className="text-sm text-foreground/50 mb-10">Last updated: {LAST_UPDATED}</p>
 
         <Section title="1. Who We Are">
           <p>Nina Purple is a Wyoming Statutory Close Corporation (Incorporation ID: 2025-001581162), with a mailing address at 30 N Gould St Ste R, Sheridan, WY 82801, USA.</p>
@@ -138,13 +138,13 @@ function PrivacyEN() {
 
 function PrivacyFR() {
   return (
-    <div className="min-h-screen bg-[var(--bg)] text-[var(--fg)] py-12 px-6">
+    <div className="min-h-screen py-12 px-6">
       <div className="max-w-3xl mx-auto">
         <Link to="/" className="inline-flex items-center gap-1 text-sm text-[#F5A800] hover:opacity-80 mb-8">
           <ChevronLeft className="w-4 h-4" /> Retour
         </Link>
-        <h1 className="font-serif text-4xl mb-2">Politique de confidentialité</h1>
-        <p className="text-sm opacity-50 mb-10">Dernière mise à jour : {LAST_UPDATED_FR}</p>
+        <h1 className="font-serif text-4xl mb-2 text-foreground">Politique de confidentialité</h1>
+        <p className="text-sm text-foreground/50 mb-10">Dernière mise à jour : {LAST_UPDATED_FR}</p>
 
         <Section title="1. Qui sommes-nous ?">
           <p>Nina Purple est une société fermée de droit du Wyoming (Wyoming Statutory Close Corporation, ID d'incorporation : 2025-001581162), avec adresse postale au 30 N Gould St Ste R, Sheridan, WY 82801, États-Unis.</p>
@@ -256,7 +256,7 @@ function Section({ title, children }) {
   return (
     <div className="mb-8">
       <h2 className="font-serif text-xl text-[#F5A800] mb-3">{title}</h2>
-      <div className="text-sm leading-relaxed opacity-80 space-y-1">{children}</div>
+      <div className="text-sm leading-relaxed text-foreground/80 space-y-1">{children}</div>
     </div>
   );
 }
