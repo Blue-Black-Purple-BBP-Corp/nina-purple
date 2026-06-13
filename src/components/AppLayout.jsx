@@ -1,15 +1,26 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Home, Users, MessageCircle, Calendar, User, Star } from 'lucide-react';
+import { Home, Users, MessageCircle, Calendar, User, Star, LogIn, Loader2 } from 'lucide-react';
 import LanguageToggle from './LanguageToggle';
+import ThemeToggle from './ThemeToggle';
 import NinaAvatar from './NinaAvatar';
 import { useLang } from '@/lib/LanguageContext';
 import { useTranslation } from '@/lib/i18n';
+import { base44 } from '@/api/base44Client';
 
 export default function AppLayout() {
   const location = useLocation();
   const { lang } = useLang();
   const { t } = useTranslation(lang);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    base44.auth.isAuthenticated().then(auth => {
+      setIsAuthenticated(auth);
+      setAuthChecked(true);
+    });
+  }, []);
 
   const navItems = [
     { path: '/home', icon: Home, label: t('nav.home') },
@@ -21,6 +32,52 @@ export default function AppLayout() {
   ];
 
   const isActive = (path) => location.pathname === path;
+
+  if (!authChecked) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-[#0B0510]">
+        <Loader2 className="w-8 h-8 text-[#F5A800] animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-[#0B0510] flex flex-col items-center justify-center px-6 gap-8 text-center">
+        <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+          <ThemeToggle />
+          <LanguageToggle />
+        </div>
+        <NinaAvatar size="xl" glow />
+        <div className="space-y-2">
+          <h2 className="font-serif text-3xl text-[#F0E6FF]">
+            {lang === 'fr' ? 'Bon retour' : 'Welcome back'}
+          </h2>
+          <p className="text-[#F0E6FF]/50 text-sm max-w-xs">
+            {lang === 'fr'
+              ? 'Connectez-vous pour accéder à votre espace Nina Purple'
+              : 'Sign in to access your Nina Purple sanctuary'}
+          </p>
+        </div>
+        <div className="space-y-3 w-full max-w-xs">
+          <button
+            onClick={() => base44.auth.redirectToLogin(location.pathname)}
+            className="w-full flex items-center justify-center gap-2 py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all shadow-[0_0_30px_rgba(245,168,0,0.3)]">
+            <LogIn className="w-5 h-5" />
+            {lang === 'fr' ? 'Se connecter' : 'Sign In'}
+          </button>
+          <a href="/onboarding"
+            className="block w-full py-3 glass-card rounded-full text-[#F0E6FF]/60 text-sm hover:text-[#F5A800] transition-colors">
+            {lang === 'fr' ? 'Pas encore membre ? Commencer' : "New here? Begin your journey"}
+          </a>
+          <a href="/"
+            className="block text-[#F0E6FF]/20 text-xs hover:text-[#F0E6FF]/40 transition-colors pt-1">
+            {lang === 'fr' ? '← Retour à l\'accueil' : '← Back to home'}
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0B0510] flex flex-col">
