@@ -81,7 +81,7 @@ function PrivacyEN() {
           <p>We share data only as necessary with:</p>
           <ul className="list-disc ml-5 mt-2 space-y-1">
             <li><strong>Stripe:</strong> Payment processing (Stripe's Privacy Policy applies to cardholder data)</li>
-            <li><strong>Base44 / Cloud infrastructure:</strong> Hosting and data storage (data stored in secure cloud environments)</li>
+            <li><strong>Cloud infrastructure:</strong> Hosting and data storage (data stored in secure cloud environments)</li>
             <li><strong>Google Places API:</strong> City autocomplete (only query strings are sent; no personal data)</li>
             <li><strong>Legal authorities:</strong> When required by law, court order, or to protect rights and safety</li>
           </ul>
@@ -208,7 +208,7 @@ function PrivacyFR() {
         <Section title="7. Partage et tiers">
           <ul className="list-disc ml-5 mt-2 space-y-1">
             <li><strong>Stripe :</strong> traitement des paiements</li>
-            <li><strong>Base44 / Infrastructure cloud :</strong> hébergement et stockage sécurisé</li>
+            <li><strong>Infrastructure cloud :</strong> hébergement et stockage sécurisé</li>
             <li><strong>Google Places API :</strong> autocomplétion de ville (aucune donnée personnelle transmise)</li>
             <li><strong>Autorités légales :</strong> uniquement si requis par la loi</li>
           </ul>

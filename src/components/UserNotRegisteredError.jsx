@@ -2,26 +2,28 @@ import React from 'react';
 
 const UserNotRegisteredError = () => {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-white to-slate-50">
-      <div className="max-w-md w-full p-8 bg-white rounded-lg shadow-lg border border-slate-100">
-        <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 mb-6 rounded-full bg-orange-100">
-            <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-          </div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-4">Access Restricted</h1>
-          <p className="text-slate-600 mb-8">
-            You are not registered to use this application. Please contact the app administrator to request access.
+    <div className="flex flex-col items-center justify-center min-h-screen bg-[#0B0510]">
+      <div className="max-w-md w-full p-8 glass-card rounded-3xl mx-6 text-center space-y-6">
+        <img
+          src="https://media.base44.com/images/public/user_6a21c0f76d807658e5c95962/36ab8cc0a_NinaPurpleIcon.png"
+          alt="Nina Purple"
+          className="w-16 h-16 mx-auto object-contain drop-shadow-[0_0_20px_rgba(123,47,190,0.5)]"
+        />
+        <div>
+          <h1 className="font-serif text-2xl text-[#F0E6FF] mb-3">Access Restricted</h1>
+          <p className="text-[#F0E6FF]/60 text-sm leading-relaxed">
+            Your account does not have access to Nina Purple. Please contact us to request access or verify you are using the correct account.
           </p>
-          <div className="p-4 bg-slate-50 rounded-md text-sm text-slate-600">
-            <p>If you believe this is an error, you can:</p>
-            <ul className="list-disc list-inside mt-2 space-y-1">
-              <li>Verify you are logged in with the correct account</li>
-              <li>Contact the app administrator for access</li>
-              <li>Try logging out and back in again</li>
-            </ul>
-          </div>
+        </div>
+        <div className="space-y-3">
+          <a href="mailto:contact@NinaPurple.love"
+            className="block w-full py-3 bg-[#F5A800] text-[#0B0510] rounded-full font-bold text-sm hover:bg-yellow-400 transition-all">
+            Contact Us
+          </a>
+          <button onClick={() => { window.location.href = '/'; }}
+            className="block w-full py-3 glass-card rounded-full text-[#F0E6FF]/60 text-sm hover:text-[#F0E6FF] transition-colors">
+            Return to Home
+          </button>
         </div>
       </div>
     </div>
