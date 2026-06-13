@@ -101,20 +101,40 @@ export default function Onboarding() {
       return;
     }
     setLoading(true);
-    await base44.auth.register({ email: regEmail, password: regPassword });
-    setShowOtp(true);
-    setLoading(false);
+    try {
+      await base44.auth.register({ email: regEmail, password: regPassword });
+      setShowOtp(true);
+    } catch (err) {
+      const msg = err?.message || '';
+      if (msg.toLowerCase().includes('already exists') || msg.toLowerCase().includes('already registered')) {
+        setFormError(lang === 'fr' ? 'Ce courriel est déjà enregistré. Connectez-vous plutôt.' : 'This email is already registered. Please log in instead.');
+      } else {
+        setFormError(msg || (lang === 'fr' ? "Échec de l'inscription. Réessayez." : 'Registration failed. Please try again.'));
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleVerifyOtp = async () => {
     setFormError('');
     setLoading(true);
-    const result = await base44.auth.verifyOtp({ email: regEmail, otpCode });
-    if (result?.access_token) {
-      base44.auth.setToken(result.access_token);
+    try {
+      const result = await base44.auth.verifyOtp({ email: regEmail, otpCode });
+      if (result?.access_token) {
+        base44.auth.setToken(result.access_token);
+      } else {
+        setFormError(lang === 'fr' ? 'Code invalide. Réessayez.' : 'Invalid code. Please try again.');
+        setLoading(false);
+        return;
+      }
+      // After verification, save profile & answers then proceed
+      await handleComplete();
+    } catch (err) {
+      const msg = err?.message || '';
+      setFormError(msg || (lang === 'fr' ? 'Code invalide. Réessayez.' : 'Invalid code. Please try again.'));
+      setLoading(false);
     }
-    // After verification, save profile & answers then proceed
-    await handleComplete();
   };
 
   const handleResendOtp = async () => {
@@ -721,10 +741,18 @@ export default function Onboarding() {
           )}
         </AnimatePresence>
 
-        {/* Back button — not on first step, register step, or complete */}
-        {step > 0 && currentStep !== 'register' && currentStep !== 'complete' && (
+        {/* Back button — not on first step or complete */}
+        {step > 0 && currentStep !== 'complete' && !showOtp && (
           <button onClick={goPrev} className="mt-6 flex items-center gap-1 text-foreground/30 text-sm hover:text-foreground/60 transition-colors">
             <ChevronLeft className="w-4 h-4" /> {t('common.back')}
+          </button>
+        )}
+
+        {/* Back from OTP to email form */}
+        {showOtp && (
+          <button onClick={() => { setShowOtp(false); setFormError(''); setOtpCode(''); }}
+            className="mt-6 flex items-center gap-1 text-foreground/30 text-sm hover:text-foreground/60 transition-colors">
+            <ChevronLeft className="w-4 h-4" /> {lang === 'fr' ? 'Retour au formulaire' : 'Back to registration form'}
           </button>
         )}
 
