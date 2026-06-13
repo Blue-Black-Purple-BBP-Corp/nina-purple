@@ -268,6 +268,12 @@ export default function Onboarding() {
 
   return (
     <div className="min-h-screen bg-[#0B0510] flex flex-col">
+      {/* Top toggles — always visible */}
+      <div className="fixed top-4 right-4 z-[100] flex items-center gap-2">
+        <ThemeToggle />
+        <LanguageToggle />
+      </div>
+
       {/* Progress bar */}
       {step > 0 && step < STEPS.length - 1 && (
         <div className="fixed top-0 left-0 right-0 h-0.5 z-50 bg-[rgba(240,230,255,0.05)]">
