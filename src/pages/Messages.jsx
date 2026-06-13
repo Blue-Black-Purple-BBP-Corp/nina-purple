@@ -1,60 +1,100 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Sparkles, ChevronLeft } from 'lucide-react';
+import { Send, Sparkles, ChevronLeft, Loader2, MessageCircle } from 'lucide-react';
 import NinaAvatar from '@/components/NinaAvatar';
 import { useLang } from '@/lib/LanguageContext';
 import { useTranslation, getPricingForCompatibility, NINA_QUESTIONS } from '@/lib/i18n';
-
-const MOCK_CONVERSATIONS = [
-  { id: '1', name: 'Imani M.', age: 28, city: 'Paris', compatibility: 87, is_unlocked: true, archetype: 'blue', last_message: "I'm free this Saturday, want to hike up to Overlook Mountain?", time: '2h ago', unread: 1 },
-  { id: '2', name: 'Darrell G.', age: 36, city: 'London', compatibility: 92, is_unlocked: false, archetype: 'purple', last_message: lang => lang === 'fr' ? 'Non déverrouillé' : 'Not unlocked yet', time: '', unread: 0 },
-];
-
-const MOCK_MESSAGES = [
-  { id: '1', from: 'Imani M.', content: "I'm free this Saturday, you want to take that trail hike up to Overlook Mountain? Maybe grab a meal?", own: false, time: '2:30 PM' },
-  { id: '2', from: 'me', content: "OMG! Yes! I love that place and you know I love to eat... but I have a few errands to run. What time?", own: true, time: '2:35 PM' },
-  { id: '3', from: 'Imani M.', content: "I want to pick a time that works the best for both of us, no pressure. How about you let me know when it gets closer?", own: false, time: '2:40 PM' },
-  { id: '4', from: 'me', content: "Awesome, I'm sure I can rearrange some things! I will let you know on Friday before lunch. Super excited to see you!", own: true, time: '2:45 PM' },
-  { id: '5', from: 'Imani M.', content: "Likewise :) Talk to you soon!", own: false, time: '2:46 PM' },
-];
+import { base44 } from '@/api/base44Client';
 
 const ARCHETYPE_COLORS = { blue: '#60A5FA', black: '#9CA3AF', purple: '#A855F7' };
 
 export default function Messages() {
   const { lang } = useLang();
   const { t } = useTranslation(lang);
-  const [activeConv, setActiveConv] = useState(null);
+  const [connections, setConnections] = useState([]);
+  const [profiles, setProfiles] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [activeConvId, setActiveConvId] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [messagesLoading, setMessagesLoading] = useState(false);
   const [input, setInput] = useState('');
-  const [messages, setMessages] = useState(MOCK_MESSAGES);
   const [showNinaSuggestions, setShowNinaSuggestions] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const bottomRef = useRef(null);
 
-  const activeConvData = MOCK_CONVERSATIONS.find(c => c.id === activeConv);
+  useEffect(() => { loadConversations(); }, []);
+  useEffect(() => { if (activeConvId) loadMessages(activeConvId); }, [activeConvId]);
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
-  const handleSend = () => {
-    if (!input.trim()) return;
-    setMessages(prev => [...prev, { id: Date.now().toString(), from: 'me', content: input, own: true, time: 'Now' }]);
-    setInput('');
+  const loadConversations = async () => {
+    setLoading(true);
+    const user = await base44.auth.me();
+    setCurrentUser(user);
+    const conns = await base44.entities.Connection.filter({ from_user_id: user.id, is_unlocked: true });
+    const profileMap = {};
+    await Promise.all(conns.map(async c => {
+      const res = await base44.entities.UserProfile.filter({ user_id: c.to_user_id });
+      if (res[0]) profileMap[c.to_user_id] = res[0];
+    }));
+    setConnections(conns);
+    setProfiles(profileMap);
+    setLoading(false);
   };
 
-  if (activeConv) {
-    const pricing = getPricingForCompatibility(activeConvData?.compatibility || 0);
-    const archetypeColor = ARCHETYPE_COLORS[activeConvData?.archetype] || '#A855F7';
+  const loadMessages = async (convId) => {
+    setMessagesLoading(true);
+    const msgs = await base44.entities.Message.filter({ conversation_id: convId }, '-created_date', 50);
+    setMessages(msgs.reverse());
+    setMessagesLoading(false);
+    // Mark messages as read
+    await Promise.all(
+      msgs.filter(m => !m.is_read && m.to_user_id === currentUser?.id)
+        .map(m => base44.entities.Message.update(m.id, { is_read: true }))
+    );
+  };
+
+  const handleSend = async () => {
+    if (!input.trim() || !activeConvId || !currentUser) return;
+    const activeConn = connections.find(c => c.id === activeConvId);
+    const pricing = getPricingForCompatibility(activeConn?.compatibility_score || 0);
+    const newMsg = {
+      conversation_id: activeConvId,
+      from_user_id: currentUser.id,
+      to_user_id: activeConn.to_user_id,
+      content: input.trim(),
+      cost: pricing.msg,
+      message_type: 'text',
+    };
+    const created = await base44.entities.Message.create(newMsg);
+    setMessages(prev => [...prev, created]);
+    setInput('');
+    setShowNinaSuggestions(false);
+  };
+
+  if (activeConvId) {
+    const activeConn = connections.find(c => c.id === activeConvId);
+    const profile = profiles[activeConn?.to_user_id];
+    const pricing = getPricingForCompatibility(activeConn?.compatibility_score || 0);
+    const archetypeColor = ARCHETYPE_COLORS[profile?.dating_archetype] || '#A855F7';
 
     return (
       <div className="flex flex-col h-screen bg-[#0B0510] pt-16"
         style={{ background: `radial-gradient(ellipse at bottom center, ${archetypeColor}08 0%, #0B0510 60%)` }}>
-        {/* Chat header */}
+        {/* Header */}
         <div className="px-4 py-3 flex items-center gap-3 border-b border-[rgba(240,230,255,0.06)]"
           style={{ background: 'rgba(11,5,16,0.9)', backdropFilter: 'blur(20px)' }}>
-          <button onClick={() => setActiveConv(null)} className="text-[#F0E6FF]/50 hover:text-[#F0E6FF] transition-colors">
+          <button onClick={() => setActiveConvId(null)} className="text-[#F0E6FF]/50 hover:text-[#F0E6FF] transition-colors">
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#7B2FBE] to-[#A855F7] flex items-center justify-center">
-            <span className="text-white font-serif">{activeConvData?.name[0]}</span>
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#7B2FBE] to-[#A855F7] flex items-center justify-center overflow-hidden shrink-0">
+            {profile?.photos?.[0]
+              ? <img src={profile.photos[0]} alt="" className="w-full h-full object-cover" />
+              : <span className="text-white font-serif">{profile?.display_name?.[0]}</span>
+            }
           </div>
           <div className="flex-1">
-            <p className="text-[#F0E6FF] font-medium text-sm">{activeConvData?.name}</p>
-            <p className="text-[#F0E6FF]/40 text-xs">{activeConvData?.compatibility}% {t('home.compatibility')}</p>
+            <p className="text-[#F0E6FF] font-medium text-sm">{profile?.display_name}</p>
+            <p className="text-[#F0E6FF]/40 text-xs">{activeConn?.compatibility_score || 0}% {t('home.compatibility')}</p>
           </div>
           <div className="text-right">
             <div className="text-[#F5A800] text-xs font-medium">${pricing.msg.toFixed(2)}</div>
@@ -64,25 +104,38 @@ export default function Messages() {
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
-          {messages.map(msg => (
-            <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-              className={`flex ${msg.own ? 'justify-end' : 'justify-start'} gap-2`}>
-              {!msg.own && (
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7B2FBE] to-[#A855F7] flex items-center justify-center shrink-0 mt-1">
-                  <span className="text-white text-xs font-serif">{activeConvData?.name[0]}</span>
-                </div>
-              )}
-              <div className={`max-w-xs rounded-2xl px-4 py-3 text-sm leading-relaxed ${msg.own
-                  ? 'bg-[#7B2FBE] text-[#F0E6FF] rounded-tr-sm'
-                  : 'glass-card text-[#F0E6FF]/90 rounded-tl-sm'}`}>
-                {msg.content}
-                <div className={`text-[10px] mt-1 ${msg.own ? 'text-[rgba(240,230,255,0.5)]' : 'text-[rgba(240,230,255,0.3)]'}`}>
-                  {msg.time}
-                  {msg.own && <span className="ml-1">· ${pricing.msg.toFixed(2)}</span>}
-                </div>
-              </div>
-            </motion.div>
-          ))}
+          {messagesLoading ? (
+            <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 text-[#F5A800] animate-spin" /></div>
+          ) : messages.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-[#F0E6FF]/30 text-sm">{lang === 'fr' ? 'Commencez la conversation…' : 'Start the conversation…'}</p>
+            </div>
+          ) : (
+            messages.map(msg => {
+              const isOwn = msg.from_user_id === currentUser?.id;
+              return (
+                <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                  className={`flex ${isOwn ? 'justify-end' : 'justify-start'} gap-2`}>
+                  {!isOwn && (
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7B2FBE] to-[#A855F7] flex items-center justify-center shrink-0 mt-1 overflow-hidden">
+                      {profile?.photos?.[0]
+                        ? <img src={profile.photos[0]} alt="" className="w-full h-full object-cover" />
+                        : <span className="text-white text-xs font-serif">{profile?.display_name?.[0]}</span>
+                      }
+                    </div>
+                  )}
+                  <div className={`max-w-xs rounded-2xl px-4 py-3 text-sm leading-relaxed ${isOwn ? 'bg-[#7B2FBE] text-[#F0E6FF] rounded-tr-sm' : 'glass-card text-[#F0E6FF]/90 rounded-tl-sm'}`}>
+                    {msg.content}
+                    <div className={`text-[10px] mt-1 ${isOwn ? 'text-[rgba(240,230,255,0.5)]' : 'text-[rgba(240,230,255,0.3)]'}`}>
+                      {new Date(msg.created_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {isOwn && msg.cost > 0 && <span className="ml-1">· ${msg.cost.toFixed(2)}</span>}
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })
+          )}
+          <div ref={bottomRef} />
         </div>
 
         {/* Nina suggestions */}
@@ -117,12 +170,12 @@ export default function Messages() {
             <input
               value={input}
               onChange={e => setInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleSend()}
+              onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
               placeholder={t('messages.type_message')}
               className="flex-1 glass-card rounded-xl px-4 py-3 text-[#F0E6FF] text-sm outline-none focus:border-[rgba(123,47,190,0.4)] bg-transparent placeholder-[rgba(240,230,255,0.2)]"
             />
-            <button onClick={handleSend}
-              className="p-3 bg-[#F5A800] rounded-xl hover:bg-yellow-400 transition-all shadow-[0_0_15px_rgba(245,168,0,0.3)]">
+            <button onClick={handleSend} disabled={!input.trim()}
+              className="p-3 bg-[#F5A800] rounded-xl hover:bg-yellow-400 transition-all shadow-[0_0_15px_rgba(245,168,0,0.3)] disabled:opacity-40 disabled:cursor-not-allowed">
               <Send className="w-4 h-4 text-[#0B0510]" />
             </button>
           </div>
@@ -138,40 +191,54 @@ export default function Messages() {
         <p className="text-[#F0E6FF]/40 text-sm">{lang === 'fr' ? 'Vos conversations conscientes' : 'Your conscious conversations'}</p>
       </motion.div>
 
-      <div className="space-y-3">
-        {MOCK_CONVERSATIONS.map((conv, i) => {
-          const pricing = getPricingForCompatibility(conv.compatibility);
-          return (
-            <motion.button key={conv.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.1 }}
-              onClick={() => conv.is_unlocked && setActiveConv(conv.id)}
-              className={`w-full glass-card rounded-2xl p-4 text-left flex items-center gap-3 transition-all duration-300 ${conv.is_unlocked ? 'hover:border-[rgba(245,168,0,0.2)]' : 'opacity-60'}`}>
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#7B2FBE] to-[#A855F7] flex items-center justify-center shrink-0">
-                <span className="text-white font-serif">{conv.name[0]}</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between mb-1">
-                  <p className="text-[#F0E6FF] font-medium text-sm">{conv.name}, {conv.age}</p>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[#F5A800] text-xs font-medium">{conv.compatibility}%</span>
-                    {conv.unread > 0 && (
-                      <span className="w-5 h-5 rounded-full bg-[#F5A800] text-[#0B0510] text-[10px] font-bold flex items-center justify-center">
-                        {conv.unread}
-                      </span>
-                    )}
-                  </div>
+      {loading ? (
+        <div className="flex justify-center py-16"><Loader2 className="w-8 h-8 text-[#F5A800] animate-spin" /></div>
+      ) : connections.length === 0 ? (
+        <div className="text-center py-16 space-y-3">
+          <div className="w-16 h-16 rounded-full bg-[rgba(123,47,190,0.1)] flex items-center justify-center mx-auto">
+            <MessageCircle className="w-7 h-7 text-[#7B2FBE]" />
+          </div>
+          <p className="text-[#F0E6FF]/60 font-serif text-base">
+            {lang === 'fr' ? 'Aucune conversation pour l\'instant' : 'No conversations yet'}
+          </p>
+          <p className="text-[#F0E6FF]/30 text-sm">
+            {lang === 'fr' ? 'Déverrouillez une correspondance pour commencer à écrire.' : 'Unlock a match to start messaging.'}
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {connections.map((conn, i) => {
+            const profile = profiles[conn.to_user_id];
+            if (!profile) return null;
+            const pricing = getPricingForCompatibility(conn.compatibility_score || 0);
+            return (
+              <motion.button key={conn.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.1 }}
+                onClick={() => setActiveConvId(conn.id)}
+                className="w-full glass-card rounded-2xl p-4 text-left flex items-center gap-3 hover:border-[rgba(245,168,0,0.2)] transition-all duration-300">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#7B2FBE] to-[#A855F7] flex items-center justify-center shrink-0 overflow-hidden">
+                  {profile.photos?.[0]
+                    ? <img src={profile.photos[0]} alt="" className="w-full h-full object-cover" />
+                    : <span className="text-white font-serif">{profile.display_name?.[0]}</span>
+                  }
                 </div>
-                <p className="text-[#F0E6FF]/40 text-xs truncate">
-                  {conv.is_unlocked ? (typeof conv.last_message === 'function' ? conv.last_message(lang) : conv.last_message) : t('connections.locked')}
-                </p>
-                <p className="text-[#F0E6FF]/25 text-[10px] mt-0.5">${pricing.msg.toFixed(2)}/msg</p>
-              </div>
-            </motion.button>
-          );
-        })}
-      </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-[#F0E6FF] font-medium text-sm">{profile.display_name}, {profile.age}</p>
+                    <span className="text-[#F5A800] text-xs font-medium">{conn.compatibility_score || 0}%</span>
+                  </div>
+                  <p className="text-[#F0E6FF]/40 text-xs truncate">
+                    {lang === 'fr' ? 'Appuyez pour écrire…' : 'Tap to message…'}
+                  </p>
+                  <p className="text-[#F0E6FF]/25 text-[10px] mt-0.5">${pricing.msg.toFixed(2)}/msg</p>
+                </div>
+              </motion.button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
