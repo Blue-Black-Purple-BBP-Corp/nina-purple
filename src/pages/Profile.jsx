@@ -1,41 +1,54 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Star, Coins, Shield, Camera, ChevronRight as ChevronRightIcon, Crown, Edit3, Award, Users, Loader2 } from 'lucide-react';
+import { Star, Coins, Shield, Camera, ChevronRight as ChevronRightIcon, Crown, Edit3, Award, Users, Loader2, LogOut, LogIn } from 'lucide-react';
 import { useLang } from '@/lib/LanguageContext';
 import { useTranslation } from '@/lib/i18n';
 import PricingModal from '@/components/PricingModal';
 import CreditsModal from '@/components/CreditsModal';
-import CheckoutButton from '@/components/CheckoutButton';
 import NinaAvatar from '@/components/NinaAvatar';
+import ManagePhotosModal from '@/components/profile/ManagePhotosModal';
+import PrivacySettingsModal from '@/components/profile/PrivacySettingsModal';
+import ReferralModal from '@/components/profile/ReferralModal';
+import UpgradeModal from '@/components/profile/UpgradeModal';
 import { base44 } from '@/api/base44Client';
 
 const TIER_META = {
-  solar:   { color: '#A78BFA', label_en: 'Solar',   label_fr: 'Solaire',   icon: '☀️' },
-  lunar:   { color: '#7B2FBE', label_en: 'Lunar',   label_fr: 'Lunaire',   icon: '🌙' },
-  stellar: { color: '#A855F7', label_en: 'Stellar',  label_fr: 'Stellaire', icon: '⭐' },
-  galactic:{ color: '#F5A800', label_en: 'Galactic', label_fr: 'Galactique',icon: '🌌' },
+  solar:   { color: '#A78BFA', label_en: 'Solar',    label_fr: 'Solaire',    icon: '☀️' },
+  lunar:   { color: '#7B2FBE', label_en: 'Lunar',    label_fr: 'Lunaire',    icon: '🌙' },
+  stellar: { color: '#A855F7', label_en: 'Stellar',  label_fr: 'Stellaire',  icon: '⭐' },
+  galactic:{ color: '#F5A800', label_en: 'Galactic', label_fr: 'Galactique', icon: '🌌' },
 };
 
 export default function Profile() {
   const { lang } = useLang();
   const { t } = useTranslation(lang);
-  const [pricingOpen, setPricingOpen] = useState(false);
-  const [creditsOpen, setCreditsOpen] = useState(false);
-  const [upgradeOpen, setUpgradeOpen] = useState(false);
-  const [authUser, setAuthUser] = useState(null);
-  const [userProfile, setUserProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [pricingOpen, setPricingOpen]   = useState(false);
+  const [creditsOpen, setCreditsOpen]   = useState(false);
+  const [upgradeOpen, setUpgradeOpen]   = useState(false);
+  const [photosOpen, setPhotosOpen]     = useState(false);
+  const [privacyOpen, setPrivacyOpen]   = useState(false);
+  const [referralOpen, setReferralOpen] = useState(false);
+  const [authUser, setAuthUser]         = useState(null);
+  const [userProfile, setUserProfile]   = useState(null);
+  const [loading, setLoading]           = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => { loadProfile(); }, []);
 
   const loadProfile = async () => {
     setLoading(true);
-    const user = await base44.auth.me();
-    setAuthUser(user);
-    const profiles = await base44.entities.UserProfile.filter({ user_id: user.id });
-    setUserProfile(profiles[0] || null);
+    const authenticated = await base44.auth.isAuthenticated();
+    setIsAuthenticated(authenticated);
+    if (authenticated) {
+      const user = await base44.auth.me();
+      setAuthUser(user);
+      const profiles = await base44.entities.UserProfile.filter({ user_id: user.id });
+      setUserProfile(profiles[0] || null);
+    }
     setLoading(false);
   };
+
+  const handleLogout = () => base44.auth.logout('/');
 
   if (loading) {
     return (
@@ -45,23 +58,87 @@ export default function Profile() {
     );
   }
 
+  // ── Not logged in ──
+  if (!isAuthenticated) {
+    return (
+      <div className="px-4 py-16 max-w-lg mx-auto flex flex-col items-center gap-6 text-center">
+        <NinaAvatar size="lg" glow />
+        <div>
+          <h2 className="font-serif text-2xl text-[#F0E6FF] mb-2">
+            {lang === 'fr' ? 'Bon retour' : 'Welcome back'}
+          </h2>
+          <p className="text-[#F0E6FF]/50 text-sm">
+            {lang === 'fr' ? 'Connectez-vous pour accéder à votre profil' : 'Sign in to access your profile'}
+          </p>
+        </div>
+        <button
+          onClick={() => base44.auth.redirectToLogin('/profile')}
+          className="flex items-center gap-2 px-8 py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all shadow-[0_0_30px_rgba(245,168,0,0.3)]">
+          <LogIn className="w-5 h-5" />
+          {lang === 'fr' ? 'Se connecter' : 'Sign In'}
+        </button>
+        <a href="/onboarding" className="text-[#F0E6FF]/30 text-sm hover:text-[#F5A800] transition-colors">
+          {lang === 'fr' ? 'Pas encore membre ? Commencer' : "Not a member yet? Get started"}
+        </a>
+      </div>
+    );
+  }
+
   const displayName = userProfile?.display_name || authUser?.full_name || '—';
-  const city = userProfile?.city || '';
-  const tier = userProfile?.subscription_tier || 'solar';
-  const credits = userProfile?.credit_balance ?? 0;
-  const rewards = userProfile?.bbp_rewards ?? 0;
-  const completeness = userProfile?.profile_completeness ?? 0;
-  const tierMeta = TIER_META[tier] || TIER_META.solar;
-  const firstPhoto = userProfile?.photos?.[0] || null;
-  const initials = displayName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  const city        = userProfile?.city || '';
+  const tier        = userProfile?.subscription_tier || 'solar';
+  const credits     = userProfile?.credit_balance ?? 0;
+  const rewards     = userProfile?.bbp_rewards ?? 0;
+  const completeness= userProfile?.profile_completeness ?? 0;
+  const tierMeta    = TIER_META[tier] || TIER_META.solar;
+  const firstPhoto  = userProfile?.photos?.[0] || null;
+  const initials    = displayName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
 
   const sections = [
-    { icon: Camera, label: t('profile.photos'),       sub: lang === 'fr' ? 'Gérer la confidentialité des photos' : 'Manage photo privacy' },
-    { icon: Coins,  label: t('profile.credits'),      sub: `$${credits.toFixed(2)}`, action: lang === 'fr' ? 'Ajouter' : 'Add', onClick: () => setCreditsOpen(true) },
-    { icon: Award,  label: t('profile.rewards'),      sub: `${rewards} BBP` },
-    { icon: Crown,  label: t('profile.subscription'), sub: lang === 'fr' ? tierMeta.label_fr : tierMeta.label_en, action: t('profile.upgrade'), onClick: () => setUpgradeOpen(true) },
-    { icon: Shield, label: t('profile.privacy'),      sub: lang === 'fr' ? 'Photos cachées par défaut' : 'Photos hidden by default' },
-    { icon: Users,  label: t('profile.refer'),        sub: lang === 'fr' ? 'Invitez des amis' : 'Invite friends & earn rewards' },
+    {
+      icon: Camera,
+      label: t('profile.photos'),
+      sub: lang === 'fr' ? `${(userProfile?.photos || []).length} photo(s)` : `${(userProfile?.photos || []).length} photo(s)`,
+      action: lang === 'fr' ? 'Gérer' : 'Manage',
+      onClick: () => setPhotosOpen(true),
+    },
+    {
+      icon: Coins,
+      label: t('profile.credits'),
+      sub: `$${credits.toFixed(2)} USD`,
+      action: lang === 'fr' ? 'Ajouter' : 'Add',
+      onClick: () => setCreditsOpen(true),
+    },
+    {
+      icon: Award,
+      label: t('profile.rewards'),
+      sub: `${rewards} BBP`,
+      action: null,
+      onClick: null,
+    },
+    {
+      icon: Crown,
+      label: t('profile.subscription'),
+      sub: `${tierMeta.icon} ${lang === 'fr' ? tierMeta.label_fr : tierMeta.label_en}`,
+      action: tier === 'solar' ? (lang === 'fr' ? 'Mettre à niveau' : 'Upgrade') : (lang === 'fr' ? 'Changer' : 'Change'),
+      onClick: () => setUpgradeOpen(true),
+    },
+    {
+      icon: Shield,
+      label: t('profile.privacy'),
+      sub: userProfile?.photos_private
+        ? (lang === 'fr' ? 'Photos privées' : 'Photos private')
+        : (lang === 'fr' ? 'Photos visibles' : 'Photos visible'),
+      action: lang === 'fr' ? 'Modifier' : 'Edit',
+      onClick: () => setPrivacyOpen(true),
+    },
+    {
+      icon: Users,
+      label: t('profile.refer'),
+      sub: lang === 'fr' ? 'Gagnez 50 BBP par invitation' : 'Earn 50 BBP per referral',
+      action: lang === 'fr' ? 'Inviter' : 'Invite',
+      onClick: () => setReferralOpen(true),
+    },
   ];
 
   return (
@@ -79,15 +156,14 @@ export default function Profile() {
               : <span className="text-white font-serif text-3xl">{initials}</span>
             }
           </div>
-          <button className="absolute bottom-0 right-0 w-7 h-7 bg-[#F5A800] rounded-full flex items-center justify-center">
+          <button onClick={() => setPhotosOpen(true)} className="absolute bottom-0 right-0 w-7 h-7 bg-[#F5A800] rounded-full flex items-center justify-center hover:scale-110 transition-transform">
             <Edit3 className="w-3.5 h-3.5 text-[#0B0510]" />
           </button>
         </div>
 
         <h2 className="font-serif text-2xl text-[#F0E6FF]">{displayName}</h2>
-        {city && <p className="text-[#F0E6FF]/40 text-sm">{city}</p>}
+        {city && <p className="text-[#F0E6FF]/40 text-sm mt-0.5">{city}</p>}
 
-        {/* Tier badge */}
         <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full mt-2"
           style={{ background: `${tierMeta.color}10`, border: `1px solid ${tierMeta.color}30` }}>
           <span className="text-sm">{tierMeta.icon}</span>
@@ -114,11 +190,11 @@ export default function Profile() {
         )}
       </motion.div>
 
-      {/* Nina message */}
+      {/* Nina quote */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }}
         className="glass-card-gold rounded-2xl p-4 flex items-start gap-3">
         <NinaAvatar size="sm" glow />
-        <p className="text-[#F0E6FF]/70 text-sm leading-relaxed">
+        <p className="text-[#F0E6FF]/70 text-sm leading-relaxed italic">
           {lang === 'fr'
             ? '"Chaque question à laquelle vous répondez est un investissement dans une connexion plus profonde."'
             : '"Every question you answer is an investment in a deeper connection."'}
@@ -133,7 +209,8 @@ export default function Profile() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.25 + i * 0.05 }}
             onClick={section.onClick}
-            className="w-full glass-card rounded-2xl p-4 flex items-center gap-3 hover:border-[rgba(245,168,0,0.15)] transition-all group text-left">
+            disabled={!section.onClick}
+            className="w-full glass-card rounded-2xl p-4 flex items-center gap-3 hover:border-[rgba(245,168,0,0.15)] transition-all group text-left disabled:cursor-default">
             <div className="w-10 h-10 rounded-xl bg-[rgba(123,47,190,0.1)] flex items-center justify-center group-hover:bg-[rgba(123,47,190,0.2)] transition-all shrink-0">
               <section.icon className="w-5 h-5 text-[#7B2FBE]" />
             </div>
@@ -143,48 +220,42 @@ export default function Profile() {
             </div>
             <div className="flex items-center gap-2">
               {section.action && <span className="text-[#F5A800] text-xs">{section.action}</span>}
-              <ChevronRightIcon className="w-4 h-4 text-[#F0E6FF]/20 group-hover:text-[#F5A800] transition-colors" />
+              {section.onClick && <ChevronRightIcon className="w-4 h-4 text-[#F0E6FF]/20 group-hover:text-[#F5A800] transition-colors" />}
             </div>
           </motion.button>
         ))}
       </motion.div>
 
-      {/* Pricing link */}
-      <div className="text-center">
+      {/* Pricing + Sign out */}
+      <div className="flex flex-col items-center gap-3 pb-4">
         <button onClick={() => setPricingOpen(true)}
           className="text-[#F5A800] text-sm underline underline-offset-4 hover:opacity-80 transition-opacity">
           {lang === 'fr' ? 'Voir la tarification des interactions' : 'View interaction pricing'}
         </button>
+        <button onClick={handleLogout}
+          className="flex items-center gap-2 text-[#F0E6FF]/30 text-sm hover:text-red-400 transition-colors">
+          <LogOut className="w-4 h-4" />
+          {lang === 'fr' ? 'Se déconnecter' : 'Sign out'}
+        </button>
       </div>
 
+      {/* Modals */}
       <PricingModal isOpen={pricingOpen} onClose={() => setPricingOpen(false)} />
       <CreditsModal isOpen={creditsOpen} onClose={() => setCreditsOpen(false)} />
-
-      {upgradeOpen && (
+      <UpgradeModal isOpen={upgradeOpen} onClose={() => setUpgradeOpen(false)} lang={lang} currentTier={tier} />
+      {userProfile && (
         <>
-          <div className="fixed inset-0 bg-[#0B0510]/80 backdrop-blur-md z-[60]" onClick={() => setUpgradeOpen(false)} />
-          <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center sm:p-4 pointer-events-none">
-            <div className="bg-[#1F1026] w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl border border-purple-500/30 p-6 pointer-events-auto animate-fade-in-up space-y-4">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-serif text-[#F0E6FF]">{lang === 'fr' ? 'Choisir un Abonnement' : 'Choose a Plan'}</h2>
-                <button onClick={() => setUpgradeOpen(false)} className="text-purple-300 hover:text-white">✕</button>
-              </div>
-              {[
-                { key: 'lunar',    color: '#7B2FBE', label: lang === 'fr' ? 'Lunaire'    : 'Lunar',    price: '$10/mo' },
-                { key: 'stellar',  color: '#A855F7', label: lang === 'fr' ? 'Stellaire'  : 'Stellar',  price: '$15/mo' },
-                { key: 'galactic', color: '#F5A800', label: lang === 'fr' ? 'Galactique' : 'Galactic', price: '$20/mo' },
-              ].map(plan => (
-                <div key={plan.key} className="flex items-center justify-between rounded-2xl bg-[#150C1E] border border-purple-900/30 px-4 py-3">
-                  <span className="font-serif text-lg" style={{ color: plan.color }}>{plan.label}</span>
-                  <CheckoutButton priceKey={plan.key}
-                    className="px-5 py-2 rounded-full text-sm font-bold text-[#0B0510] hover:opacity-90 transition-all"
-                    style={{ background: plan.color }}>
-                    {plan.price}
-                  </CheckoutButton>
-                </div>
-              ))}
-            </div>
-          </div>
+          <ManagePhotosModal
+            isOpen={photosOpen} onClose={() => setPhotosOpen(false)}
+            userProfile={userProfile} lang={lang}
+            onUpdate={p => setUserProfile(p)} />
+          <PrivacySettingsModal
+            isOpen={privacyOpen} onClose={() => setPrivacyOpen(false)}
+            userProfile={userProfile} lang={lang}
+            onUpdate={p => setUserProfile(p)} />
+          <ReferralModal
+            isOpen={referralOpen} onClose={() => setReferralOpen(false)}
+            userProfile={userProfile} lang={lang} />
         </>
       )}
     </div>
