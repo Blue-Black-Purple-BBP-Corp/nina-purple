@@ -22,7 +22,7 @@ export const ALL_PLANS = [
     key: 'lunar', color: '#7B2FBE', icon: '🌙',
     label_en: 'Lunar', label_fr: 'Lunaire',
     desc_en: 'Deepen your search', desc_fr: 'Approfondissez votre recherche',
-    price_en: 'From $5 / 14 days', price_fr: 'Dès $5 / 14 jours',
+    price_en: 'From $5 / 14 days', price_fr: 'À partir de $5 / 14 jours',
     perks_en: [
       'Everything in Solar',
       'Unlock 1 profile per week',
@@ -47,7 +47,7 @@ export const ALL_PLANS = [
     key: 'stellar', color: '#A855F7', icon: '⭐',
     label_en: 'Stellar', label_fr: 'Stellaire',
     desc_en: 'Expand your horizons', desc_fr: 'Élargissez vos horizons',
-    price_en: 'From $10 / 14 days', price_fr: 'Dès $10 / 14 jours',
+    price_en: 'From $10 / 14 days', price_fr: 'À partir de $10 / 14 jours',
     perks_en: [
       'Everything in Lunar',
       'Unlock up to 2 profiles per week',
@@ -72,7 +72,7 @@ export const ALL_PLANS = [
     key: 'galactic', color: '#F5A800', icon: '🌌',
     label_en: 'Galactic', label_fr: 'Galactique',
     desc_en: 'Unlimited consciousness', desc_fr: 'Conscience illimitée',
-    price_en: 'From $7 / 7 days', price_fr: 'Dès $7 / 7 jours',
+    price_en: 'From $7 / 7 days', price_fr: 'À partir de $7 / 7 jours',
     perks_en: [
       'Everything in Stellar',
       'Unlock up to 3 profiles per week',
