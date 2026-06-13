@@ -6,6 +6,7 @@ import NinaSpeech from '@/components/NinaSpeech';
 import LocationAutocomplete from '@/components/LocationAutocomplete';
 import { useLang } from '@/lib/LanguageContext';
 import { useTranslation } from '@/lib/i18n';
+import { useTheme } from '@/lib/ThemeContext';
 import { base44 } from '@/api/base44Client';
 import { ALL_PLANS } from '@/lib/plans';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
@@ -43,6 +44,8 @@ export default function Onboarding() {
   const navigate = useNavigate();
   const { lang } = useLang();
   const { t } = useTranslation(lang);
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
 
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState({});
@@ -270,10 +273,10 @@ export default function Onboarding() {
               <div className="text-center mb-2">
                 <img src="https://media.base44.com/images/public/user_6a21c0f76d807658e5c95962/36ab8cc0a_NinaPurpleIcon.png"
                   alt="Nina" className="w-16 h-16 mx-auto mb-4 object-contain drop-shadow-[0_0_20px_rgba(123,47,190,0.5)]" />
-                <h1 className="font-serif text-3xl text-[#F0E6FF]">
+                <h1 className="font-serif text-3xl text-foreground">
                   {lang === 'fr' ? 'Créez votre compte' : 'Create your account'}
                 </h1>
-                <p className="text-[#F0E6FF]/50 text-sm mt-1">
+                <p className="text-foreground/50 text-sm mt-1">
                   {lang === 'fr' ? 'Dernière étape — sauvegardez votre profil' : 'Last step — save your profile'}
                 </p>
               </div>
@@ -286,62 +289,62 @@ export default function Onboarding() {
                     </div>
                   )}
                   <div>
-                    <label className="block text-[#F0E6FF]/60 text-sm mb-2">
+                    <label className="block text-foreground/60 text-sm mb-2">
                       {lang === 'fr' ? 'Adresse courriel' : 'Email address'} <span className="text-[#F5A800]">*</span>
                     </label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#F0E6FF]/30 pointer-events-none" />
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/30 pointer-events-none" />
                       <input
                         type="email"
                         required
                         value={regEmail}
                         onChange={e => setRegEmail(e.target.value)}
                         placeholder="you@example.com"
-                        className="w-full glass-card rounded-xl pl-10 pr-4 py-3 text-[#F0E6FF] outline-none focus:border-[rgba(245,168,0,0.4)] transition-all bg-transparent"
+                        className="w-full glass-card rounded-xl pl-10 pr-4 py-3 text-foreground outline-none focus:border-[rgba(245,168,0,0.4)] transition-all bg-transparent"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-[#F0E6FF]/60 text-sm mb-2">
+                    <label className="block text-foreground/60 text-sm mb-2">
                       {lang === 'fr' ? 'Mot de passe' : 'Password'} <span className="text-[#F5A800]">*</span>
                     </label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#F0E6FF]/30 pointer-events-none" />
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/30 pointer-events-none" />
                       <input
                         type={showPassword ? 'text' : 'password'}
                         required
                         value={regPassword}
                         onChange={e => setRegPassword(e.target.value)}
                         placeholder="••••••••"
-                        className="w-full glass-card rounded-xl pl-10 pr-10 py-3 text-[#F0E6FF] outline-none focus:border-[rgba(245,168,0,0.4)] transition-all bg-transparent"
+                        className="w-full glass-card rounded-xl pl-10 pr-10 py-3 text-foreground outline-none focus:border-[rgba(245,168,0,0.4)] transition-all bg-transparent"
                       />
                       <button type="button" onClick={() => setShowPassword(v => !v)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#F0E6FF]/30 hover:text-[#F0E6FF]/60">
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/30 hover:text-foreground/60">
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
                   </div>
                   <div>
-                    <label className="block text-[#F0E6FF]/60 text-sm mb-2">
+                    <label className="block text-foreground/60 text-sm mb-2">
                       {lang === 'fr' ? 'Confirmer le mot de passe' : 'Confirm password'} <span className="text-[#F5A800]">*</span>
                     </label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#F0E6FF]/30 pointer-events-none" />
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/30 pointer-events-none" />
                       <input
                         type={showPassword ? 'text' : 'password'}
                         required
                         value={regConfirm}
                         onChange={e => setRegConfirm(e.target.value)}
                         placeholder="••••••••"
-                        className="w-full glass-card rounded-xl pl-10 pr-4 py-3 text-[#F0E6FF] outline-none focus:border-[rgba(245,168,0,0.4)] transition-all bg-transparent"
+                        className="w-full glass-card rounded-xl pl-10 pr-4 py-3 text-foreground outline-none focus:border-[rgba(245,168,0,0.4)] transition-all bg-transparent"
                       />
                     </div>
                   </div>
                   <button type="submit" disabled={loading || !regEmail || !regPassword || !regConfirm}
-                    className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all shadow-[0_0_30px_rgba(245,168,0,0.3)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                    className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all shadow-[0_0_30px_rgba(245,168,0,0.3)] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                     {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> {lang === 'fr' ? 'Création...' : 'Creating...'}</> : (lang === 'fr' ? 'Créer mon compte' : 'Create my account')}
                   </button>
-                  <p className="text-center text-[#F0E6FF]/40 text-sm">
+                  <p className="text-center text-foreground/40 text-sm">
                     {lang === 'fr' ? 'Déjà membre ? ' : 'Already a member? '}
                     <a href="/login" className="text-[#F5A800] hover:underline">
                       {lang === 'fr' ? 'Se connecter' : 'Log in'}
@@ -369,10 +372,10 @@ export default function Onboarding() {
                     </InputOTP>
                   </div>
                   <button onClick={handleVerifyOtp} disabled={loading || otpCode.length < 6}
-                    className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                    className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                     {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> {lang === 'fr' ? 'Vérification...' : 'Verifying...'}</> : (lang === 'fr' ? 'Vérifier mon courriel' : 'Verify my email')}
                   </button>
-                  <p className="text-center text-[#F0E6FF]/40 text-sm">
+                  <p className="text-center text-foreground/40 text-sm">
                     {lang === 'fr' ? 'Pas reçu ? ' : "Didn't receive it? "}
                     <button onClick={handleResendOtp} className="text-[#F5A800] hover:underline">
                       {lang === 'fr' ? 'Renvoyer' : 'Resend'}
@@ -388,14 +391,14 @@ export default function Onboarding() {
             <motion.div key="age" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.6 }}
               className="w-full space-y-8">
               <NinaSpeech message={t('onboarding.age_question')} />
-              <p className="text-[#F0E6FF]/50 text-sm text-center">{t('onboarding.age_required')}</p>
+              <p className="text-foreground/50 text-sm text-center">{t('onboarding.age_required')}</p>
               <div className="grid grid-cols-2 gap-4">
                 <button onClick={goNext}
                   className="py-4 glass-card-gold rounded-2xl text-[#F5A800] font-bold text-lg hover:bg-[rgba(245,168,0,0.08)] transition-all">
                   {t('onboarding.yes')}
                 </button>
                 <button onClick={() => { base44.auth.logout(); navigate('/'); }}
-                  className="py-4 glass-card rounded-2xl text-[#F0E6FF]/50 font-medium text-lg hover:bg-[rgba(240,230,255,0.04)] transition-all">
+                  className="py-4 glass-card rounded-2xl text-foreground/50 font-medium text-lg hover:bg-[rgba(240,230,255,0.04)] transition-all">
                   {t('onboarding.no')}
                 </button>
               </div>
@@ -407,13 +410,13 @@ export default function Onboarding() {
             <motion.div key="guidelines" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.6 }}
               className="w-full space-y-6">
               <NinaSpeech message={t('onboarding.guidelines_intro')} />
-              <h2 className="font-serif text-2xl text-[#F0E6FF]">{t('onboarding.guidelines_title')}</h2>
+              <h2 className="font-serif text-2xl text-foreground">{t('onboarding.guidelines_title')}</h2>
               {[t('onboarding.honest'), t('onboarding.respectful'), t('onboarding.conscious')].map((g, i) => (
                 <div key={i} className="glass-card rounded-2xl p-4 flex items-start gap-3 border-[rgba(245,168,0,0.15)]">
                   <div className="w-6 h-6 rounded-full bg-[rgba(245,168,0,0.15)] flex items-center justify-center mt-0.5 shrink-0">
                     <Check className="w-3.5 h-3.5 text-[#F5A800]" />
                   </div>
-                  <p className="text-[#F0E6FF]/80 text-sm leading-relaxed">{g}</p>
+                  <p className="text-foreground/80 text-sm leading-relaxed">{g}</p>
                 </div>
               ))}
               <button onClick={goNext}
@@ -427,23 +430,23 @@ export default function Onboarding() {
           {currentStep === 'profile' && (
             <motion.div key="profile" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.6 }}
               className="w-full space-y-6">
-              <h2 className="font-serif text-3xl text-[#F0E6FF]">{t('onboarding.profile_title')}</h2>
+              <h2 className="font-serif text-3xl text-foreground">{t('onboarding.profile_title')}</h2>
 
               <div>
-                <label className="block text-[#F0E6FF]/60 text-sm mb-2">{t('onboarding.name_label')} <span className="text-[#F5A800]">*</span></label>
+                <label className="block text-foreground/60 text-sm mb-2">{t('onboarding.name_label')} <span className="text-[#F5A800]">*</span></label>
                 <input type="text" value={profile.display_name} onChange={e => setProfile(p => ({ ...p, display_name: e.target.value }))}
-                  className="w-full glass-card rounded-xl px-4 py-3 text-[#F0E6FF] outline-none focus:border-[rgba(245,168,0,0.4)] transition-all bg-transparent"
+                  className="w-full glass-card rounded-xl px-4 py-3 text-foreground outline-none focus:border-[rgba(245,168,0,0.4)] transition-all bg-transparent"
                   placeholder={t('onboarding.name_label')} />
               </div>
 
               <div>
-                <label className="block text-[#F0E6FF]/60 text-sm mb-2">{t('onboarding.location_label')} <span className="text-[#F5A800]">*</span></label>
+                <label className="block text-foreground/60 text-sm mb-2">{t('onboarding.location_label')} <span className="text-[#F5A800]">*</span></label>
                 <LocationAutocomplete value={profile.city} onChange={val => setProfile(p => ({ ...p, city: val }))}
                   placeholder={lang === 'fr' ? 'Rechercher une ville…' : 'Search a city…'} />
               </div>
 
               <div>
-                <label className="block text-[#F0E6FF]/60 text-sm mb-2">{t('onboarding.birthdate_label')} <span className="text-[#F5A800]">*</span></label>
+                <label className="block text-foreground/60 text-sm mb-2">{t('onboarding.birthdate_label')} <span className="text-[#F5A800]">*</span></label>
                 <input type="date" value={profile.birthdate}
                   max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
                   onChange={e => {
@@ -451,7 +454,7 @@ export default function Onboarding() {
                     setProfile(p => ({ ...p, birthdate: val }));
                     setAgeError(val && !isOver18(val) ? (lang === 'fr' ? 'Vous devez avoir 18 ans ou plus.' : 'You must be 18 years or older.') : '');
                   }}
-                  className={`w-full glass-card rounded-xl px-4 py-3 text-[#F0E6FF] outline-none transition-all bg-transparent ${ageError ? 'border-red-500/60' : 'focus:border-[rgba(245,168,0,0.4)]'}`} />
+                  className={`w-full glass-card rounded-xl px-4 py-3 text-foreground outline-none transition-all bg-transparent ${ageError ? 'border-red-500/60' : 'focus:border-[rgba(245,168,0,0.4)]'}`} />
                 {ageError && <p className="text-red-400 text-xs mt-1">{ageError}</p>}
               </div>
 
@@ -461,11 +464,11 @@ export default function Onboarding() {
                 { label: t('onboarding.status_label'), key: 'relationship_status', options: lang === 'fr' ? ['Célibataire', 'Séparé(e)', 'Veuf/Veuve', 'Divorcé(e)', 'Relation ouverte', 'Autre'] : ['Single', 'Separated', 'Widowed', 'Divorced', 'Open Relationship', 'Other'] },
               ].map(sel => (
                 <div key={sel.key}>
-                  <label className="block text-[#F0E6FF]/60 text-sm mb-2">{sel.label} <span className="text-[#F5A800]">*</span></label>
+                  <label className="block text-foreground/60 text-sm mb-2">{sel.label} <span className="text-[#F5A800]">*</span></label>
                   <select value={profile[sel.key]} onChange={e => setProfile(p => ({ ...p, [sel.key]: e.target.value }))}
-                    className="w-full glass-card rounded-xl px-4 py-3 text-[#F0E6FF] outline-none bg-[#1F1026] border border-[rgba(240,230,255,0.08)]">
+                    className="w-full glass-card rounded-xl px-4 py-3 text-foreground outline-none bg-card border border-border">
                     <option value="">—</option>
-                    {sel.options.map(o => <option key={o} value={o} className="bg-[#1F1026]">{o}</option>)}
+                    {sel.options.map(o => <option key={o} value={o}>{o}</option>)}
                   </select>
                 </div>
               ))}
@@ -496,8 +499,8 @@ export default function Onboarding() {
                     style={{
                       background: isSelected
                         ? `linear-gradient(135deg, ${a.color}22 0%, ${a.color}0a 100%)`
-                        : 'rgba(31,16,38,0.7)',
-                      border: `2px solid ${isSelected ? a.color : 'rgba(240,230,255,0.08)'}`,
+                        : isLight ? 'rgba(255,255,255,0.88)' : 'rgba(31,16,38,0.7)',
+                      border: `2px solid ${isSelected ? a.color : isLight ? 'rgba(123,47,190,0.15)' : 'rgba(240,230,255,0.08)'}`,
                       boxShadow: isSelected ? `0 0 28px ${a.color}40, inset 0 0 20px ${a.color}08` : 'none',
                       backdropFilter: 'blur(40px)',
                     }}>
@@ -512,12 +515,12 @@ export default function Onboarding() {
                         </div>
                       )}
                     </div>
-                    <div className={`text-sm leading-relaxed transition-colors ${isSelected ? 'text-[#F0E6FF]/85' : 'text-[#F0E6FF]/50'}`}>{a.desc}</div>
+                    <div className="text-sm leading-relaxed transition-colors" style={{ color: isSelected ? (isLight ? 'rgba(26,10,46,0.85)' : 'rgba(240,230,255,0.85)') : (isLight ? 'rgba(26,10,46,0.55)' : 'rgba(240,230,255,0.5)') }}>{a.desc}</div>
                   </button>
                 );
               })}
               <button onClick={goNext} disabled={!archetype}
-                className={`w-full py-4 rounded-full font-bold uppercase tracking-widest transition-all ${archetype ? 'bg-[#F5A800] text-[#0B0510] hover:bg-yellow-400' : 'bg-[rgba(240,230,255,0.05)] text-[rgba(240,230,255,0.2)] cursor-not-allowed'}`}>
+                className={`w-full py-4 rounded-full font-bold uppercase tracking-widest transition-all ${archetype ? 'bg-[#F5A800] text-[#0B0510] hover:bg-yellow-400' : 'bg-muted text-muted-foreground/30 cursor-not-allowed'}`}>
                 {t('onboarding.continue')}
               </button>
             </motion.div>
@@ -527,7 +530,7 @@ export default function Onboarding() {
           {currentStep === 'photos' && (
             <motion.div key="photos" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.6 }}
               className="w-full space-y-6">
-              <h2 className="font-serif text-3xl text-[#F0E6FF]">{t('onboarding.photos_title')}</h2>
+              <h2 className="font-serif text-3xl text-foreground">{t('onboarding.photos_title')}</h2>
               <NinaSpeech message={t('onboarding.photos_desc')} />
               <div className="grid grid-cols-3 gap-3">
                 {[...Array(6)].map((_, i) => (
@@ -562,7 +565,7 @@ export default function Onboarding() {
                   {photoError}
                 </div>
               )}
-              <p className="text-[#F0E6FF]/40 text-sm text-center">{t('onboarding.photos_required')}</p>
+              <p className="text-foreground/40 text-sm text-center">{t('onboarding.photos_required')}</p>
               <button onClick={goNext} disabled={!mandatoryPhotosUploaded}
                 className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold hover:bg-yellow-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
                 {t('onboarding.continue')}
@@ -575,13 +578,13 @@ export default function Onboarding() {
             <motion.div key={`q-${currentQ}`} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.5 }}
               className="w-full space-y-6">
               <div className="flex items-center gap-3">
-                <span className="text-[#F0E6FF]/40 text-sm shrink-0">{currentQ + 1} / {QUESTIONS_21.length}</span>
-                <div className="flex-1 h-1 rounded-full bg-[rgba(240,230,255,0.08)] overflow-hidden">
+                <span className="text-foreground/40 text-sm shrink-0">{currentQ + 1} / {QUESTIONS_21.length}</span>
+                <div className="flex-1 h-1 rounded-full bg-border overflow-hidden">
                   <div className="h-full bg-[#F5A800] rounded-full transition-all duration-300"
                     style={{ width: `${((currentQ + 1) / QUESTIONS_21.length) * 100}%` }} />
                 </div>
               </div>
-              <h2 className="font-serif text-2xl text-[#F0E6FF] leading-relaxed">
+              <h2 className="font-serif text-2xl text-foreground leading-relaxed">
                 {lang === 'fr' ? QUESTIONS_21[currentQ].fr : QUESTIONS_21[currentQ].en}
               </h2>
               <div className="space-y-2">
@@ -594,7 +597,7 @@ export default function Onboarding() {
                       handleAnswer(qKey, optKey);
                       if (currentQ < QUESTIONS_21.length - 1) setTimeout(() => setCurrentQ(q => q + 1), 350);
                     }}
-                      className={`w-full text-left px-4 py-3 rounded-xl transition-all text-sm ${selected ? 'bg-[rgba(245,168,0,0.12)] border border-[rgba(245,168,0,0.4)] text-[#F5A800]' : 'glass-card hover:border-[rgba(245,168,0,0.2)] text-[#F0E6FF]/80'}`}>
+                      className={`w-full text-left px-4 py-3 rounded-xl transition-all text-sm ${selected ? 'bg-[rgba(245,168,0,0.12)] border border-[rgba(245,168,0,0.4)] text-[#F5A800]' : 'glass-card hover:border-[rgba(245,168,0,0.2)] text-foreground/80'}`}>
                       {label}
                     </button>
                   );
@@ -603,7 +606,7 @@ export default function Onboarding() {
               <div className="flex gap-3">
                 {currentQ > 0 && (
                   <button onClick={() => setCurrentQ(q => q - 1)}
-                    className="px-6 py-3 glass-card rounded-full text-[#F0E6FF]/60 hover:opacity-80 transition-all">
+                    className="px-6 py-3 glass-card rounded-full text-foreground/60 hover:opacity-80 transition-all">
                     <ChevronLeft className="w-5 h-5" />
                   </button>
                 )}
@@ -622,8 +625,8 @@ export default function Onboarding() {
             <motion.div key="subscription" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.6 }}
               className="w-full space-y-3">
               <NinaSpeech message={t('onboarding.subscription_intro')} />
-              <h2 className="font-serif text-3xl text-[#F0E6FF]">{t('onboarding.subscription_title')}</h2>
-              <p className="text-[#F0E6FF]/50 text-sm">{lang === 'fr' ? 'Vous pouvez changer de plan à tout moment.' : 'You can change your plan anytime.'}</p>
+              <h2 className="font-serif text-3xl text-foreground">{t('onboarding.subscription_title')}</h2>
+              <p className="text-foreground/50 text-sm">{lang === 'fr' ? 'Vous pouvez changer de plan à tout moment.' : 'You can change your plan anytime.'}</p>
 
               {plans.map(plan => {
                 const isSelected = selectedPlan === plan.id;
@@ -631,9 +634,9 @@ export default function Onboarding() {
                   <div key={plan.id}
                     className="rounded-2xl overflow-hidden transition-all duration-300"
                     style={{
-                      border: `1.5px solid ${isSelected ? plan.color : 'rgba(240,230,255,0.1)'}`,
+                      border: `1.5px solid ${isSelected ? plan.color : isLight ? 'rgba(123,47,190,0.12)' : 'rgba(240,230,255,0.1)'}`,
                       boxShadow: isSelected ? `0 0 24px ${plan.color}25` : 'none',
-                      background: isSelected ? `linear-gradient(135deg, rgba(${plan.id === 'solar' ? '167,139,250' : plan.id === 'lunar' ? '123,47,190' : plan.id === 'stellar' ? '168,85,247' : '245,168,0'},0.1) 0%, rgba(31,16,38,0.95) 100%)` : 'rgba(31,16,38,0.7)',
+                      background: isSelected && !isLight ? `linear-gradient(135deg, rgba(${plan.id === 'solar' ? '167,139,250' : plan.id === 'lunar' ? '123,47,190' : plan.id === 'stellar' ? '168,85,247' : '245,168,0'},0.1) 0%, rgba(31,16,38,0.95) 100%)` : isSelected && isLight ? `linear-gradient(135deg, rgba(${plan.id === 'solar' ? '167,139,250' : plan.id === 'lunar' ? '123,47,190' : plan.id === 'stellar' ? '168,85,247' : '245,168,0'},0.08) 0%, rgba(255,255,255,0.92) 100%)` : isLight ? 'rgba(255,255,255,0.85)' : 'rgba(31,16,38,0.7)',
                     }}>
 
                     {/* Plan header row */}
@@ -649,13 +652,13 @@ export default function Onboarding() {
                         </div>
                         <div>
                           <div className="font-serif text-lg font-semibold" style={{ color: plan.color }}>{plan.name}</div>
-                          <div className="text-[#F0E6FF]/50 text-xs mt-0.5">{plan.desc}</div>
+                          <div className="text-foreground/50 text-xs mt-0.5">{plan.desc}</div>
                         </div>
                       </div>
                       {/* Price indicator — always visible */}
                       <div className="text-right shrink-0 ml-3">
                         {isSelected && plan.durations.length > 0 && getSelectedPrice()
-                          ? <div className="text-xl font-bold text-[#F0E6FF]">{getSelectedPrice().price}</div>
+                          ? <div className="text-xl font-bold text-foreground">{getSelectedPrice().price}</div>
                           : <div className="text-base font-semibold" style={{ color: plan.color }}>{plan.startingPrice}</div>
                         }
                       </div>
@@ -672,9 +675,9 @@ export default function Onboarding() {
                                 onClick={() => { setSelectedPlan(plan.id); setSelectedDuration(dur.key); }}
                                 className="px-3 py-1.5 rounded-full text-xs font-medium transition-all"
                                 style={{
-                                  background: isDurSelected ? plan.color : 'rgba(240,230,255,0.06)',
-                                  color: isDurSelected ? '#0B0510' : 'rgba(240,230,255,0.65)',
-                                  border: `1px solid ${isDurSelected ? plan.color : 'rgba(240,230,255,0.12)'}`,
+                                  background: isDurSelected ? plan.color : isLight ? 'rgba(123,47,190,0.07)' : 'rgba(240,230,255,0.06)',
+                                  color: isDurSelected ? '#0B0510' : isLight ? 'rgba(26,10,46,0.65)' : 'rgba(240,230,255,0.65)',
+                                  border: `1px solid ${isDurSelected ? plan.color : isLight ? 'rgba(123,47,190,0.18)' : 'rgba(240,230,255,0.12)'}`,
                                 }}>
                                 {dur.label} · {dur.price}
                               </button>
@@ -706,8 +709,8 @@ export default function Onboarding() {
                   alt="Nina" className="w-40 mx-auto relative z-10 drop-shadow-[0_0_40px_rgba(245,168,0,0.5)]" />
               </div>
               <div>
-                <h1 className="font-serif text-4xl text-[#F0E6FF] mb-3">{t('onboarding.complete')}</h1>
-                <p className="text-[#F0E6FF]/60 leading-relaxed">{t('onboarding.complete_desc')}</p>
+                <h1 className="font-serif text-4xl text-foreground mb-3">{t('onboarding.complete')}</h1>
+                <p className="text-foreground/60 leading-relaxed">{t('onboarding.complete_desc')}</p>
               </div>
               <button onClick={() => { window.location.href = '/home'; }}
                 className="w-full py-5 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all shadow-[0_0_40px_rgba(245,168,0,0.4)] text-lg">
@@ -719,7 +722,7 @@ export default function Onboarding() {
 
         {/* Back button — not on first step, register step, or complete */}
         {step > 0 && currentStep !== 'register' && currentStep !== 'complete' && (
-          <button onClick={goPrev} className="mt-6 flex items-center gap-1 text-[#F0E6FF]/30 text-sm hover:text-[#F0E6FF]/60 transition-colors">
+          <button onClick={goPrev} className="mt-6 flex items-center gap-1 text-foreground/30 text-sm hover:text-foreground/60 transition-colors">
             <ChevronLeft className="w-4 h-4" /> {t('common.back')}
           </button>
         )}
@@ -728,7 +731,7 @@ export default function Onboarding() {
         {currentStep !== 'complete' && (
           <a
             href="https://www.NinaPurple.Love"
-            className="mt-3 block text-center text-[#F0E6FF]/20 text-xs hover:text-[#F0E6FF]/40 transition-colors"
+            className="mt-3 block text-center text-foreground/20 text-xs hover:text-foreground/40 transition-colors"
           >
             {lang === 'fr' ? '✕ Annuler et revenir à NinaPurple.Love' : '✕ Cancel and return to NinaPurple.Love'}
           </a>

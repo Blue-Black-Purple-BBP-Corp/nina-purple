@@ -52,14 +52,14 @@ export default function LocationAutocomplete({ value, onChange, placeholder = 'S
   return (
     <div ref={containerRef} className={`relative ${className}`}>
       <div className="relative">
-        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#F0E6FF]/30 pointer-events-none" />
+        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/30 pointer-events-none" />
         <input
           type="text"
           value={query}
           onChange={handleInput}
           onFocus={() => predictions.length > 0 && setOpen(true)}
           placeholder={placeholder}
-          className="w-full glass-card rounded-xl pl-10 pr-10 py-3 text-[#F0E6FF] outline-none focus:border-[rgba(245,168,0,0.4)] transition-all bg-transparent"
+          className="w-full glass-card rounded-xl pl-10 pr-10 py-3 text-foreground outline-none focus:border-[rgba(245,168,0,0.4)] transition-all bg-transparent"
         />
         {loading && (
           <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#F5A800] animate-spin" />
@@ -67,14 +67,14 @@ export default function LocationAutocomplete({ value, onChange, placeholder = 'S
       </div>
 
       {open && predictions.length > 0 && (
-        <ul className="absolute z-50 mt-1 w-full rounded-xl overflow-hidden border border-[rgba(245,168,0,0.2)] bg-[#1F1026] shadow-xl">
+        <ul className="absolute z-50 mt-1 w-full rounded-xl overflow-hidden border border-[rgba(245,168,0,0.2)] bg-card shadow-xl">
           {predictions.map((p) => (
             <li key={p.place_id}>
               <button
                 onMouseDown={() => select(p)}
-                className="w-full text-left px-4 py-3 text-sm text-[#F0E6FF]/80 hover:bg-[rgba(245,168,0,0.08)] hover:text-[#F5A800] transition-colors flex items-center gap-2"
+                className="w-full text-left px-4 py-3 text-sm text-foreground/80 hover:bg-[rgba(245,168,0,0.08)] hover:text-[#F5A800] transition-colors flex items-center gap-2"
               >
-                <MapPin className="w-3.5 h-3.5 shrink-0 text-[#F0E6FF]/30" />
+                <MapPin className="w-3.5 h-3.5 shrink-0 text-foreground/30" />
                 {p.description}
               </button>
             </li>
