@@ -246,10 +246,29 @@ export default function Events() {
     setLoading(false);
   };
 
+  const canCancel = (event) => {
+    if (!event.event_date) return false;
+    const eventDate = new Date(event.event_date + (event.event_time ? 'T' + event.event_time : ''));
+    const now = new Date();
+    const hoursUntil = (eventDate - now) / (1000 * 60 * 60);
+    return hoursUntil >= 48;
+  };
+
   const handleBook = async (event) => {
     if (bookingId === event.id) return;
     setBookingId(event.id);
     const isBooked = bookedIds.has(event.id);
+
+    if (isBooked) {
+      if (!canCancel(event)) {
+        alert(lang === 'fr'
+          ? 'Vous ne pouvez annuler que 48 heures ou plus avant l\'événement. Un frais de non-présentation de 10 $ USD s\'applique.'
+          : 'You can only cancel 48+ hours before an event. A $10 USD no-show fee applies.');
+        setBookingId(null);
+        return;
+      }
+    }
+
     const newCount = isBooked
       ? Math.max(0, (event.attendees_count || 1) - 1)
       : (event.attendees_count || 0) + 1;
@@ -260,6 +279,13 @@ export default function Events() {
       isBooked ? next.delete(event.id) : next.add(event.id);
       return next;
     });
+
+    // Send confirmation email
+    base44.functions.invoke('sendBookingEmail', {
+      event_id: event.id,
+      action: isBooked ? 'cancel' : 'book',
+    }).catch(() => {});
+
     setBookingId(null);
   };
 
@@ -396,7 +422,7 @@ export default function Events() {
                           ? 'bg-[rgba(245,168,0,0.1)] border border-[rgba(245,168,0,0.3)] text-[#F5A800]'
                           : 'bg-[#F5A800] text-[#0B0510] hover:bg-yellow-400 shadow-[0_0_15px_rgba(245,168,0,0.2)]'}`}>
                       {bookingId === event.id ? <Loader2 className="w-4 h-4 animate-spin" />
-                        : isBooked ? <><Check className="w-4 h-4" /> {t('events.booked_label')}</>
+                        : isBooked ? <><X className="w-4 h-4" /> {lang === 'fr' ? 'Annuler' : 'Cancel'}</>
                         : t('events.book_now')}
                     </button>
                     <button onClick={() => setShareEvent(event)}
@@ -404,6 +430,11 @@ export default function Events() {
                       <Share2 className="w-4 h-4" />
                     </button>
                   </div>
+                  {isBooked && (
+                    <p className="text-[#F0E6FF]/25 text-[10px] text-center">
+                      {lang === 'fr' ? 'Annulation gratuite 48h+ avant l\'événement · Frais de non-présentation 10 $ USD' : 'Free cancellation 48h+ before event · $10 USD no-show fee'}
+                    </p>
+                  )}
                 </div>
               </motion.div>
             );

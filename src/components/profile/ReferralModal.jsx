@@ -6,7 +6,7 @@ export default function ReferralModal({ isOpen, onClose, userProfile, lang }) {
 
   if (!isOpen) return null;
 
-  const referralLink = `${window.location.origin}/onboarding?ref=${userProfile?.user_id?.slice(-8) || 'friend'}`;
+  const referralLink = `https://www.NinaPurple.love/onboarding?ref=${userProfile?.user_id?.slice(-8) || 'friend'}`;
 
   const copy = async () => {
     await navigator.clipboard.writeText(referralLink);

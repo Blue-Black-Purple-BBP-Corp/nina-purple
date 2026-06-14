@@ -54,6 +54,14 @@
       "type": "boolean",
       "default": true
     },
+    "show_in_listings": {
+      "type": "boolean",
+      "default": true
+    },
+    "allow_messages_all": {
+      "type": "boolean",
+      "default": true
+    },
     "profile_completeness": {
       "type": "number",
       "default": 0

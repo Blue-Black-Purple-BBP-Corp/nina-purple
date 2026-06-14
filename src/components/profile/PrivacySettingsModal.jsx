@@ -4,14 +4,20 @@ import { base44 } from '@/api/base44Client';
 
 export default function PrivacySettingsModal({ isOpen, onClose, userProfile, onUpdate, lang }) {
   const [photosPrivate, setPhotosPrivate] = useState(userProfile?.photos_private ?? true);
+  const [showInListings, setShowInListings] = useState(userProfile?.show_in_listings ?? true);
+  const [allowMessages, setAllowMessages] = useState(userProfile?.allow_messages_all ?? true);
   const [saving, setSaving] = useState(false);
 
   if (!isOpen) return null;
 
   const handleSave = async () => {
     setSaving(true);
-    await base44.entities.UserProfile.update(userProfile.id, { photos_private: photosPrivate });
-    onUpdate({ ...userProfile, photos_private: photosPrivate });
+    await base44.entities.UserProfile.update(userProfile.id, {
+      photos_private: photosPrivate,
+      show_in_listings: showInListings,
+      allow_messages_all: allowMessages,
+    });
+    onUpdate({ ...userProfile, photos_private: photosPrivate, show_in_listings: showInListings, allow_messages_all: allowMessages });
     setSaving(false);
     onClose();
   };
@@ -49,18 +55,34 @@ export default function PrivacySettingsModal({ isOpen, onClose, userProfile, onU
               label={lang === 'fr' ? 'Photos privées' : 'Private Photos'}
               desc={lang === 'fr' ? 'Vos photos sont cachées jusqu\'à déverrouillage du profil' : 'Your photos are hidden until a profile is unlocked'}
             />
+            <Toggle
+              value={showInListings}
+              onChange={setShowInListings}
+              label={lang === 'fr' ? 'Apparaître dans les connexions' : 'Show in Connections'}
+              desc={lang === 'fr' ? 'Votre profil peut être découvert par d\'autres membres' : 'Your profile can be discovered by other members'}
+            />
+            <Toggle
+              value={allowMessages}
+              onChange={setAllowMessages}
+              label={lang === 'fr' ? 'Messages ouverts' : 'Open Messages'}
+              desc={lang === 'fr' ? 'Permettre aux membres non-connectés de vous envoyer des messages' : 'Allow non-connected members to send you messages'}
+            />
           </div>
 
           <div className="glass-card rounded-2xl px-4 py-4 space-y-2">
-            <p className="text-[#F0E6FF]/50 text-xs uppercase tracking-wider">{lang === 'fr' ? 'Toujours actif' : 'Always On'}</p>
+            <p className="text-[#F0E6FF]/50 text-xs uppercase tracking-wider">{lang === 'fr' ? 'Garanties' : 'Guarantees'}</p>
             {[
               {
-                label: lang === 'fr' ? 'Profil basé sur la compatibilité' : 'Compatibility-based profile',
-                desc: lang === 'fr' ? 'Votre profil est visible selon votre score' : 'Your profile is shown based on match scores'
+                label: lang === 'fr' ? 'Profil basé sur la compatibilité' : 'Compatibility-based matching',
+                desc: lang === 'fr' ? 'Votre profil est visible selon votre score de compatibilité' : 'Your profile visibility depends on compatibility scores'
               },
               {
                 label: lang === 'fr' ? 'Protection des données' : 'Data protection',
-                desc: lang === 'fr' ? 'Vos données ne sont jamais vendues' : 'Your data is never sold or shared for ads'
+                desc: lang === 'fr' ? 'Vos données ne sont jamais vendues ni partagées pour la publicité' : 'Your data is never sold or shared for advertising'
+              },
+              {
+                label: lang === 'fr' ? 'Aucun tracking tiers' : 'No third-party tracking',
+                desc: lang === 'fr' ? 'Nous ne suivons pas votre activité en dehors de la plateforme' : 'We do not track your activity outside the platform'
               },
             ].map((item, i) => (
               <div key={i} className="flex items-start gap-3 py-2">

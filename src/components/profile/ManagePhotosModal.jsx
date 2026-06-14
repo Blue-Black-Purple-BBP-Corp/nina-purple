@@ -26,10 +26,27 @@ export default function ManagePhotosModal({ isOpen, onClose, userProfile, onUpda
 
   const handleSave = async () => {
     setSaving(true);
-    await base44.entities.UserProfile.update(userProfile.id, { photos });
-    onUpdate({ ...userProfile, photos });
+    const newCompleteness = calcCompleteness(photos.length);
+    await base44.entities.UserProfile.update(userProfile.id, { photos, profile_completeness: newCompleteness });
+    onUpdate({ ...userProfile, photos, profile_completeness: newCompleteness });
     setSaving(false);
     onClose();
+  };
+
+  const calcCompleteness = (photoCount) => {
+    let score = 0;
+    if (userProfile?.display_name) score += 10;
+    if (userProfile?.city) score += 10;
+    if (userProfile?.birthdate) score += 10;
+    if (userProfile?.sexual_orientation) score += 10;
+    if (userProfile?.gender_pronoun) score += 10;
+    if (userProfile?.relationship_status) score += 10;
+    if (userProfile?.dating_archetype) score += 10;
+    if (photoCount >= 1) score += 5;
+    if (photoCount >= 3) score += 5;
+    if (photoCount >= 6) score += 5;
+    score += 15;
+    return score;
   };
 
   return (

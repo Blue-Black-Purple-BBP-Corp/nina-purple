@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Star, Coins, Shield, Camera, ChevronRight as ChevronRightIcon, Crown, Edit3, Award, Users, Loader2, LogOut, LogIn } from 'lucide-react';
+import { Star, Coins, Shield, Camera, ChevronRight as ChevronRightIcon, Crown, Edit3, Award, Users, Loader2, LogOut, LogIn, User as UserIcon } from 'lucide-react';
 import { useLang } from '@/lib/LanguageContext';
 import { useTranslation } from '@/lib/i18n';
 import PricingModal from '@/components/PricingModal';
@@ -10,6 +10,7 @@ import ManagePhotosModal from '@/components/profile/ManagePhotosModal';
 import PrivacySettingsModal from '@/components/profile/PrivacySettingsModal';
 import ReferralModal from '@/components/profile/ReferralModal';
 import UpgradeModal from '@/components/profile/UpgradeModal';
+import EditProfileModal from '@/components/profile/EditProfileModal';
 import { base44 } from '@/api/base44Client';
 
 const TIER_META = {
@@ -28,8 +29,10 @@ export default function Profile() {
   const [photosOpen, setPhotosOpen]     = useState(false);
   const [privacyOpen, setPrivacyOpen]   = useState(false);
   const [referralOpen, setReferralOpen] = useState(false);
+  const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [authUser, setAuthUser]         = useState(null);
   const [userProfile, setUserProfile]   = useState(null);
+  const [matchingAnswers, setMatchingAnswers] = useState(null);
   const [loading, setLoading]           = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -42,8 +45,12 @@ export default function Profile() {
     if (authenticated) {
       const user = await base44.auth.me();
       setAuthUser(user);
-      const profiles = await base44.entities.UserProfile.filter({ user_id: user.id });
+      const [profiles, answers] = await Promise.all([
+        base44.entities.UserProfile.filter({ user_id: user.id }),
+        base44.entities.MatchingAnswers.filter({ user_id: user.id }),
+      ]);
       setUserProfile(profiles[0] || null);
+      setMatchingAnswers(answers[0] || null);
     }
     setLoading(false);
   };
@@ -90,6 +97,22 @@ export default function Profile() {
   const credits     = userProfile?.credit_balance ?? 0;
   const rewards     = userProfile?.bbp_rewards ?? 0;
   const completeness= userProfile?.profile_completeness ?? 0;
+
+  const calcMissingItems = () => {
+    const items = [];
+    if (!userProfile?.display_name) items.push(lang === 'fr' ? 'Ajouter un nom d\'affichage' : 'Add a display name');
+    if (!userProfile?.city) items.push(lang === 'fr' ? 'Ajouter votre ville' : 'Add your city');
+    if (!userProfile?.birthdate) items.push(lang === 'fr' ? 'Ajouter votre date de naissance' : 'Add your birthdate');
+    if (!userProfile?.sexual_orientation) items.push(lang === 'fr' ? 'Ajouter votre orientation' : 'Add your orientation');
+    if (!userProfile?.gender_pronoun) items.push(lang === 'fr' ? 'Ajouter votre pronom' : 'Add your pronoun');
+    if (!userProfile?.relationship_status) items.push(lang === 'fr' ? 'Ajouter votre statut' : 'Add your status');
+    if (!userProfile?.dating_archetype) items.push(lang === 'fr' ? 'Choisir un archétype' : 'Choose an archetype');
+    const photoCount = (userProfile?.photos || []).length;
+    if (photoCount < 3) items.push(lang === 'fr' ? `Ajouter ${3 - photoCount} photo(s) (minimum 3)` : `Add ${3 - photoCount} more photo(s) (minimum 3)`);
+    const answered = Object.keys(matchingAnswers || {}).filter(k => matchingAnswers[k] && k.startsWith('q')).length;
+    if (answered < 21) items.push(lang === 'fr' ? `Répondre aux 21 questions (${answered}/21)` : `Answer all 21 questions (${answered}/21)`);
+    return items.length > 0 ? items : [lang === 'fr' ? 'Profil complet !' : 'Profile complete!'];
+  };
   const tierMeta    = TIER_META[tier] || TIER_META.solar;
   const firstPhoto  = userProfile?.photos?.[0] || null;
   const initials    = displayName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
@@ -131,6 +154,13 @@ export default function Profile() {
         : (lang === 'fr' ? 'Photos visibles' : 'Photos visible'),
       action: lang === 'fr' ? 'Modifier' : 'Edit',
       onClick: () => setPrivacyOpen(true),
+    },
+    {
+      icon: UserIcon,
+      label: lang === 'fr' ? 'Modifier le profil' : 'Edit Profile',
+      sub: lang === 'fr' ? 'Infos, archétype, 21 questions' : 'Info, archetype, 21 questions',
+      action: lang === 'fr' ? 'Modifier' : 'Edit',
+      onClick: () => setEditProfileOpen(true),
     },
     {
       icon: Users,
@@ -184,9 +214,14 @@ export default function Profile() {
           <div className="h-1.5 rounded-full bg-gradient-to-r from-[#7B2FBE] to-[#F5A800]" style={{ width: `${completeness}%` }} />
         </div>
         {completeness < 100 && (
-          <p className="text-[#F0E6FF]/40 text-xs">
-            {lang === 'fr' ? 'Ajoutez des photos pour augmenter votre score de correspondance' : 'Add photos to increase your match score'}
-          </p>
+          <div className="space-y-1 mt-2">
+            {calcMissingItems().map((item, i) => (
+              <p key={i} className="text-[#F0E6FF]/40 text-xs flex items-center gap-1.5">
+                <span className="w-1 h-1 rounded-full bg-[#F5A800]" />
+                {item}
+              </p>
+            ))}
+          </div>
         )}
       </motion.div>
 
@@ -256,6 +291,11 @@ export default function Profile() {
           <ReferralModal
             isOpen={referralOpen} onClose={() => setReferralOpen(false)}
             userProfile={userProfile} lang={lang} />
+          <EditProfileModal
+            isOpen={editProfileOpen} onClose={() => setEditProfileOpen(false)}
+            userProfile={userProfile} matchingAnswers={matchingAnswers}
+            lang={lang} onUpdate={p => setUserProfile(p)}
+            onAnswersUpdate={a => setMatchingAnswers(a)} />
         </>
       )}
     </div>
