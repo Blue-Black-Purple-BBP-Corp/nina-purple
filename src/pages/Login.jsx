@@ -14,13 +14,16 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const params = new URLSearchParams(window.location.search);
+  const nextUrl = params.get("next") || "/";
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
       await base44.auth.loginViaEmailPassword(email, password);
-      window.location.href = "/";
+      window.location.href = nextUrl;
     } catch (err) {
       setError(err.message || "Invalid email or password");
     } finally {
@@ -29,7 +32,7 @@ export default function Login() {
   };
 
   const handleGoogle = () => {
-    base44.auth.loginWithProvider("google", "/");
+    base44.auth.loginWithProvider("google", nextUrl);
   };
 
   return (

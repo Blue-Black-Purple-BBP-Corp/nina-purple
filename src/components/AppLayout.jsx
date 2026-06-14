@@ -60,12 +60,12 @@ export default function AppLayout() {
           </p>
         </div>
         <div className="space-y-3 w-full max-w-xs">
-          <button
-            onClick={() => base44.auth.redirectToLogin(location.pathname)}
+          <Link
+            to={`/login${location.pathname !== '/' && location.pathname !== '/login' ? `?next=${encodeURIComponent(location.pathname)}` : ''}`}
             className="w-full flex items-center justify-center gap-2 py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all shadow-[0_0_30px_rgba(245,168,0,0.3)]">
             <LogIn className="w-5 h-5" />
             {lang === 'fr' ? 'Se connecter' : 'Sign In'}
-          </button>
+          </Link>
           <a href="/onboarding"
             className="block w-full py-3 glass-card rounded-full text-[#F0E6FF]/60 text-sm hover:text-[#F5A800] transition-colors">
             {lang === 'fr' ? 'Pas encore membre ? Commencer' : "New here? Begin your journey"}

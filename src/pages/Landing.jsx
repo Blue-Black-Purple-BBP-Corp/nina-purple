@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Star, Zap, Heart, ChevronDown, Eye, EyeOff } from 'lucide-react';
+import { Star, Zap, Heart, ChevronDown, Eye, EyeOff, LogIn } from 'lucide-react';
 import LanguageToggle from '@/components/LanguageToggle';
 import ThemeToggle from '@/components/ThemeToggle';
 import PricingModal from '@/components/PricingModal';
@@ -31,9 +31,15 @@ export default function Landing() {
           alt="Nina Purple"
           className="h-10 object-contain"
         />
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <ThemeToggle />
           <LanguageToggle />
+          <Link
+            to="/login"
+            className="px-4 py-2 text-[#F0E6FF]/60 text-sm font-medium rounded-full hover:text-[#F5A800] hover:bg-[rgba(245,168,0,0.08)] transition-all duration-300"
+          >
+            {lang === 'fr' ? 'Connexion' : 'Log in'}
+          </Link>
           <Link
             to="/onboarding"
             className="px-5 py-2 bg-[#F5A800] text-[#0B0510] rounded-full text-sm font-bold tracking-wide hover:bg-yellow-400 transition-all duration-300 shadow-[0_0_20px_rgba(245,168,0,0.3)]"
@@ -402,6 +408,11 @@ export default function Landing() {
             <Star className="w-5 h-5 text-[#F5A800]" />
             {lang === 'fr' ? 'Intention' : 'Intention'}
           </a>
+          <Link to="/login"
+            className="flex-1 flex flex-col items-center justify-center py-3 gap-1 text-[#F0E6FF]/50 hover:text-[#F5A800] transition-colors text-xs font-medium tracking-wide">
+            <LogIn className="w-5 h-5" />
+            {lang === 'fr' ? 'Connexion' : 'Log in'}
+          </Link>
           <Link to="/onboarding"
             className="flex-1 flex flex-col items-center justify-center py-3 gap-1 bg-[#F5A800] text-[#0B0510] text-xs font-bold tracking-wide">
             <Heart className="w-5 h-5" />
