@@ -15,6 +15,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Landing from '@/pages/Landing';
 import Onboarding from '@/pages/Onboarding';
 import Login from '@/pages/Login';
+import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
 import Home from '@/pages/Home';
@@ -23,6 +24,7 @@ import Messages from '@/pages/Messages';
 import Events from '@/pages/Events';
 import Community from '@/pages/Community';
 import Profile from '@/pages/Profile';
+import Admin from '@/pages/Admin';
 import AppLayout from '@/components/AppLayout';
 
 const AuthenticatedApp = () => {
@@ -58,6 +60,7 @@ const AuthenticatedApp = () => {
       <Route path="/" element={<Landing />} />
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/privacy" element={<Privacy />} />
@@ -72,6 +75,7 @@ const AuthenticatedApp = () => {
         <Route path="/events" element={<Events />} />
         <Route path="/community" element={<Community />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/admin" element={<Admin />} />
       </Route>
 
       <Route path="*" element={<PageNotFound />} />

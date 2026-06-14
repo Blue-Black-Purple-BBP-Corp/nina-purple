@@ -24,6 +24,13 @@
     "country": {
       "type": "string"
     },
+    "phone": {
+      "type": "string"
+    },
+    "phone_verified": {
+      "type": "boolean",
+      "default": false
+    },
     "sexual_orientation": {
       "type": "string"
     },

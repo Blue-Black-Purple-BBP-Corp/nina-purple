@@ -63,6 +63,7 @@ export default function Onboarding() {
   const [uploadingPhoto, setUploadingPhoto] = useState(null);
   const [photoError, setPhotoError] = useState('');
   const [formError, setFormError] = useState('');
+  const [phone, setPhone] = useState('');
 
   // Registration state
   const [regEmail, setRegEmail] = useState('');
@@ -205,6 +206,7 @@ export default function Onboarding() {
       display_name: profile.display_name || user.full_name,
       city: profile.city,
       birthdate: profile.birthdate,
+      phone: phone,
       sexual_orientation: profile.sexual_orientation,
       gender_pronoun: profile.gender_pronoun,
       relationship_status: profile.relationship_status,
@@ -552,6 +554,18 @@ export default function Onboarding() {
                   }}
                   className={`w-full glass-card rounded-xl px-4 py-3 text-foreground outline-none transition-all bg-transparent ${ageError ? 'border-red-500/60' : 'focus:border-[rgba(245,168,0,0.4)]'}`} />
                 {ageError && <p className="text-red-400 text-xs mt-1">{ageError}</p>}
+              </div>
+
+              <div>
+                <label className="block text-foreground/60 text-sm mb-2">{t('onboarding.phone_label') || (lang === 'fr' ? 'Téléphone' : 'Phone number')}</label>
+                <input type="tel" value={phone} onChange={e => setPhone(e.target.value)}
+                  className="w-full glass-card rounded-xl px-4 py-3 text-foreground outline-none focus:border-[rgba(245,168,0,0.4)] transition-all bg-transparent"
+                  placeholder={lang === 'fr' ? '+1 514 555 0123' : '+1 514 555 0123'} />
+                <p className="text-foreground/30 text-xs mt-1">
+                  {lang === 'fr'
+                    ? 'Nina Purple se réserve le droit de vérifier tous les individus par téléphone.'
+                    : 'Nina Purple reserves the right to verify all individuals by phone.'}
+                </p>
               </div>
 
               {[

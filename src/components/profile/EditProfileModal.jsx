@@ -17,6 +17,7 @@ export default function EditProfileModal({ isOpen, onClose, userProfile, matchin
       setProfile({
         display_name: userProfile.display_name || '',
         city: userProfile.city || '',
+        phone: userProfile.phone || '',
         birthdate: userProfile.birthdate || '',
         sexual_orientation: userProfile.sexual_orientation || '',
         gender_pronoun: userProfile.gender_pronoun || '',
@@ -118,6 +119,17 @@ export default function EditProfileModal({ isOpen, onClose, userProfile, matchin
               <div>
                 <label className={labelClass}>{lang === 'fr' ? 'Nom affiché' : 'Display name'}</label>
                 <input value={profile.display_name} onChange={e => set('display_name', e.target.value)} className={inputClass} />
+              </div>
+              <div>
+                <label className={labelClass}>{lang === 'fr' ? 'Téléphone' : 'Phone number'}</label>
+                <input type="tel" value={profile.phone} onChange={e => set('phone', e.target.value)}
+                  className={inputClass}
+                  placeholder="+1 514 555 0123" />
+                <p className="text-[#F0E6FF]/20 text-xs mt-1">
+                  {lang === 'fr'
+                    ? 'Nina Purple se réserve le droit de vérifier tous les individus par téléphone.'
+                    : 'Nina Purple reserves the right to verify all individuals by phone.'}
+                </p>
               </div>
               <div>
                 <label className={labelClass}>{lang === 'fr' ? 'Ville' : 'City'}</label>
