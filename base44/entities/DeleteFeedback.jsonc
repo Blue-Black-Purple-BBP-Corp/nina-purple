@@ -1,0 +1,36 @@
+{
+  "name": "DeleteFeedback",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "reason": {
+      "type": "string",
+      "maxLength": 2000
+    }
+  },
+  "required": [
+    "user_id"
+  ],
+  "rls": {
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

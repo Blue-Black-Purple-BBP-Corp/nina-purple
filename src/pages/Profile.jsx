@@ -32,6 +32,7 @@ export default function Profile() {
   const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [deleteReason, setDeleteReason] = useState('');
   const [authUser, setAuthUser]         = useState(null);
   const [userProfile, setUserProfile]   = useState(null);
   const [matchingAnswers, setMatchingAnswers] = useState(null);
@@ -62,7 +63,7 @@ export default function Profile() {
   const handleDeleteAccount = async () => {
     setDeleting(true);
     try {
-      await base44.functions.invoke('deleteAccount', {});
+      await base44.functions.invoke('deleteAccount', { feedback: deleteReason });
       base44.auth.logout('/');
     } catch {
       setDeleting(false);
@@ -303,6 +304,13 @@ export default function Profile() {
                   : 'This action is irreversible. All your data, messages, connections, and answers will be permanently deleted.'}
               </p>
             </div>
+            <textarea
+              value={deleteReason}
+              onChange={e => setDeleteReason(e.target.value)}
+              placeholder={lang === 'fr' ? 'Dites-nous pourquoi vous partez (optionnel)…' : 'Tell us why you\'re leaving (optional)…'}
+              rows={2}
+              className="w-full glass-card rounded-xl px-4 py-2.5 text-[#F0E6FF] text-xs outline-none bg-transparent resize-none placeholder-[rgba(240,230,255,0.2)]"
+            />
             <div className="flex gap-2">
               <button onClick={handleDeleteAccount} disabled={deleting}
                 className="flex-1 py-2.5 bg-red-500 text-white rounded-full text-sm font-bold hover:bg-red-600 transition-all disabled:opacity-50 flex items-center justify-center gap-2">

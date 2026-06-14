@@ -12,6 +12,8 @@ import { ALL_PLANS } from '@/lib/plans';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import ThemeToggle from '@/components/ThemeToggle';
 import LanguageToggle from '@/components/LanguageToggle';
+import AppleIcon from '@/components/AppleIcon';
+import MicrosoftIcon from '@/components/MicrosoftIcon';
 
 // Steps: age → guidelines → profile → archetype → photos → questions → subscription → register → complete
 const STEPS = ['age', 'guidelines', 'profile', 'archetype', 'photos', 'questions', 'subscription', 'register', 'complete'];
@@ -181,6 +183,23 @@ export default function Onboarding() {
     setLoading(true);
     const user = await base44.auth.me();
 
+    // Calculate accurate completeness from onboarding data
+    let compScore = 0;
+    if (profile.display_name) compScore += 10;
+    if (profile.city) compScore += 10;
+    if (profile.birthdate) compScore += 10;
+    if (profile.sexual_orientation) compScore += 10;
+    if (profile.gender_pronoun) compScore += 10;
+    if (profile.relationship_status) compScore += 10;
+    if (archetype) compScore += 10;
+    const photosCount = photos.filter(Boolean).length;
+    if (photosCount >= 1) compScore += 5;
+    if (photosCount >= 3) compScore += 5;
+    if (photosCount >= 6) compScore += 5;
+    const answeredCount = Object.keys(answers).filter(k => answers[k]).length;
+    compScore += Math.round((answeredCount / 21) * 15);
+    const profileCompleteness = Math.min(100, compScore);
+
     await base44.entities.UserProfile.create({
       user_id: user.id,
       display_name: profile.display_name || user.full_name,
@@ -197,7 +216,7 @@ export default function Onboarding() {
       age_verified: true,
       guidelines_accepted: true,
       language: lang,
-      profile_completeness: 80,
+      profile_completeness: profileCompleteness,
     });
 
     await base44.entities.MatchingAnswers.create({
@@ -303,7 +322,39 @@ export default function Onboarding() {
               </div>
 
               {!showOtp ? (
-                <form onSubmit={handleRegister} className="space-y-4">
+                <>
+                  {/* Social login buttons */}
+                  <div className="flex gap-2 mb-2">
+                    <button
+                      type="button"
+                      onClick={() => base44.auth.loginWithProvider("google", "/home")}
+                      className="flex-1 py-3 glass-card rounded-xl flex items-center justify-center hover:border-[rgba(245,168,0,0.3)] transition-all">
+                      <svg className="w-5 h-5" viewBox="0 0 24 24">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => base44.auth.loginWithProvider("apple", "/home")}
+                      className="flex-1 py-3 glass-card rounded-xl flex items-center justify-center hover:border-[rgba(245,168,0,0.3)] transition-all">
+                      <AppleIcon className="w-5 h-5 text-foreground" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => base44.auth.loginWithProvider("microsoft", "/home")}
+                      className="flex-1 py-3 glass-card rounded-xl flex items-center justify-center hover:border-[rgba(245,168,0,0.3)] transition-all">
+                      <MicrosoftIcon className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-3 my-1">
+                    <div className="flex-1 border-t border-[rgba(240,230,255,0.08)]" />
+                    <span className="text-foreground/30 text-xs">{lang === 'fr' ? 'ou' : 'or'}</span>
+                    <div className="flex-1 border-t border-[rgba(240,230,255,0.08)]" />
+                  </div>
+                  <form onSubmit={handleRegister} className="space-y-4">
                   {formError && (
                     <div className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
                       {formError}
@@ -372,6 +423,7 @@ export default function Onboarding() {
                     </a>
                   </p>
                 </form>
+                </>
               ) : (
                 <div className="space-y-6">
                   <NinaSpeech message={lang === 'fr' ? `Un code de vérification a été envoyé à ${regEmail}` : `A verification code was sent to ${regEmail}`} />

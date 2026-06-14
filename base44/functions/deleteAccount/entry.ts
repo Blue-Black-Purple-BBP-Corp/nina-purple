@@ -9,6 +9,17 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        const body = await req.json().catch(() => ({}));
+        const feedback = body.feedback || '';
+
+        // Store feedback before deleting
+        if (feedback.trim()) {
+            await base44.asServiceRole.entities.DeleteFeedback.create({
+                user_id: user.id,
+                reason: feedback.trim(),
+            });
+        }
+
         // Delete user's related data
         const [profiles, answers] = await Promise.all([
             base44.asServiceRole.entities.UserProfile.filter({ user_id: user.id }),
