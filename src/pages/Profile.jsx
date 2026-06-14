@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Star, Coins, Shield, Camera, ChevronRight as ChevronRightIcon, Crown, Edit3, Award, Users, Loader2, LogOut, LogIn, User as UserIcon } from 'lucide-react';
+import { Star, Coins, Shield, Camera, ChevronRight as ChevronRightIcon, Crown, Edit3, Award, Users, Loader2, LogOut, LogIn, User as UserIcon, Trash2, AlertTriangle } from 'lucide-react';
 import { useLang } from '@/lib/LanguageContext';
 import { useTranslation } from '@/lib/i18n';
 import PricingModal from '@/components/PricingModal';
@@ -30,6 +30,8 @@ export default function Profile() {
   const [privacyOpen, setPrivacyOpen]   = useState(false);
   const [referralOpen, setReferralOpen] = useState(false);
   const [editProfileOpen, setEditProfileOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [authUser, setAuthUser]         = useState(null);
   const [userProfile, setUserProfile]   = useState(null);
   const [matchingAnswers, setMatchingAnswers] = useState(null);
@@ -56,6 +58,17 @@ export default function Profile() {
   };
 
   const handleLogout = () => base44.auth.logout('/');
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true);
+    try {
+      await base44.functions.invoke('deleteAccount', {});
+      base44.auth.logout('/');
+    } catch {
+      setDeleting(false);
+      setDeleteConfirm(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -272,6 +285,37 @@ export default function Profile() {
           <LogOut className="w-4 h-4" />
           {lang === 'fr' ? 'Se déconnecter' : 'Sign out'}
         </button>
+
+        {/* Delete Account */}
+        {!deleteConfirm ? (
+          <button onClick={() => setDeleteConfirm(true)}
+            className="flex items-center gap-2 text-[#F0E6FF]/15 text-xs hover:text-red-500 transition-colors mt-2">
+            <Trash2 className="w-3.5 h-3.5" />
+            {lang === 'fr' ? 'Supprimer mon compte' : 'Delete my account'}
+          </button>
+        ) : (
+          <div className="mt-3 p-4 rounded-2xl border border-red-500/30 bg-red-500/5 space-y-3">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+              <p className="text-red-400 text-xs leading-relaxed">
+                {lang === 'fr'
+                  ? 'Cette action est irréversible. Toutes vos données, messages, connexions et réponses seront définitivement supprimés.'
+                  : 'This action is irreversible. All your data, messages, connections, and answers will be permanently deleted.'}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={handleDeleteAccount} disabled={deleting}
+                className="flex-1 py-2.5 bg-red-500 text-white rounded-full text-sm font-bold hover:bg-red-600 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                {deleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                {lang === 'fr' ? 'Supprimer définitivement' : 'Delete permanently'}
+              </button>
+              <button onClick={() => setDeleteConfirm(false)} disabled={deleting}
+                className="flex-1 py-2.5 glass-card rounded-full text-sm font-medium text-[#F0E6FF]/60 hover:text-[#F0E6FF] transition-colors">
+                {lang === 'fr' ? 'Annuler' : 'Cancel'}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Modals */}

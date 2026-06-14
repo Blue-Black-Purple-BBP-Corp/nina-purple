@@ -235,13 +235,14 @@ export default function Events() {
 
   const loadEvents = async () => {
     setLoading(true);
-    const user = await base44.auth.me();
-    setCurrentUser(user);
-    const [profiles, data] = await Promise.all([
-      base44.entities.UserProfile.filter({ user_id: user.id }),
-      base44.entities.Event.filter({ is_active: true }, 'event_date', 50),
-    ]);
-    setUserProfile(profiles[0] || null);
+    const authenticated = await base44.auth.isAuthenticated();
+    if (authenticated) {
+      const user = await base44.auth.me();
+      setCurrentUser(user);
+      const profiles = await base44.entities.UserProfile.filter({ user_id: user.id });
+      setUserProfile(profiles[0] || null);
+    }
+    const data = await base44.entities.Event.filter({ is_active: true }, 'event_date', 50);
     setEvents(data);
     setLoading(false);
   };
@@ -255,6 +256,10 @@ export default function Events() {
   };
 
   const handleBook = async (event) => {
+    if (!currentUser) {
+      base44.auth.redirectToLogin('/events');
+      return;
+    }
     if (bookingId === event.id) return;
     setBookingId(event.id);
     const isBooked = bookedIds.has(event.id);
@@ -304,19 +309,21 @@ export default function Events() {
           <h1 className="font-serif text-3xl text-[#F0E6FF] mb-1">{t('events.title')}</h1>
           <p className="text-[#F0E6FF]/40 text-sm">{t('events.subtitle')}</p>
         </div>
-        <button onClick={() => setShowCreate(true)}
-          className="flex items-center gap-1.5 px-4 py-2.5 bg-[#F5A800] text-[#0B0510] rounded-full text-sm font-bold hover:bg-yellow-400 transition-all shadow-[0_0_20px_rgba(245,168,0,0.25)] shrink-0 ml-3">
-          <Plus className="w-4 h-4" />
-          {lang === 'fr' ? 'Créer' : 'Create'}
-        </button>
+        {currentUser && (
+          <button onClick={() => setShowCreate(true)}
+            className="flex items-center gap-1.5 px-4 py-2.5 bg-[#F5A800] text-[#0B0510] rounded-full text-sm font-bold hover:bg-yellow-400 transition-all shadow-[0_0_20px_rgba(245,168,0,0.25)] shrink-0 ml-3">
+            <Plus className="w-4 h-4" />
+            {lang === 'fr' ? 'Créer' : 'Create'}
+          </button>
+        )}
       </motion.div>
 
       {/* Filter tabs */}
       <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
         {[
           { id: 'all',    label: t('events.all') },
-          { id: 'booked', label: t('events.booked') },
-          { id: 'mine',   label: lang === 'fr' ? 'Mes événements' : 'My Events' },
+          ...(currentUser ? [{ id: 'booked', label: t('events.booked') }] : []),
+          ...(currentUser ? [{ id: 'mine',   label: lang === 'fr' ? 'Mes événements' : 'My Events' }] : []),
         ].map(tab => (
           <button key={tab.id} onClick={() => setFilter(tab.id)}
             className={`px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-300 ${filter === tab.id ? 'bg-[#F5A800] text-[#0B0510]' : 'glass-card text-[#F0E6FF]/60 hover:text-[#F0E6FF]/80'}`}>
@@ -333,7 +340,7 @@ export default function Events() {
               : filter === 'mine' ? (lang === 'fr' ? 'Vous n\'avez pas encore créé d\'événement' : 'You haven\'t created any events yet')
               : (lang === 'fr' ? 'Aucun événement à venir' : 'No upcoming events')}
           </p>
-          {filter !== 'booked' && (
+          {filter !== 'booked' && currentUser && (
             <button onClick={() => setShowCreate(true)}
               className="inline-flex items-center gap-2 px-6 py-3 bg-[#F5A800] text-[#0B0510] rounded-full font-bold text-sm hover:bg-yellow-400 transition-all">
               <Plus className="w-4 h-4" />

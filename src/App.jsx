@@ -69,10 +69,12 @@ const AuthenticatedApp = () => {
         <Route path="/home" element={<Home />} />
         <Route path="/connections" element={<Connections />} />
         <Route path="/messages" element={<Messages />} />
-        <Route path="/events" element={<Events />} />
         <Route path="/community" element={<Community />} />
         <Route path="/profile" element={<Profile />} />
       </Route>
+
+      {/* Public events — visible to all */}
+      <Route path="/events" element={<Events />} />
 
       <Route path="*" element={<PageNotFound />} />
     </Routes>

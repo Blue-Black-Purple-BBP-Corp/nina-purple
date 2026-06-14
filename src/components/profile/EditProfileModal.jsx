@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { QUESTIONS_21 } from '@/pages/Onboarding';
+import LocationAutocomplete from '@/components/LocationAutocomplete';
 
 export default function EditProfileModal({ isOpen, onClose, userProfile, matchingAnswers, onUpdate, onAnswersUpdate, lang }) {
   const [tab, setTab] = useState('profile');
@@ -120,7 +121,8 @@ export default function EditProfileModal({ isOpen, onClose, userProfile, matchin
               </div>
               <div>
                 <label className={labelClass}>{lang === 'fr' ? 'Ville' : 'City'}</label>
-                <input value={profile.city} onChange={e => set('city', e.target.value)} className={inputClass} />
+                <LocationAutocomplete value={profile.city} onChange={val => set('city', val)}
+                  placeholder={lang === 'fr' ? 'Rechercher une ville…' : 'Search a city…'} />
               </div>
               <div>
                 <label className={labelClass}>{lang === 'fr' ? 'Date de naissance' : 'Birthdate'}</label>
