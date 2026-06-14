@@ -29,20 +29,20 @@ export default function Landing() {
         <img
           src="https://media.base44.com/images/public/user_6a21c0f76d807658e5c95962/bcc45d7e3_CopyofNPhorizontalcopia.png"
           alt="Nina Purple"
-          className="h-10 object-contain"
+          className="h-8 md:h-10 object-contain"
         />
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 md:gap-3">
           <ThemeToggle />
           <LanguageToggle />
           <Link
             to="/login"
-            className="px-4 py-2 text-[#F0E6FF]/60 text-sm font-medium rounded-full hover:text-[#F5A800] hover:bg-[rgba(245,168,0,0.08)] transition-all duration-300"
+            className="hidden md:inline-block px-4 py-2 text-[#F0E6FF]/60 text-sm font-medium rounded-full hover:text-[#F5A800] hover:bg-[rgba(245,168,0,0.08)] transition-all duration-300"
           >
             {lang === 'fr' ? 'Connexion' : 'Log in'}
           </Link>
           <Link
             to="/onboarding"
-            className="px-5 py-2 bg-[#F5A800] text-[#0B0510] rounded-full text-sm font-bold tracking-wide hover:bg-yellow-400 transition-all duration-300 shadow-[0_0_20px_rgba(245,168,0,0.3)]"
+            className="hidden md:inline-block px-5 py-2 bg-[#F5A800] text-[#0B0510] rounded-full text-sm font-bold tracking-wide hover:bg-yellow-400 transition-all duration-300 shadow-[0_0_20px_rgba(245,168,0,0.3)]"
           >
             {lang === 'fr' ? 'Rejoindre' : 'Join'}
           </Link>
