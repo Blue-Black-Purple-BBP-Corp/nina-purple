@@ -15,7 +15,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
 
   const params = new URLSearchParams(window.location.search);
-  const nextUrl = params.get("next") || "/";
+  const nextUrl = params.get("next") || "/home";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
