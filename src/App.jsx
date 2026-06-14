@@ -14,6 +14,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 // Page imports
 import Landing from '@/pages/Landing';
 import Onboarding from '@/pages/Onboarding';
+import Login from '@/pages/Login';
 import Home from '@/pages/Home';
 import Connections from '@/pages/Connections';
 import Messages from '@/pages/Messages';
@@ -54,6 +55,7 @@ const AuthenticatedApp = () => {
       {/* Public landing */}
       <Route path="/" element={<Landing />} />
       <Route path="/onboarding" element={<Onboarding />} />
+      <Route path="/login" element={<Login />} />
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/about" element={<About />} />
       <Route path="/contact" element={<Contact />} />
