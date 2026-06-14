@@ -92,6 +92,7 @@ export default function AppLayout() {
           />
         </Link>
         <div className="flex items-center gap-3">
+          <ThemeToggle />
           <LanguageToggle />
         </div>
       </header>

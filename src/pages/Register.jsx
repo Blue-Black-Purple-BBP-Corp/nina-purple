@@ -10,6 +10,7 @@ import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import AppleIcon from "@/components/AppleIcon";
 import MicrosoftIcon from "@/components/MicrosoftIcon";
+import { Shield } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 
 export default function Register() {
@@ -174,6 +175,27 @@ export default function Register() {
           {error}
         </div>
       )}
+
+      <div className="mb-4 p-3 rounded-xl bg-[rgba(123,47,190,0.08)] border border-[rgba(123,47,190,0.2)] text-xs text-muted-foreground leading-relaxed">
+        <div className="flex items-start gap-2">
+          <Shield className="w-3.5 h-3.5 text-[#7B2FBE] shrink-0 mt-0.5" />
+          <div>
+            <span className="font-semibold text-foreground">A note on your privacy</span>
+            <p className="mt-1">
+              We recommend creating a dedicated email address for your Nina Purple account
+              (e.g. <span className="text-[#7B2FBE]">name.ninapurple@gmail.com</span>).
+              While we apply rigorous security measures to protect your data, no platform
+              on the internet is immune to breaches. Using a separate email limits exposure:
+              if a leak occurs, only the information tied to this account is at risk — not
+              your identity across other services.
+            </p>
+            <p className="mt-1 opacity-70">
+              This is standard digital hygiene. It takes two minutes and significantly
+              reduces your attack surface.
+            </p>
+          </div>
+        </div>
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">

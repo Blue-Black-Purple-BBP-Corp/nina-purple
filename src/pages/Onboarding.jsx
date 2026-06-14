@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, ChevronLeft, Upload, Mail, Lock, Eye, EyeOff, Loader2, X } from 'lucide-react';
+import { Check, ChevronLeft, Upload, Mail, Lock, Eye, EyeOff, Loader2, X, Shield } from 'lucide-react';
 import NinaSpeech from '@/components/NinaSpeech';
 import LocationAutocomplete from '@/components/LocationAutocomplete';
 import { useLang } from '@/lib/LanguageContext';
@@ -323,6 +323,29 @@ export default function Onboarding() {
 
               {!showOtp ? (
                 <>
+                  {/* Cybersecurity privacy note */}
+                  <div className="mb-4 p-3 rounded-xl bg-[rgba(123,47,190,0.08)] border border-[rgba(123,47,190,0.2)] text-xs leading-relaxed"
+                    style={{ color: 'var(--starlight-dim, rgba(240,230,255,0.6))' }}>
+                    <div className="flex items-start gap-2">
+                      <Shield className="w-3.5 h-3.5 text-[#7B2FBE] shrink-0 mt-0.5" />
+                      <div>
+                        <span className="font-semibold" style={{ color: 'var(--starlight, #F0E6FF)' }}>
+                          {lang === 'fr' ? 'Une note sur votre vie privée' : 'A note on your privacy'}
+                        </span>
+                        <p className="mt-1">
+                          {lang === 'fr'
+                            ? "Nous recommandons de créer une adresse courriel dédiée pour votre compte Nina Purple (p. ex. nom.ninapurple@gmail.com). Bien que nous appliquions des mesures de sécurité rigoureuses pour protéger vos données, aucune plateforme sur Internet n'est à l'abri des violations. Utiliser un courriel distinct limite l'exposition : en cas de fuite, seules les informations liées à ce compte sont à risque — pas votre identité sur d'autres services."
+                            : "We recommend creating a dedicated email address for your Nina Purple account (e.g. name.ninapurple@gmail.com). While we apply rigorous security measures to protect your data, no platform on the internet is immune to breaches. Using a separate email limits exposure: if a leak occurs, only the information tied to this account is at risk — not your identity across other services."}
+                        </p>
+                        <p className="mt-1 opacity-70">
+                          {lang === 'fr'
+                            ? "C'est de l'hygiène numérique de base. Cela prend deux minutes et réduit considérablement votre surface d'attaque."
+                            : 'This is standard digital hygiene. It takes two minutes and significantly reduces your attack surface.'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Social login buttons */}
                   <div className="flex gap-2 mb-2">
                     <button
