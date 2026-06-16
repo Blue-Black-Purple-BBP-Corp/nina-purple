@@ -14,6 +14,7 @@ import ThemeToggle from '@/components/ThemeToggle';
 import LanguageToggle from '@/components/LanguageToggle';
 import AppleIcon from '@/components/AppleIcon';
 import MicrosoftIcon from '@/components/MicrosoftIcon';
+import { ninaIcon, ninaCharacter } from '@/lib/images';
 
 // Steps: age → guidelines → profile → archetype → photos → questions → subscription → register → complete
 const STEPS = ['age', 'guidelines', 'profile', 'archetype', 'photos', 'questions', 'subscription', 'register', 'complete'];
@@ -313,7 +314,7 @@ export default function Onboarding() {
             <motion.div key="register" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.6 }}
               className="w-full space-y-6">
               <div className="text-center mb-2">
-                <img src="/images/nina-icon.png"
+                <img src={ninaIcon}
                   alt="Nina" className="w-16 h-16 mx-auto mb-4 object-contain drop-shadow-[0_0_20px_rgba(123,47,190,0.5)]" />
                 <h1 className="font-serif text-3xl text-foreground">
                   {lang === 'fr' ? 'Créez votre compte' : 'Create your account'}
@@ -815,7 +816,7 @@ export default function Onboarding() {
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-48 h-48 rounded-full bg-[rgba(245,168,0,0.08)] animate-ping" style={{ animationDuration: '2s' }} />
                 </div>
-                <img src="/images/nina-character.png"
+                <img src={ninaCharacter}
                   alt="Nina" className="w-40 mx-auto relative z-10 drop-shadow-[0_0_40px_rgba(245,168,0,0.5)]" />
               </div>
               <div>

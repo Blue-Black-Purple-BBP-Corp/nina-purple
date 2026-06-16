@@ -10,6 +10,7 @@ import Privacy from '@/pages/Privacy';
 import About from '@/pages/About';
 import Contact from '@/pages/Contact';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import { ninaIcon } from '@/lib/images';
 
 // Page imports
 import Landing from '@/pages/Landing';
@@ -36,7 +37,7 @@ const AuthenticatedApp = () => {
         <div className="relative">
           <div className="w-16 h-16 rounded-full border border-[rgba(245,168,0,0.2)] animate-ping absolute inset-0" />
           <img
-            src="/images/nina-icon.png"
+            src={ninaIcon}
             alt="Nina"
             className="w-16 h-16 object-contain relative z-10"
           />

@@ -1,4 +1,5 @@
 import React from 'react';
+import { ninaIcon } from '@/lib/images';
 
 export default function NinaAvatar({ size = 'md', className = '', glow = false }) {
   const sizes = {
@@ -14,7 +15,7 @@ export default function NinaAvatar({ size = 'md', className = '', glow = false }
         <div className="absolute inset-0 rounded-full bg-[#F5A800] opacity-20 blur-xl scale-150" />
       )}
       <img
-        src="/images/nina-icon.png"
+        src={ninaIcon}
         alt="Nina"
         className={`relative z-10 w-full h-full object-contain rounded-full ${glow ? 'drop-shadow-[0_0_12px_rgba(245,168,0,0.5)]' : ''}`}
       />

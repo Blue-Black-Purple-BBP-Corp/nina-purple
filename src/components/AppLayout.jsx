@@ -4,6 +4,7 @@ import { Home, Users, MessageCircle, Calendar, User, Star, LogIn, Loader2 } from
 import LanguageToggle from './LanguageToggle';
 import ThemeToggle from './ThemeToggle';
 import NinaAvatar from './NinaAvatar';
+import { ninaHorizontal } from '@/lib/images';
 import { useLang } from '@/lib/LanguageContext';
 import { useTranslation } from '@/lib/i18n';
 import { base44 } from '@/api/base44Client';
@@ -86,7 +87,7 @@ export default function AppLayout() {
         style={{ background: 'linear-gradient(180deg, rgba(11,5,16,0.95) 0%, rgba(11,5,16,0) 100%)', backdropFilter: 'blur(20px)' }}>
         <Link to="/home" className="flex items-center gap-2">
           <img
-            src="/images/nina-horizontal.png"
+            src={ninaHorizontal}
             alt="Nina Purple"
             className="h-8 object-contain"
           />

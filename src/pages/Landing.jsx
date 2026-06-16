@@ -8,6 +8,7 @@ import PricingModal from '@/components/PricingModal';
 import { useLang } from '@/lib/LanguageContext';
 import { useTranslation, PRICING_TABLE } from '@/lib/i18n';
 import { ALL_PLANS } from '@/lib/plans';
+import { ninaIcon, ninaHorizontal, ninaCharacter } from '@/lib/images';
 
 export default function Landing() {
   const { lang } = useLang();
@@ -27,7 +28,7 @@ export default function Landing() {
         style={{ background: 'rgba(11,5,16,0.85)', backdropFilter: 'blur(20px)' }}
         data-theme-nav="true">
         <img
-          src="/images/nina-horizontal.png"
+          src={ninaHorizontal}
           alt="Nina Purple"
           className="h-8 md:h-10 object-contain"
         />
@@ -62,7 +63,7 @@ export default function Landing() {
         {/* Nina character watermark */}
         <div className="absolute right-0 bottom-0 w-72 opacity-10 pointer-events-none hidden md:block">
           <img
-            src="/images/nina-character.png"
+            src={ninaCharacter}
             alt=""
             className="w-full object-contain"
           />
@@ -72,7 +73,7 @@ export default function Landing() {
           {/* Icon */}
           <motion.div {...fadeUp} className="mb-8 flex justify-center">
             <img
-              src="/images/nina-icon.png"
+              src={ninaIcon}
               alt="Nina Purple"
               className="w-24 h-24 md:w-32 md:h-32 object-contain drop-shadow-[0_0_40px_rgba(123,47,190,0.5)]"
             />
@@ -343,7 +344,7 @@ export default function Landing() {
           className="relative z-10 max-w-2xl mx-auto"
         >
           <img
-            src="/images/nina-icon.png"
+            src={ninaIcon}
             alt="Nina"
             className="w-20 h-20 mx-auto mb-6 drop-shadow-[0_0_20px_rgba(245,168,0,0.4)] object-contain"
           />
@@ -368,7 +369,7 @@ export default function Landing() {
       <footer className="border-t border-[rgba(240,230,255,0.06)] px-6 py-8">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <img
-            src="/images/nina-horizontal.png"
+            src={ninaHorizontal}
             alt="Nina Purple"
             className="h-8 object-contain opacity-60"
           />
@@ -399,7 +400,7 @@ export default function Landing() {
         <div className="flex items-stretch">
           <a href="#home"
             className="flex-1 flex flex-col items-center justify-center py-3 gap-1 text-[#F0E6FF]/50 hover:text-[#F0E6FF] transition-colors text-xs font-medium tracking-wide">
-            <img src="/images/nina-icon.png"
+            <img src={ninaIcon}
               alt="" className="w-5 h-5 object-contain opacity-60" />
             {lang === 'fr' ? 'Accueil' : 'Home'}
           </a>
