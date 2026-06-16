@@ -27,7 +27,7 @@ export default function Landing() {
         style={{ background: 'rgba(11,5,16,0.85)', backdropFilter: 'blur(20px)' }}
         data-theme-nav="true">
         <img
-          src="https://media.base44.com/images/public/user_6a21c0f76d807658e5c95962/bcc45d7e3_CopyofNPhorizontalcopia.png"
+          src="/images/nina-horizontal.png"
           alt="Nina Purple"
           className="h-8 md:h-10 object-contain"
         />
@@ -62,7 +62,7 @@ export default function Landing() {
         {/* Nina character watermark */}
         <div className="absolute right-0 bottom-0 w-72 opacity-10 pointer-events-none hidden md:block">
           <img
-            src="https://media.base44.com/images/public/user_6a21c0f76d807658e5c95962/c077be419_CopyofLogoNPIsoWoman.png"
+            src="/images/nina-character.png"
             alt=""
             className="w-full object-contain"
           />
@@ -72,7 +72,7 @@ export default function Landing() {
           {/* Icon */}
           <motion.div {...fadeUp} className="mb-8 flex justify-center">
             <img
-              src="https://media.base44.com/images/public/user_6a21c0f76d807658e5c95962/36ab8cc0a_NinaPurpleIcon.png"
+              src="/images/nina-icon.png"
               alt="Nina Purple"
               className="w-24 h-24 md:w-32 md:h-32 object-contain drop-shadow-[0_0_40px_rgba(123,47,190,0.5)]"
             />
@@ -343,7 +343,7 @@ export default function Landing() {
           className="relative z-10 max-w-2xl mx-auto"
         >
           <img
-            src="https://media.base44.com/images/public/user_6a21c0f76d807658e5c95962/36ab8cc0a_NinaPurpleIcon.png"
+            src="/images/nina-icon.png"
             alt="Nina"
             className="w-20 h-20 mx-auto mb-6 drop-shadow-[0_0_20px_rgba(245,168,0,0.4)] object-contain"
           />
@@ -368,7 +368,7 @@ export default function Landing() {
       <footer className="border-t border-[rgba(240,230,255,0.06)] px-6 py-8">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <img
-            src="https://media.base44.com/images/public/user_6a21c0f76d807658e5c95962/bcc45d7e3_CopyofNPhorizontalcopia.png"
+            src="/images/nina-horizontal.png"
             alt="Nina Purple"
             className="h-8 object-contain opacity-60"
           />
@@ -399,7 +399,7 @@ export default function Landing() {
         <div className="flex items-stretch">
           <a href="#home"
             className="flex-1 flex flex-col items-center justify-center py-3 gap-1 text-[#F0E6FF]/50 hover:text-[#F0E6FF] transition-colors text-xs font-medium tracking-wide">
-            <img src="https://media.base44.com/images/public/user_6a21c0f76d807658e5c95962/36ab8cc0a_NinaPurpleIcon.png"
+            <img src="/images/nina-icon.png"
               alt="" className="w-5 h-5 object-contain opacity-60" />
             {lang === 'fr' ? 'Accueil' : 'Home'}
           </a>

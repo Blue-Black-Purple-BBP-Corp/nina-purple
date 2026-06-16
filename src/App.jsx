@@ -36,7 +36,7 @@ const AuthenticatedApp = () => {
         <div className="relative">
           <div className="w-16 h-16 rounded-full border border-[rgba(245,168,0,0.2)] animate-ping absolute inset-0" />
           <img
-            src="https://media.base44.com/images/public/user_6a21c0f76d807658e5c95962/36ab8cc0a_NinaPurpleIcon.png"
+            src="/images/nina-icon.png"
             alt="Nina"
             className="w-16 h-16 object-contain relative z-10"
           />

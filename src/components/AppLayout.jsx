@@ -86,7 +86,7 @@ export default function AppLayout() {
         style={{ background: 'linear-gradient(180deg, rgba(11,5,16,0.95) 0%, rgba(11,5,16,0) 100%)', backdropFilter: 'blur(20px)' }}>
         <Link to="/home" className="flex items-center gap-2">
           <img
-            src="https://media.base44.com/images/public/user_6a21c0f76d807658e5c95962/bcc45d7e3_CopyofNPhorizontalcopia.png"
+            src="/images/nina-horizontal.png"
             alt="Nina Purple"
             className="h-8 object-contain"
           />
