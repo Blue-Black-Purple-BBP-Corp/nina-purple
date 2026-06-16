@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Loader2, Search, Phone, Shield, UserCheck, UserX, Ban, CheckCircle, XCircle, Mail, MapPin, Crown, Filter, ChevronDown, MessageSquare, Bell, BellOff } from 'lucide-react';
+import { Loader2, Search, Phone, Shield, UserCheck, UserX, Ban, CheckCircle, XCircle, Mail, MapPin, Crown, Filter, ChevronDown, MessageSquare, Bell, BellOff, Copy } from 'lucide-react';
 
 const TIER_META = {
   solar:   { color: '#A78BFA', label: 'Solar',    icon: '☀️' },
@@ -18,6 +18,7 @@ export default function Admin() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
   const [updating, setUpdating] = useState(null);
+  const [copied, setCopied] = useState(null);
 
   useEffect(() => { loadData(); }, []);
 
@@ -33,6 +34,17 @@ export default function Admin() {
     setNotifications(allNotifs);
     setLoading(false);
   };
+
+  // Merge UserProfile with User entity data (email, full_name)
+  const mergedMembers = useMemo(() => {
+    const userMap = {};
+    users.forEach(u => { userMap[u.id] = u; });
+    return profiles.map(p => ({
+      ...p,
+      email: userMap[p.user_id]?.email || null,
+      full_name: userMap[p.user_id]?.full_name || null,
+    }));
+  }, [profiles, users]);
 
   const markRead = async (id) => {
     await base44.entities.AdminNotification.update(id, { is_read: true });
@@ -57,11 +69,12 @@ export default function Admin() {
     setUpdating(null);
   };
 
-  const filteredProfiles = profiles.filter(p => {
-    const name = (p.display_name || '').toLowerCase();
-    const email = (p.city || '').toLowerCase();
+  const filteredProfiles = mergedMembers.filter(p => {
+    const name = (p.display_name || p.full_name || '').toLowerCase();
+    const email = (p.email || '').toLowerCase();
+    const city = (p.city || '').toLowerCase();
     const query = search.toLowerCase();
-    if (query && !name.includes(query) && !email.includes(query)) return false;
+    if (query && !name.includes(query) && !email.includes(query) && !city.includes(query)) return false;
     if (filter === 'unverified_phone' && p.phone_verified) return false;
     if (filter === 'unverified' && p.is_verified) return false;
     if (filter === 'no_phone' && p.phone) return false;
@@ -69,10 +82,10 @@ export default function Admin() {
   });
 
   const stats = {
-    total: profiles.length,
-    verified: profiles.filter(p => p.is_verified).length,
-    phoneVerified: profiles.filter(p => p.phone_verified).length,
-    withPhone: profiles.filter(p => p.phone).length,
+    total: mergedMembers.length,
+    verified: mergedMembers.filter(p => p.is_verified).length,
+    phoneVerified: mergedMembers.filter(p => p.phone_verified).length,
+    withPhone: mergedMembers.filter(p => p.phone).length,
   };
 
   if (loading) {
@@ -128,7 +141,7 @@ export default function Admin() {
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Search by name or city..."
+            placeholder="Search by name, email, or city..."
             className="w-full glass-card rounded-xl pl-10 pr-4 py-2.5 text-[#F0E6FF] text-sm outline-none"
           />
         </div>
@@ -145,30 +158,49 @@ export default function Admin() {
       {tab === 'users' && (
         <div className="space-y-2">
           <div className="hidden md:grid grid-cols-12 gap-3 text-[#F0E6FF]/30 text-xs uppercase tracking-wide px-4 py-2">
-            <div className="col-span-3">Member</div>
-            <div className="col-span-2">Location</div>
+            <div className="col-span-2">Member</div>
+            <div className="col-span-2">Email</div>
+            <div className="col-span-1">Location</div>
             <div className="col-span-1">Tier</div>
             <div className="col-span-1">Phone</div>
-            <div className="col-span-2">Joined</div>
-            <div className="col-span-1">Status</div>
+            <div className="col-span-1">Joined</div>
+            <div className="col-span-2">Status</div>
             <div className="col-span-2">Actions</div>
           </div>
           {filteredProfiles.map(profile => {
             const meta = TIER_META[profile.subscription_tier] || TIER_META.solar;
+            const displayName = profile.display_name || profile.full_name || '—';
+            const initials = displayName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
             return (
               <div key={profile.id} className="glass-card rounded-2xl p-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-3 items-center">
-                <div className="md:col-span-3 flex items-center gap-3">
+                <div className="md:col-span-2 flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#7B2FBE] to-[#A855F7] flex items-center justify-center shrink-0">
-                    <span className="text-white text-sm font-bold">
-                      {(profile.display_name || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)}
-                    </span>
+                    <span className="text-white text-sm font-bold">{initials}</span>
                   </div>
                   <div>
-                    <div className="text-[#F0E6FF] font-medium text-sm">{profile.display_name || '—'}</div>
+                    <div className="text-[#F0E6FF] font-medium text-sm">{displayName}</div>
                     <div className="text-[#F0E6FF]/30 text-xs">ID: {profile.id?.slice(-8)}</div>
                   </div>
                 </div>
-                <div className="md:col-span-2 flex items-center gap-1 text-[#F0E6FF]/50 text-sm">
+                <div className="md:col-span-2 flex items-center gap-2 text-xs">
+                  {profile.email ? (
+                    <>
+                      <Mail className="w-3 h-3 text-[#F0E6FF]/30 shrink-0" />
+                      <span className="text-[#F0E6FF]/70 truncate">{profile.email}</span>
+                      <button
+                        onClick={() => { navigator.clipboard.writeText(profile.email); setCopied(profile.id); setTimeout(() => setCopied(null), 2000); }}
+                        className="text-[#F0E6FF]/20 hover:text-[#F5A800] transition-colors shrink-0"
+                        title="Copy email"
+                      >
+                        <Copy className="w-3 h-3" />
+                      </button>
+                      {copied === profile.id && <span className="text-green-400 text-[10px]">Copied!</span>}
+                    </>
+                  ) : (
+                    <span className="text-[#F0E6FF]/20">—</span>
+                  )}
+                </div>
+                <div className="md:col-span-1 flex items-center gap-1 text-[#F0E6FF]/50 text-sm">
                   <MapPin className="w-3 h-3" />
                   {profile.city || '—'}
                 </div>
@@ -184,10 +216,10 @@ export default function Admin() {
                     <span className="text-[#F0E6FF]/20">—</span>
                   )}
                 </div>
-                <div className="md:col-span-2 text-[#F0E6FF]/30 text-xs">
+                <div className="md:col-span-1 text-[#F0E6FF]/30 text-xs">
                   {new Date(profile.created_date).toLocaleDateString()}
                 </div>
-                <div className="md:col-span-1">
+                <div className="md:col-span-2">
                   <div className="flex items-center gap-1">
                     {profile.is_verified ? (
                       <CheckCircle className="w-4 h-4 text-green-400" />
@@ -275,15 +307,18 @@ export default function Admin() {
           <p className="text-[#F0E6FF]/40 text-sm">
             Members requiring phone verification. Nina Purple reserves the right to verify all individuals by phone and restrict access if unable to confirm human identity.
           </p>
-          {profiles.filter(p => p.phone && !p.phone_verified).map(profile => (
+          {mergedMembers.filter(p => p.phone && !p.phone_verified).map(profile => (
             <div key={profile.id} className="glass-card-gold rounded-2xl p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-[rgba(245,168,0,0.1)] flex items-center justify-center">
                   <Phone className="w-5 h-5 text-[#F5A800]" />
                 </div>
                 <div>
-                  <div className="text-[#F0E6FF] font-medium">{profile.display_name || '—'}</div>
-                  <div className="text-[#F5A800] font-mono text-sm">{profile.phone}</div>
+                  <div className="text-[#F0E6FF] font-medium">{profile.display_name || profile.full_name || '—'}</div>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <span className="text-[#F5A800] font-mono text-sm">{profile.phone}</span>
+                    {profile.email && <span className="text-[#F0E6FF]/40 text-xs flex items-center gap-1"><Mail className="w-3 h-3" />{profile.email}</span>}
+                  </div>
                   <div className="text-[#F0E6FF]/30 text-xs">{profile.city || ''}</div>
                 </div>
               </div>
@@ -295,7 +330,7 @@ export default function Admin() {
               </div>
             </div>
           ))}
-          {profiles.filter(p => p.phone && !p.phone_verified).length === 0 && (
+          {mergedMembers.filter(p => p.phone && !p.phone_verified).length === 0 && (
             <div className="text-center py-12 text-[#F0E6FF]/30">
               <CheckCircle className="w-8 h-8 mx-auto mb-2 text-green-400" />
               All phone numbers verified

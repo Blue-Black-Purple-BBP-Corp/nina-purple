@@ -558,14 +558,14 @@ export default function Onboarding() {
               </div>
 
               <div>
-                <label className="block text-foreground/60 text-sm mb-2">{t('onboarding.phone_label') || (lang === 'fr' ? 'Téléphone' : 'Phone number')}</label>
+                <label className="block text-foreground/60 text-sm mb-2">{t('onboarding.phone_label') || (lang === 'fr' ? 'Téléphone' : 'Phone number')} <span className="text-[#F5A800]">*</span></label>
                 <input type="tel" value={phone} onChange={e => setPhone(e.target.value)}
                   className="w-full glass-card rounded-xl px-4 py-3 text-foreground outline-none focus:border-[rgba(245,168,0,0.4)] transition-all bg-transparent"
                   placeholder={lang === 'fr' ? '+1 514 555 0123' : '+1 514 555 0123'} />
                 <p className="text-foreground/30 text-xs mt-1">
                   {lang === 'fr'
-                    ? 'Nina Purple se réserve le droit de vérifier tous les individus par téléphone.'
-                    : 'Nina Purple reserves the right to verify all individuals by phone.'}
+                    ? 'Vous recevrez un appel pour confirmer que vous êtes une personne réelle. Nina Purple se réserve le droit de vérifier tous les individus par téléphone.'
+                    : 'You will receive a call to verify that you are a real human. Nina Purple reserves the right to verify all individuals by phone.'}
                 </p>
               </div>
 
@@ -585,7 +585,7 @@ export default function Onboarding() {
               ))}
 
               {(() => {
-                const ok = profile.display_name.trim() && profile.city.trim() && profile.birthdate && isOver18(profile.birthdate) && !ageError && profile.sexual_orientation && profile.gender_pronoun && profile.relationship_status;
+                const ok = profile.display_name.trim() && profile.city.trim() && profile.birthdate && isOver18(profile.birthdate) && !ageError && profile.sexual_orientation && profile.gender_pronoun && profile.relationship_status && phone.trim();
                 return (
                   <button onClick={() => ok && goNext()} disabled={!ok}
                     className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
