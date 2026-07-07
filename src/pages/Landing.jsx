@@ -36,6 +36,12 @@ export default function Landing() {
           <ThemeToggle />
           <LanguageToggle />
           <Link
+            to="/experiences"
+            className="hidden md:inline-block px-4 py-2 text-[#F0E6FF]/60 text-sm font-medium rounded-full hover:text-[#F5A800] hover:bg-[rgba(245,168,0,0.08)] transition-all duration-300"
+          >
+            {lang === 'fr' ? 'Expériences' : 'Experiences'}
+          </Link>
+          <Link
             to="/login"
             className="hidden md:inline-block px-4 py-2 text-[#F0E6FF]/60 text-sm font-medium rounded-full hover:text-[#F5A800] hover:bg-[rgba(245,168,0,0.08)] transition-all duration-300"
           >
@@ -375,6 +381,10 @@ export default function Landing() {
           />
           <div className="text-[#F0E6FF]/30 text-sm text-center">
             © 2026 Nina Purple · A Blue Black Purple (BBP) Corp. company · contact@NinaPurple.love
+            <span className="mx-2">·</span>
+            <Link to="/experiences" className="underline hover:text-[#F5A800] transition-colors">
+              {lang === 'fr' ? 'Expériences' : 'Experiences'}
+            </Link>
             <span className="mx-2">·</span>
             <Link to="/about" className="underline hover:text-[#F5A800] transition-colors">
               {lang === 'fr' ? 'À Propos' : 'About'}

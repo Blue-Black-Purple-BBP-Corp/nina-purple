@@ -1,0 +1,150 @@
+{
+  "name": "ExperienceLead",
+  "type": "object",
+  "properties": {
+    "full_name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "country": {
+      "type": "string"
+    },
+    "preferred_language": {
+      "type": "string",
+      "enum": [
+        "en",
+        "fr"
+      ],
+      "default": "en"
+    },
+    "experience_type": {
+      "type": "string",
+      "enum": [
+        "singles",
+        "couples"
+      ]
+    },
+    "attending_with_partner": {
+      "type": "boolean",
+      "default": false
+    },
+    "relationship_length": {
+      "type": "string"
+    },
+    "goals": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "goals_freetext": {
+      "type": "string",
+      "maxLength": 2000
+    },
+    "earliest_month": {
+      "type": "string"
+    },
+    "preferred_months": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "flexible_dates": {
+      "type": "boolean",
+      "default": false
+    },
+    "preferred_duration": {
+      "type": "string",
+      "enum": [
+        "2w",
+        "3w",
+        "flexible"
+      ]
+    },
+    "availability_plan": {
+      "type": "string",
+      "enum": [
+        "work_along",
+        "dedicated"
+      ]
+    },
+    "budget_band": {
+      "type": "string",
+      "enum": [
+        "under_4k",
+        "4k_6k",
+        "6k_8k",
+        "8k_10k",
+        "10k_plus",
+        "discuss"
+      ]
+    },
+    "accommodation_pref": {
+      "type": "string",
+      "enum": [
+        "shared",
+        "private",
+        "premium_suite",
+        "no_pref"
+      ]
+    },
+    "attended_retreat_before": {
+      "type": "boolean",
+      "default": false
+    },
+    "working_with_therapist": {
+      "type": "boolean"
+    },
+    "notes": {
+      "type": "string",
+      "maxLength": 2000
+    },
+    "linked_user_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "new",
+        "contacted",
+        "qualified",
+        "booked",
+        "declined"
+      ],
+      "default": "new"
+    },
+    "consent_marketing": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "full_name",
+    "email",
+    "experience_type"
+  ],
+  "rls": {
+    "create": {},
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
