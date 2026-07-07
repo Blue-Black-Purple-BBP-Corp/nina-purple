@@ -95,8 +95,8 @@ function App() {
           <ThemeProvider>
             <Router>
               <AuthenticatedApp />
+              <CookieConsent />
             </Router>
-            <CookieConsent />
             <Toaster />
           </ThemeProvider>
         </LanguageProvider>
