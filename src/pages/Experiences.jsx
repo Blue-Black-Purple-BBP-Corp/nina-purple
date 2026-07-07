@@ -575,7 +575,7 @@ export default function Experiences() {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: (i % 4) * 0.08 }}
-              className={`relative rounded-2xl overflow-hidden glass-card group ${i % 5 === 0 ? 'md:row-span-2 md:col-span-2 aspect-square md:aspect-auto' : 'aspect-square'}`}
+              className={`relative rounded-2xl overflow-hidden glass-card group ${clip.featured ? 'md:row-span-2 md:col-span-2 aspect-square md:aspect-auto' : 'aspect-square'}`}
             >
               {clip.type === 'image' ? (
                 <img

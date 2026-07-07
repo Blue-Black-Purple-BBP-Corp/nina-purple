@@ -38,6 +38,7 @@ export const MARTINIQUE_VIDEOS_NEW = {
   img_1559: { url: 'https://media.base44.com/videos/public/6a2ae026055f2f4f53a701b4/361cbcc96_IMG_1559.MP4', label: 'Stunning beach', type: 'video' },
   img_1509: { url: 'https://media.base44.com/videos/public/6a2ae026055f2f4f53a701b4/ff9f3abb1_IMG_1509.MP4', label: 'Golden shore', type: 'video' },
   img_1896: { url: 'https://media.base44.com/videos/public/6a2ae026055f2f4f53a701b4/4c895ad62_IMG_1896.MP4', label: 'Nature immersion', type: 'video' },
+  img_1639: { url: 'https://media.base44.com/videos/public/6a2ae026055f2f4f53a701b4/df922a0f7_IMG_1639.MP4', label: 'Tropical greenery', type: 'video' },
   // IMG_1951 was previously "Sunlit path" — repurposed as Moonlith Path
   img_1951: { url: 'https://media.base44.com/videos/public/6a2ae026055f2f4f53a701b4/4f6c2b932_IMG_1951.MP4', label: 'Moonlith path', type: 'video' },
 };
@@ -47,15 +48,15 @@ export const MARTINIQUE_HERO_VIDEO = MARTINIQUE_VIDEOS[3].url;
 
 // Curated gallery — mixed photos + videos with varied viewpoints (no repetition)
 export const MARTINIQUE_GALLERY = [
-  MARTINIQUE_PHOTOS[0],                    // Harbor view (eye-level seascape)
-  MARTINIQUE_VIDEOS[1],                    // Tropical greenery (interior)
-  MARTINIQUE_PHOTOS[1],                    // Into the sun (low-angle deck)
-  MARTINIQUE_VIDEOS_NEW.img_1489,         // Caribbean shores (beach level)
-  MARTINIQUE_PHOTOS[2],                    // Diamond Rock (high-elevation cliff)
-  MARTINIQUE_VIDEOS_NEW.img_1896,         // Nature immersion (close-up)
-  MARTINIQUE_PHOTOS[3],                    // Coastal heights (high-angle, cactus foreground)
-  MARTINIQUE_VIDEOS_NEW.img_1625,         // Sunlit path
-  MARTINIQUE_VIDEOS_NEW.img_1559,         // Stunning beach
-  MARTINIQUE_VIDEOS_NEW.img_1509,         // Golden shore
-  MARTINIQUE_VIDEOS_NEW.img_1951,         // Moonlith path
+  MARTINIQUE_PHOTOS[0],                              // Harbor view (eye-level seascape)
+  { ...MARTINIQUE_VIDEOS_NEW.img_1639 },            // Tropical greenery — boat on the ocean
+  MARTINIQUE_PHOTOS[1],                              // Into the sun (low-angle deck)
+  MARTINIQUE_VIDEOS_NEW.img_1489,                   // Caribbean shores (moonlit)
+  { ...MARTINIQUE_PHOTOS[2], featured: true },       // Diamond Rock (featured — takes more space)
+  MARTINIQUE_VIDEOS_NEW.img_1896,                   // Nature immersion (close-up)
+  MARTINIQUE_PHOTOS[3],                              // Coastal heights (high-angle, cactus foreground)
+  MARTINIQUE_VIDEOS_NEW.img_1625,                   // Sunlit path (moonlit)
+  MARTINIQUE_VIDEOS_NEW.img_1559,                   // Stunning beach
+  MARTINIQUE_VIDEOS_NEW.img_1509,                   // Golden shore
+  MARTINIQUE_VIDEOS_NEW.img_1951,                   // Moonlith path
 ];
