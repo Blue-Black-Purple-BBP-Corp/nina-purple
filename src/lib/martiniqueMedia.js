@@ -36,7 +36,7 @@ export const MARTINIQUE = {
     { type: 'video', url: `${BASE}IMG_1895(1)_BestHikingForest.MP4`, label_en: 'Forest Trail', label_fr: 'Sentier forestier' },
     { type: 'video', url: `${BASE}IMG_1941_Best_ViewFromShoelcherCollineWithTwoRainbows.MP4`, label_en: 'Double Rainbow', label_fr: 'Double arc-en-ciel' },
     { type: 'video', url: `${BASE}IMG_1663_ChasingTheSunViewFromTheBoat.MP4`, label_en: 'Chasing the Sun', label_fr: 'Poursuite du soleil' },
-    { type: 'video', url: `${BASE}IMG_1786_NightScene.mp4`, label_en: 'Night Scene', label_fr: 'Scène nocturne' },
+    { type: 'video', url: `${BASE}IMG_1786_NightLife.mp4`, label_en: 'Night Life', label_fr: 'Vie nocturne' },
   ],
 };
 
