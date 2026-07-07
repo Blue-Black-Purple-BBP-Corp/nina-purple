@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Loader2, Search, Phone, Shield, UserCheck, UserX, Ban, CheckCircle, XCircle, Mail, MapPin, Crown, Filter, ChevronDown, MessageSquare, Bell, BellOff, Copy } from 'lucide-react';
 

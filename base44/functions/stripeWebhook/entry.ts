@@ -68,6 +68,18 @@ Deno.serve(async (req) => {
     if (event.type === 'customer.subscription.deleted') {
       const subscription = event.data.object;
       console.info('Subscription cancelled:', subscription.id);
+      // Downgrade the user back to the free tier
+      const metadata = subscription.metadata || {};
+      const subUserId = metadata.user_id;
+      if (subUserId) {
+        const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_id: subUserId });
+        if (profiles.length) {
+          await base44.asServiceRole.entities.UserProfile.update(profiles[0].id, { subscription_tier: 'solar' });
+          console.info('Downgraded user to solar tier:', subUserId);
+        }
+      } else {
+        console.warn('subscription.deleted: no user_id in metadata, cannot downgrade', subscription.id);
+      }
     }
 
   } catch (err) {

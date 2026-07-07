@@ -30,12 +30,36 @@ const PRICE_MAP = {
   wallet_100: 'price_1ThakiJyNPXqDP7PY4jAmmcD',   // $100
 };
 
+// Allowlisted origins for success/cancel URLs
+const ALLOWED_ORIGINS = [
+  'https://ninapurple.love',
+  'https://www.ninapurple.love',
+  'https://app.ninapurple.love',
+];
+
+function isAllowedUrl(url) {
+  if (!url) return false;
+  try {
+    const parsed = new URL(url);
+    return ALLOWED_ORIGINS.some(o => parsed.origin === o || parsed.origin.endsWith('.base44.app'));
+  } catch {
+    return false;
+  }
+}
+
 Deno.serve(async (req) => {
   try {
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
     const base44 = createClientFromRequest(req);
 
-    const { price_key, success_url, cancel_url, user_id } = await req.json();
+    // BLOCKER 1 FIX: derive identity server-side — never trust client-supplied user_id
+    const user = await base44.auth.me();
+    if (!user) {
+      console.warn('createCheckout: unauthenticated request rejected');
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { price_key, success_url, cancel_url } = await req.json();
 
     const priceId = PRICE_MAP[price_key];
     if (!priceId) {
@@ -43,21 +67,25 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Invalid price key' }, { status: 400 });
     }
 
+    // Validate redirect URLs to prevent open-redirect attacks
+    const safeSuccessUrl = isAllowedUrl(success_url) ? success_url : 'https://ninapurple.love/home?payment=success';
+    const safeCancelUrl = isAllowedUrl(cancel_url) ? cancel_url : 'https://ninapurple.love/home?payment=cancelled';
+
     const isSubscription = ['lunar_1m', 'stellar_1m', 'galactic_1m'].includes(price_key);
 
     const session = await stripe.checkout.sessions.create({
       mode: isSubscription ? 'subscription' : 'payment',
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: success_url || 'https://your-app.base44.app/home?payment=success',
-      cancel_url: cancel_url || 'https://your-app.base44.app/home?payment=cancelled',
+      success_url: safeSuccessUrl,
+      cancel_url: safeCancelUrl,
       metadata: {
         base44_app_id: Deno.env.get('BASE44_APP_ID'),
-        user_id: user_id || '',
+        user_id: user.id,  // set server-side — never from client body
         price_key,
       },
     });
 
-    console.info('Checkout session created:', session.id, 'for price_key:', price_key);
+    console.info('Checkout session created:', session.id, 'for price_key:', price_key, 'user:', user.id);
     return Response.json({ url: session.url, session_id: session.id });
   } catch (error) {
     console.error('Checkout error:', error.message);
