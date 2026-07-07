@@ -620,7 +620,7 @@ export default function Experiences() {
           </p>
         </motion.div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {MARTINIQUE_GALLERY.map((clip, i) => (
+          {MARTINIQUE_GALLERY.filter(clip => clip.type === 'video').map((clip, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, scale: 0.95 }}

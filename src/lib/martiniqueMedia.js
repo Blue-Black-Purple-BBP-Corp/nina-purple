@@ -26,7 +26,7 @@ export const MARTINIQUE = {
   hero_video: `${BASE}IMG_1950__BestMoonViewFromShoelcherColline.MP4`,
   gallery: [
     { type: 'image', url: `${BASE}IMG_1887%20Copy_BESTDiamand.JPG`, label_en: 'Diamond Rock', label_fr: 'Rocher du Diamant', featured: true },
-    { type: 'image', url: `${BASE}041D089F-DFC2-4577-8EE2-6DBB9AEB33F6_FDFHarbour.jpg`, label_en: 'Harbour View', label_fr: 'Vue du port' },
+    { type: 'image', url: `${BASE}041D089F-DFC2-4577-8EE2-6DBB9AEB33F6_FDFHarbour.jpg`, label_en: 'View from Fort-de-France Center', label_fr: 'Vue depuis le centre de Fort-de-France' },
     { type: 'video', url: `${BASE}IMG_1641_BestRainbowAndCliff.MP4`, label_en: 'Rainbow and Cliff', label_fr: 'Arc-en-ciel et falaise' },
     { type: 'image', url: `${BASE}C80E464D-E521-4157-A4B0-56403051663E_ChasingTheSunViewFromTheBoat.jpg`, label_en: 'Chasing the Sun', label_fr: 'Poursuite du soleil' },
     { type: 'video', url: `${BASE}IMG_1807__ViewFromShoelcherCollineInfinityPool.MP4`, label_en: 'Infinity Pool View', label_fr: 'Vue piscine à débordement' },
