@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lock, Unlock, Camera, MessageCircle, Loader2 } from 'lucide-react';
+import { Lock, Unlock, Camera, MessageCircle, Loader2, Heart } from 'lucide-react';
 import { useLang } from '@/lib/LanguageContext';
 import { useTranslation, getPricingForCompatibility } from '@/lib/i18n';
 import PricingModal from '@/components/PricingModal';
@@ -108,6 +108,14 @@ export default function Connections() {
     return p?.dating_archetype === filter;
   });
 
+  // Check if current user's own profile is coupled
+  const [myProfile, setMyProfile] = useState(null);
+  useEffect(() => {
+    if (currentUser) {
+      base44.entities.UserProfile.filter({ user_id: currentUser.id }).then(res => setMyProfile(res[0]));
+    }
+  }, [currentUser]);
+
   const tabs = [
     { id: 'all',    label: t('connections.all') },
     { id: 'blue',   label: t('connections.travelers') },
@@ -125,6 +133,25 @@ export default function Connections() {
 
   return (
     <div className="px-4 py-6 max-w-lg mx-auto">
+      {/* Couple mode banner — this user is paired, not in matching pool */}
+      {myProfile?.paired_status === 'paired' && (
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="glass-card-orchid rounded-2xl p-4 mb-6">
+          <div className="flex items-start gap-3">
+            <Heart className="w-5 h-5 text-[#7B2FBE] shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-serif text-sm text-[#F0E6FF] mb-1">
+                {lang === 'fr' ? 'Vous êtes en couple' : 'You are coupled'}
+              </h3>
+              <p className="text-[#F0E6FF]/50 text-xs leading-relaxed">
+                {lang === 'fr'
+                  ? "Votre profil est associé à un partenaire. Vous ne faites plus partie du pool de matching individuel. Vos connexions existantes restent visibles ci-dessous."
+                  : "Your profile is linked with a partner. You are no longer part of the individual matching pool. Your existing connections remain visible below."}
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
         <h1 className="font-serif text-3xl text-[#F0E6FF] mb-1">{t('connections.title')}</h1>
         <p className="text-[#F0E6FF]/40 text-sm">
@@ -232,6 +259,13 @@ export default function Connections() {
                   )}
                   {profile.sexual_orientation && (
                     <span className="px-2.5 py-1 rounded-full text-xs border border-[rgba(240,230,255,0.1)] text-[#F0E6FF]/50">{profile.sexual_orientation}</span>
+                  )}
+                  {profile.paired_status === 'paired' && (
+                    <span className="px-2.5 py-1 rounded-full text-xs border flex items-center gap-1"
+                      style={{ color: '#7B2FBE', borderColor: 'rgba(123,47,190,0.3)', background: 'rgba(123,47,190,0.1)' }}>
+                      <Heart className="w-3 h-3" />
+                      {lang === 'fr' ? 'Maintenant en couple' : 'Now coupled'}
+                    </span>
                   )}
                 </div>
 

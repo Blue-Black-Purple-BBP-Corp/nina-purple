@@ -122,6 +122,33 @@
     "guidelines_accepted": {
       "type": "boolean",
       "default": false
+    },
+    "profile_type": {
+      "type": "string",
+      "enum": [
+        "individual",
+        "couple"
+      ],
+      "default": "individual"
+    },
+    "paired_status": {
+      "type": "string",
+      "enum": [
+        "single",
+        "pending",
+        "paired"
+      ],
+      "default": "single"
+    },
+    "partner_email": {
+      "type": "string"
+    },
+    "partner_user_id": {
+      "type": "string"
+    },
+    "couple_consent_given": {
+      "type": "boolean",
+      "default": false
     }
   },
   "required": [

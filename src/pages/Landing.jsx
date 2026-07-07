@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Star, Zap, Heart, ChevronDown, Eye, EyeOff, LogIn } from 'lucide-react';
+import { Star, Zap, Heart, ChevronDown, Eye, EyeOff, LogIn, User } from 'lucide-react';
 import LanguageToggle from '@/components/LanguageToggle';
 import ThemeToggle from '@/components/ThemeToggle';
 import PricingModal from '@/components/PricingModal';
@@ -102,9 +102,20 @@ export default function Landing() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.5 }}
-            className="text-[#F0E6FF]/70 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed"
+            className="text-[#F0E6FF]/70 text-lg md:text-xl max-w-2xl mx-auto mb-6 leading-relaxed"
           >
             {t('landing.subtitle')}
+          </motion.p>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+            className="text-[#F0E6FF]/60 text-base md:text-lg max-w-2xl mx-auto mb-10 leading-relaxed"
+          >
+            {lang === 'fr'
+              ? "Que vous cherchiez l'amour pour vous-même ou que vous souhaitiez approfondir votre relation de couple — Nina Purple vous accompagne."
+              : "Whether you are seeking love for yourself or wanting to deepen your relationship as a couple — Nina Purple supports you."}
           </motion.p>
 
           <motion.div
@@ -124,6 +135,24 @@ export default function Landing() {
               className="px-10 py-4 border border-[rgba(245,168,0,0.3)] text-[#F5A800] rounded-full text-base font-medium tracking-wide hover:bg-[rgba(245,168,0,0.08)] transition-all duration-300"
             >
               {lang === 'fr' ? 'Découvrir la Martinique 2026' : 'Discover Martinique 2026'}
+            </Link>
+          </motion.div>
+
+          {/* Fork: exploring alone vs together */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.9 }}
+            className="flex items-center justify-center gap-6 mt-8 text-sm"
+          >
+            <Link to="/onboarding" className="flex items-center gap-2 text-[#F0E6FF]/50 hover:text-[#F5A800] transition-colors">
+              <User className="w-4 h-4" />
+              {lang === 'fr' ? 'Explorer seul·e' : 'Exploring alone'}
+            </Link>
+            <span className="text-[#F0E6FF]/20">·</span>
+            <Link to="/onboarding" className="flex items-center gap-2 text-[#F0E6FF]/50 hover:text-[#7B2FBE] transition-colors">
+              <Heart className="w-4 h-4" />
+              {lang === 'fr' ? 'Explorer en couple' : 'Exploring together'}
             </Link>
           </motion.div>
         </div>

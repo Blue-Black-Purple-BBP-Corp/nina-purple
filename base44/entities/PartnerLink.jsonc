@@ -1,0 +1,86 @@
+{
+  "name": "PartnerLink",
+  "type": "object",
+  "properties": {
+    "from_user_id": {
+      "type": "string"
+    },
+    "from_email": {
+      "type": "string"
+    },
+    "from_display_name": {
+      "type": "string"
+    },
+    "to_email": {
+      "type": "string"
+    },
+    "to_user_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "accepted",
+        "declined"
+      ],
+      "default": "pending"
+    },
+    "consent_from_given": {
+      "type": "boolean",
+      "default": false
+    },
+    "consent_to_given": {
+      "type": "boolean",
+      "default": false
+    },
+    "link_type": {
+      "type": "string",
+      "enum": [
+        "invite",
+        "link_request"
+      ],
+      "default": "link_request"
+    }
+  },
+  "required": [
+    "from_user_id",
+    "from_email",
+    "to_email"
+  ],
+  "rls": {
+    "create": {
+      "data.from_user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.from_user_id": "{{user.id}}"
+        },
+        {
+          "data.to_user_id": "{{user.id}}"
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.from_user_id": "{{user.id}}"
+        },
+        {
+          "data.to_user_id": "{{user.id}}"
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.from_user_id": "{{user.id}}"
+        },
+        {
+          "data.to_user_id": "{{user.id}}"
+        }
+      ]
+    }
+  }
+}

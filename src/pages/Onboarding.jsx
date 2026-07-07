@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, ChevronLeft, Upload, Mail, Lock, Eye, EyeOff, Loader2, X, Shield } from 'lucide-react';
+import { Check, ChevronLeft, Upload, Mail, Lock, Eye, EyeOff, Loader2, X, Shield, Heart } from 'lucide-react';
 import NinaSpeech from '@/components/NinaSpeech';
 import LocationAutocomplete from '@/components/LocationAutocomplete';
+import CoupleSegmentation from '@/components/onboarding/CoupleSegmentation';
 import { useLang } from '@/lib/LanguageContext';
 import { useTranslation } from '@/lib/i18n';
 import { useTheme } from '@/lib/ThemeContext';
@@ -16,8 +17,8 @@ import AppleIcon from '@/components/AppleIcon';
 import MicrosoftIcon from '@/components/MicrosoftIcon';
 import { ninaIcon, ninaCharacter } from '@/lib/images';
 
-// Steps: age → guidelines → profile → archetype → photos → questions → subscription → register → complete
-const STEPS = ['age', 'guidelines', 'profile', 'archetype', 'photos', 'questions', 'subscription', 'register', 'complete'];
+// Steps: age → guidelines → segmentation → profile → archetype → photos → questions → subscription → register → complete
+const STEPS = ['age', 'guidelines', 'segmentation', 'profile', 'archetype', 'photos', 'questions', 'subscription', 'register', 'complete'];
 
 export const QUESTIONS_21 = [
   { key: 'q11_core_values', en: 'What are your core values?', fr: 'Quelles sont vos valeurs fondamentales ?', options_en: ['a) Honesty and integrity', 'b) Compassion and empathy', 'c) Ambition and achievement', 'd) Adventure and spontaneity'], options_fr: ['a) Honnêteté et intégrité', 'b) Compassion et empathie', 'c) Ambition et réussite', 'd) Aventure et spontanéité'], opt_keys: ['a','b','c','d'] },
@@ -66,6 +67,9 @@ export default function Onboarding() {
   const [formError, setFormError] = useState('');
   const [phone, setPhone] = useState('');
   const [consentAccepted, setConsentAccepted] = useState(false);
+  const [profileType, setProfileType] = useState('');
+  const [partnerEmail, setPartnerEmail] = useState('');
+  const [partnerLinkSent, setPartnerLinkSent] = useState(false);
 
   // Registration state
   const [regEmail, setRegEmail] = useState('');
@@ -221,6 +225,9 @@ export default function Onboarding() {
       guidelines_accepted: true,
       language: lang,
       profile_completeness: profileCompleteness,
+      profile_type: profileType || 'individual',
+      paired_status: profileType === 'couple' ? 'pending' : 'single',
+      partner_email: profileType === 'couple' ? partnerEmail.toLowerCase() : null,
     });
 
     await base44.entities.MatchingAnswers.create({
@@ -228,6 +235,20 @@ export default function Onboarding() {
       ...answers,
       questions_answered: Object.keys(answers).filter(k => answers[k]).length,
     });
+
+    // If couple, send partner link-up request or invite
+    if (profileType === 'couple' && partnerEmail) {
+      try {
+        await base44.functions.invoke('linkPartner', {
+          action: 'link',
+          partner_email: partnerEmail.toLowerCase(),
+          from_display_name: profile.display_name || user.full_name,
+        });
+        setPartnerLinkSent(true);
+      } catch (e) {
+        console.error('Partner link failed:', e);
+      }
+    }
 
     // For paid plans, redirect to Stripe checkout
     if (selectedPlan !== 'solar') {
@@ -536,6 +557,20 @@ export default function Onboarding() {
             </motion.div>
           )}
 
+          {/* ── SEGMENTATION ── */}
+          {currentStep === 'segmentation' && (
+            <motion.div key="segmentation" className="w-full">
+              <CoupleSegmentation
+                profileType={profileType}
+                setProfileType={setProfileType}
+                partnerEmail={partnerEmail}
+                setPartnerEmail={setPartnerEmail}
+                onContinue={goNext}
+                isFr={lang === 'fr'}
+              />
+            </motion.div>
+          )}
+
           {/* ── PROFILE ── */}
           {currentStep === 'profile' && (
             <motion.div key="profile" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.6 }}
@@ -699,6 +734,18 @@ export default function Onboarding() {
           {currentStep === 'questions' && (
             <motion.div key={`q-${currentQ}`} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.5 }}
               className="w-full space-y-6">
+              {currentQ === 0 && profileType === 'couple' && (
+                <div className="p-3 rounded-xl bg-[rgba(123,47,190,0.08)] border border-[rgba(123,47,190,0.2)] mb-2">
+                  <div className="flex items-start gap-2">
+                    <Heart className="w-4 h-4 text-[#7B2FBE] shrink-0 mt-0.5" />
+                    <p className="text-foreground/60 text-xs leading-relaxed">
+                      {lang === 'fr'
+                        ? "Pour les couples, ces questions ne servent pas au matching — chaque partenaire répond individuellement, puis vous pourrez comparer vos réponses côte à côte dans votre tableau de bord."
+                        : "For couples, these questions are not for matching — each partner answers individually, then you can compare your answers side-by-side in your dashboard."}
+                    </p>
+                  </div>
+                </div>
+              )}
               <div className="flex items-center gap-3">
                 <span className="text-foreground/40 text-sm shrink-0">{currentQ + 1} / {QUESTIONS_21.length}</span>
                 <div className="flex-1 h-1 rounded-full bg-border overflow-hidden">
@@ -827,12 +874,39 @@ export default function Onboarding() {
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-48 h-48 rounded-full bg-[rgba(245,168,0,0.08)] animate-ping" style={{ animationDuration: '2s' }} />
                 </div>
-                <img src={ninaCharacter}
-                  alt="Nina" className="w-40 mx-auto relative z-10 drop-shadow-[0_0_40px_rgba(245,168,0,0.5)]" />
+                {profileType === 'couple' ? (
+                  <div className="w-40 h-40 mx-auto relative z-10 rounded-full bg-[rgba(123,47,190,0.15)] flex items-center justify-center drop-shadow-[0_0_40px_rgba(123,47,190,0.4)]">
+                    <Heart className="w-20 h-20 text-[#7B2FBE]" />
+                  </div>
+                ) : (
+                  <img src={ninaCharacter}
+                    alt="Nina" className="w-40 mx-auto relative z-10 drop-shadow-[0_0_40px_rgba(245,168,0,0.5)]" />
+                )}
               </div>
               <div>
                 <h1 className="font-serif text-4xl text-foreground mb-3">{t('onboarding.complete')}</h1>
-                <p className="text-foreground/60 leading-relaxed">{t('onboarding.complete_desc')}</p>
+                {profileType === 'couple' ? (
+                  <div className="space-y-3">
+                    <p className="text-foreground/60 leading-relaxed">
+                      {lang === 'fr'
+                        ? partnerLinkSent
+                          ? "Votre profil de couple a été créé. Une demande de liaison a été envoyée à votre partenaire. Une fois qu'il aura accepté, vous pourrez comparer vos réponses côte à côte dans votre tableau de bord."
+                          : "Votre profil de couple a été créé. Vous pourrez comparer vos réponses avec votre partenaire dans votre tableau de bord."
+                        : partnerLinkSent
+                          ? "Your couple profile has been created. A link-up request has been sent to your partner. Once they accept, you can compare your answers side-by-side in your dashboard."
+                          : "Your couple profile has been created. You can compare your answers with your partner in your dashboard."}
+                    </p>
+                    <div className="p-3 rounded-xl bg-[rgba(123,47,190,0.08)] border border-[rgba(123,47,190,0.2)]">
+                      <p className="text-foreground/50 text-xs leading-relaxed">
+                        {lang === 'fr'
+                          ? "Votre profil de couple est réservé à l'expérience Nina Purple. Il ne fait PAS partie du pool de matching/dating. Vous ne recevrez pas de correspondances individuelles."
+                          : "Your couple profile is for the Nina Purple Experience only. It is NOT part of the dating/matching pool. You will not receive individual matches."}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-foreground/60 leading-relaxed">{t('onboarding.complete_desc')}</p>
+                )}
               </div>
               <button onClick={() => { window.location.href = '/home'; }}
                 className="w-full py-5 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all shadow-[0_0_40px_rgba(245,168,0,0.4)] text-lg">
