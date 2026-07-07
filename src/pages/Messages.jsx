@@ -5,6 +5,7 @@ import NinaAvatar from '@/components/NinaAvatar';
 import { useLang } from '@/lib/LanguageContext';
 import { useTranslation, getPricingForCompatibility, NINA_QUESTIONS } from '@/lib/i18n';
 import { base44 } from '@/api/base44Client';
+import { usePlanLimits } from '@/hooks/usePlanLimits';
 
 const ARCHETYPE_COLORS = { blue: '#60A5FA', black: '#9CA3AF', purple: '#A855F7' };
 
@@ -20,6 +21,8 @@ export default function Messages() {
   const [input, setInput] = useState('');
   const [showNinaSuggestions, setShowNinaSuggestions] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [limitError, setLimitError] = useState('');
+  const { data: limitsData, refresh: refreshLimits } = usePlanLimits();
   const bottomRef = useRef(null);
 
   useEffect(() => { loadConversations(); }, []);
@@ -55,6 +58,18 @@ export default function Messages() {
 
   const handleSend = async () => {
     if (!input.trim() || !activeConvId || !currentUser) return;
+    setLimitError('');
+    // Check plan limits before sending
+    try {
+      const check = await base44.functions.invoke('checkPlanLimits', { action: 'message' });
+      if (!check.data?.allowed) {
+        setLimitError(check.data?.reason || (lang === 'fr' ? 'Limite de messages atteinte.' : 'Message limit reached.'));
+        return;
+      }
+    } catch (e) {
+      setLimitError(lang === 'fr' ? 'Impossible de vérifier les limites.' : 'Unable to verify limits.');
+      return;
+    }
     const activeConn = connections.find(c => c.id === activeConvId);
     const pricing = getPricingForCompatibility(activeConn?.compatibility_score || 0);
     const newMsg = {
@@ -69,6 +84,7 @@ export default function Messages() {
     setMessages(prev => [...prev, created]);
     setInput('');
     setShowNinaSuggestions(false);
+    refreshLimits();
   };
 
   if (activeConvId) {
@@ -179,6 +195,9 @@ export default function Messages() {
               <Send className="w-4 h-4 text-[#0B0510]" />
             </button>
           </div>
+          {limitError && (
+            <p className="text-red-400 text-xs mt-2 text-center">{limitError}</p>
+          )}
         </div>
       </div>
     );
@@ -189,6 +208,13 @@ export default function Messages() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
         <h1 className="font-serif text-3xl text-[#F0E6FF] mb-1">{t('messages.title')}</h1>
         <p className="text-[#F0E6FF]/40 text-sm">{lang === 'fr' ? 'Vos conversations conscientes' : 'Your conscious conversations'}</p>
+        {limitsData && (
+          <p className="text-[#F0E6FF]/30 text-xs mt-2">
+            {lang === 'fr'
+              ? `Messages ce mois : ${limitsData.usage.messages_used} / ${limitsData.limits.messages_per_month === 'unlimited' ? '∞' : limitsData.limits.messages_per_month}`
+              : `Messages this month: ${limitsData.usage.messages_used} / ${limitsData.limits.messages_per_month === 'unlimited' ? '∞' : limitsData.limits.messages_per_month}`}
+          </p>
+        )}
       </motion.div>
 
       {loading ? (

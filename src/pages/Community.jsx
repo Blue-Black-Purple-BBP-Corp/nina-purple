@@ -4,6 +4,7 @@ import { Star, MessageCircle, Heart, ChevronLeft, Send, Loader2, Users } from 'l
 import { useLang } from '@/lib/LanguageContext';
 import { useTranslation } from '@/lib/i18n';
 import { base44 } from '@/api/base44Client';
+import { usePlanLimits } from '@/hooks/usePlanLimits';
 
 export default function Community() {
   const { lang } = useLang();
@@ -18,10 +19,23 @@ export default function Community() {
   const [likedPosts, setLikedPosts] = useState(new Set());
   const [currentUser, setCurrentUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
+  const [limitError, setLimitError] = useState('');
+  const [isOwnRoom, setIsOwnRoom] = useState(false);
+  const { data: limitsData, refresh: refreshLimits } = usePlanLimits();
   const bottomRef = useRef(null);
 
   useEffect(() => { loadRooms(); }, []);
-  useEffect(() => { if (activeRoom) loadPosts(activeRoom.id); }, [activeRoom]);
+  useEffect(() => {
+    if (activeRoom) {
+      loadPosts(activeRoom.id);
+      // Check if this room is owned by the current user (posts there don't count toward limits)
+      if (currentUser && activeRoom.created_by_id === currentUser.id) {
+        setIsOwnRoom(true);
+      } else {
+        setIsOwnRoom(false);
+      }
+    }
+  }, [activeRoom, currentUser]);
 
   const loadRooms = async () => {
     setRoomsLoading(true);
@@ -43,6 +57,20 @@ export default function Community() {
 
   const handlePost = async () => {
     if (!newPost.trim() || !activeRoom || !currentUser || posting) return;
+    setLimitError('');
+    // Check plan limits before posting (skip if user owns this room)
+    if (!isOwnRoom) {
+      try {
+        const check = await base44.functions.invoke('checkPlanLimits', { action: 'community_post' });
+        if (!check.data?.allowed) {
+          setLimitError(check.data?.reason || (lang === 'fr' ? 'Limite de messages atteinte.' : 'Message limit reached.'));
+          return;
+        }
+      } catch (e) {
+        setLimitError(lang === 'fr' ? 'Impossible de vérifier les limites.' : 'Unable to verify limits.');
+        return;
+      }
+    }
     setPosting(true);
     const post = await base44.entities.ChatPost.create({
       room_id: activeRoom.id,
@@ -59,6 +87,7 @@ export default function Community() {
     setPosts(prev => [...prev, post]);
     setNewPost('');
     setPosting(false);
+    if (!isOwnRoom) refreshLimits();
     setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
   };
 
@@ -111,6 +140,21 @@ export default function Community() {
                 {t('community.new_post')}
               </button>
             </div>
+            {limitError && (
+              <p className="text-red-400 text-xs mt-2">{limitError}</p>
+            )}
+            {isOwnRoom && (
+              <p className="text-[#F5A800]/60 text-[10px] mt-2">
+                {lang === 'fr' ? 'Vous animez ce salon — vos publications sont illimitées.' : 'You animate this room — your posts are unlimited.'}
+              </p>
+            )}
+            {limitsData && !isOwnRoom && (
+              <p className="text-[#F0E6FF]/30 text-[10px] mt-2">
+                {lang === 'fr'
+                  ? `Messages ce mois : ${limitsData.usage.messages_used} / ${limitsData.limits.messages_per_month === 'unlimited' ? '∞' : limitsData.limits.messages_per_month}`
+                  : `Messages this month: ${limitsData.usage.messages_used} / ${limitsData.limits.messages_per_month === 'unlimited' ? '∞' : limitsData.limits.messages_per_month}`}
+              </p>
+            )}
           </div>
 
           {postsLoading ? (

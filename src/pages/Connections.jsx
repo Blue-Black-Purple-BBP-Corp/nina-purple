@@ -5,6 +5,7 @@ import { useLang } from '@/lib/LanguageContext';
 import { useTranslation, getPricingForCompatibility } from '@/lib/i18n';
 import PricingModal from '@/components/PricingModal';
 import { base44 } from '@/api/base44Client';
+import { usePlanLimits } from '@/hooks/usePlanLimits';
 
 const ARCHETYPE_META = {
   blue:   { color: '#60A5FA', label_en: 'The Traveler',    label_fr: 'Le Voyageur' },
@@ -29,6 +30,8 @@ export default function Connections() {
   const [selectedUnlock, setSelectedUnlock] = useState(null);
   const [pricingOpen, setPricingOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [limitError, setLimitError] = useState('');
+  const { data: limitsData, refresh: refreshLimits } = usePlanLimits();
 
   useEffect(() => {
     loadData();
@@ -38,6 +41,7 @@ export default function Connections() {
     setLoading(true);
     const user = await base44.auth.me();
     setCurrentUser(user);
+    refreshLimits();
 
     // Load connections where current user is involved
     const conns = await base44.entities.Connection.filter({ from_user_id: user.id });
@@ -57,6 +61,18 @@ export default function Connections() {
 
   const confirmUnlock = async () => {
     if (!selectedUnlock) return;
+    setLimitError('');
+    // Check plan limits before unlocking
+    try {
+      const check = await base44.functions.invoke('checkPlanLimits', { action: 'unlock' });
+      if (!check.data?.allowed) {
+        setLimitError(check.data?.reason || (lang === 'fr' ? 'Limite atteinte.' : 'Limit reached.'));
+        return;
+      }
+    } catch (e) {
+      setLimitError(lang === 'fr' ? 'Impossible de vérifier les limites.' : 'Unable to verify limits.');
+      return;
+    }
     const pricing = getPricingForCompatibility(selectedUnlock.compatibility_score || 0);
     await base44.entities.Connection.update(selectedUnlock.id, {
       is_unlocked: true,
@@ -64,6 +80,26 @@ export default function Connections() {
     });
     setConnections(prev => prev.map(c => c.id === selectedUnlock.id ? { ...c, is_unlocked: true } : c));
     setSelectedUnlock(null);
+    refreshLimits();
+  };
+
+  const handleGalleryUnlock = async (conn) => {
+    setLimitError('');
+    try {
+      const check = await base44.functions.invoke('checkPlanLimits', { action: 'gallery_unlock' });
+      if (!check.data?.allowed) {
+        setLimitError(lang === 'fr'
+          ? 'Le déverrouillage de galerie n\'est pas inclus dans votre plan. Passez à Galactic pour un accès gratuit.'
+          : 'Gallery unlock is not included in your plan. Upgrade to Galactic for free access.');
+        setPricingOpen(true);
+        return;
+      }
+      // Galactic — free gallery unlock
+      await base44.entities.Connection.update(conn.id, { gallery_unlocked: true });
+      setConnections(prev => prev.map(c => c.id === conn.id ? { ...c, gallery_unlocked: true } : c));
+    } catch (e) {
+      setLimitError(lang === 'fr' ? 'Une erreur est survenue.' : 'Something went wrong.');
+    }
   };
 
   const filtered = connections.filter(c => {
@@ -94,6 +130,20 @@ export default function Connections() {
         <p className="text-[#F0E6FF]/40 text-sm">
           {lang === 'fr' ? `${connections.length} correspondance${connections.length !== 1 ? 's' : ''}` : `${connections.length} match${connections.length !== 1 ? 'es' : ''}`}
         </p>
+        {limitsData && (
+          <div className="mt-3 flex items-center gap-2 flex-wrap">
+            <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider border"
+              style={{ color: limitsData.tier === 'galactic' ? '#F5A800' : limitsData.tier === 'stellar' ? '#A855F7' : limitsData.tier === 'lunar' ? '#7B2FBE' : '#A78BFA',
+                       borderColor: 'rgba(240,230,255,0.15)', background: 'rgba(240,230,255,0.05)' }}>
+              {limitsData.tier}
+            </span>
+            <span className="text-[#F0E6FF]/40 text-xs">
+              {lang === 'fr'
+                ? `Déverrouillages : ${limitsData.usage.unlocks_used} / ${limitsData.limits.unlocks_per_month === 'unlimited' ? '∞' : limitsData.limits.unlocks_per_month} ce mois`
+                : `Unlocks: ${limitsData.usage.unlocks_used} / ${limitsData.limits.unlocks_per_month === 'unlimited' ? '∞' : limitsData.limits.unlocks_per_month} this month`}
+            </span>
+          </div>
+        )}
       </motion.div>
 
       {/* Filter tabs */}
@@ -208,7 +258,9 @@ export default function Connections() {
                         {t('connections.send_message')} · ${pricing.msg.toFixed(2)}
                       </button>
                       {!conn.gallery_unlocked && (
-                        <button className="px-4 py-3 glass-card rounded-xl text-[#F0E6FF]/60 hover:text-[#F5A800] transition-all">
+                        <button onClick={() => handleGalleryUnlock(conn)}
+                          className="px-4 py-3 glass-card rounded-xl text-[#F0E6FF]/60 hover:text-[#F5A800] transition-all"
+                          title={lang === 'fr' ? 'Déverrouiller la galerie' : 'Unlock gallery'}>
                           <Camera className="w-4 h-4" />
                         </button>
                       )}
@@ -252,8 +304,13 @@ export default function Connections() {
                     <span className="text-[#F0E6FF]/80">${getPricingForCompatibility(selectedUnlock.compatibility_score || 0).msg.toFixed(2)}</span>
                   </div>
                 </div>
+                {limitError && (
+                  <div className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs text-center">
+                    {limitError}
+                  </div>
+                )}
                 <div className="flex gap-3">
-                  <button onClick={() => setSelectedUnlock(null)}
+                  <button onClick={() => { setSelectedUnlock(null); setLimitError(''); }}
                     className="flex-1 py-3 glass-card rounded-xl text-[#F0E6FF]/60 text-sm hover:opacity-80 transition-all">
                     {t('common.cancel')}
                   </button>
