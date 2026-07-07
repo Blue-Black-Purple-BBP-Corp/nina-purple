@@ -560,52 +560,6 @@ export default function Experiences() {
 
       <div className="golden-thread w-full" />
 
-      {/* Martinique in Motion — video gallery */}
-      <section className="px-6 py-20 max-w-6xl mx-auto">
-        <motion.div {...fadeUp} className="text-center mb-12">
-          <h2 className="font-serif text-4xl text-[#F0E6FF] mb-3">{isFr ? 'La Martinique en mouvement' : 'Martinique in Motion'}</h2>
-          <p className="text-[#F0E6FF]/50 max-w-xl mx-auto text-sm">
-            {isFr ? 'Un aperçu du paysage qui vous attend.' : 'A glimpse of the landscape that awaits you.'}
-          </p>
-        </motion.div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {MARTINIQUE_GALLERY.map((clip, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: (i % 4) * 0.08 }}
-              className={`relative rounded-2xl overflow-hidden glass-card group ${clip.featured ? 'md:row-span-2 md:col-span-2 aspect-square md:aspect-auto' : 'aspect-square'}`}
-            >
-              {clip.type === 'image' ? (
-                <img
-                  src={clip.url}
-                  alt={isFr ? clip.label_fr : clip.label_en}
-                  className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-500"
-                />
-              ) : (
-                <video
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500"
-                >
-                  <source src={clip.url} type={clip.url.endsWith('.MOV') ? 'video/quicktime' : 'video/mp4'} />
-                </video>
-              )}
-              <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(180deg, transparent 50%, rgba(11,5,16,0.75) 100%)' }} />
-              <div className="absolute bottom-2 left-3 text-[10px] uppercase tracking-widest font-medium" style={{ color: 'rgba(240,230,255,0.85)' }}>
-                {isFr ? clip.label_fr : clip.label_en}
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      <div className="golden-thread w-full" />
-
       {/* Destinations */}
       <section className="px-6 py-20 max-w-5xl mx-auto">
         <motion.div {...fadeUp} className="text-center mb-14">
@@ -653,6 +607,52 @@ export default function Experiences() {
             </motion.div>
           );
         })}
+      </section>
+
+      <div className="golden-thread w-full" />
+
+      {/* Martinique in Motion — video gallery */}
+      <section className="px-6 py-20 max-w-6xl mx-auto">
+        <motion.div {...fadeUp} className="text-center mb-12">
+          <h2 className="font-serif text-4xl text-[#F0E6FF] mb-3">{isFr ? 'La Martinique en mouvement' : 'Martinique in Motion'}</h2>
+          <p className="text-[#F0E6FF]/50 max-w-xl mx-auto text-sm">
+            {isFr ? 'Un aperçu du paysage qui vous attend.' : 'A glimpse of the landscape that awaits you.'}
+          </p>
+        </motion.div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {MARTINIQUE_GALLERY.map((clip, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: (i % 4) * 0.08 }}
+              className={`relative rounded-2xl overflow-hidden glass-card group ${clip.featured ? 'md:row-span-2 md:col-span-2 aspect-square md:aspect-auto' : 'aspect-square'}`}
+            >
+              {clip.type === 'image' ? (
+                <img
+                  src={clip.url}
+                  alt={isFr ? clip.label_fr : clip.label_en}
+                  className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-500"
+                />
+              ) : (
+                <video
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500"
+                >
+                  <source src={clip.url} type={clip.url.endsWith('.MOV') ? 'video/quicktime' : 'video/mp4'} />
+                </video>
+              )}
+              <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(180deg, transparent 50%, rgba(11,5,16,0.75) 100%)' }} />
+              <div className="absolute bottom-2 left-3 text-[10px] uppercase tracking-widest font-medium" style={{ color: 'rgba(240,230,255,0.85)' }}>
+                {isFr ? clip.label_fr : clip.label_en}
+              </div>
+            </motion.div>
+          ))}
+        </div>
       </section>
 
       <div className="golden-thread w-full" />
