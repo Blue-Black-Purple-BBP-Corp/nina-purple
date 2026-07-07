@@ -6,7 +6,7 @@ import { useLang } from '@/lib/LanguageContext';
 import LanguageToggle from '@/components/LanguageToggle';
 import ThemeToggle from '@/components/ThemeToggle';
 import { ninaHorizontal, ninaIcon } from '@/lib/images';
-import { MARTINIQUE_HERO_VIDEO, MARTINIQUE_GALLERY, DESTINATIONS } from '@/lib/martiniqueMedia';
+import { MARTINIQUE_HERO_IMAGE, MARTINIQUE_GALLERY, DESTINATIONS } from '@/lib/martiniqueMedia';
 import { base44 } from '@/api/base44Client';
 
 const MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -388,7 +388,7 @@ export default function Experiences() {
   const fadeUp = { initial: { opacity: 0, y: 30 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true }, transition: { duration: 0.7 } };
 
   return (
-    <div className="min-h-screen bg-[#0B0510] overflow-x-hidden">
+    <div className="min-h-screen bg-[#0B0510] overflow-x-hidden scroll-smooth">
       {/* Styles injected for form inputs */}
       <style>{`
         .form-input { width: 100%; background: transparent; border-radius: 0.75rem; padding: 0.75rem 1rem; color: var(--foreground, #F0E6FF); outline: none; transition: border-color 0.2s; }
@@ -417,17 +417,12 @@ export default function Experiences() {
 
       {/* Hero */}
       <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-6 pt-20 pb-16 overflow-hidden">
-        {/* Background video */}
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover opacity-30"
-          poster=""
-        >
-          <source src={MARTINIQUE_HERO_VIDEO} type="video/mp4" />
-        </video>
+        {/* Background image */}
+        <img
+          src={MARTINIQUE_HERO_IMAGE}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover opacity-40"
+        />
         {/* Dark overlay for legibility */}
         <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(11,5,16,0.6) 0%, rgba(11,5,16,0.85) 100%)' }} />
         <div className="absolute inset-0 pointer-events-none">
@@ -455,10 +450,16 @@ export default function Experiences() {
               ? 'Célibataire ou en couple, chaque expérience Nina Purple est conçue pour favoriser la conscience de soi, la croissance émotionnelle et une transformation durable.'
               : 'Whether you\'re single or in a relationship, every Nina Purple Experience is thoughtfully designed to foster self-awareness, emotional growth, and lasting transformation.'}
           </p>
-          <button onClick={() => setFormOpen(true)}
-            className="inline-block px-10 py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all shadow-[0_0_30px_rgba(245,168,0,0.3)]">
-            {isFr ? 'Demander des informations' : 'Request Information'}
-          </button>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <button onClick={() => setFormOpen(true)}
+              className="inline-block px-10 py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all shadow-[0_0_30px_rgba(245,168,0,0.3)]">
+              {isFr ? 'Demander des informations' : 'Request Information'}
+            </button>
+            <a href="#martinique-featured"
+              className="inline-block px-8 py-4 border border-[#F5A800]/50 text-[#F5A800] rounded-full font-bold uppercase tracking-widest hover:bg-[rgba(245,168,0,0.1)] transition-all text-sm">
+              {isFr ? 'Destination actuelle : Martinique' : 'Current Destination: Martinique'}
+            </a>
+          </div>
         </motion.div>
         <motion.div animate={{ y: [0,8,0] }} transition={{ repeat: Infinity, duration: 2 }} className="absolute bottom-8">
           <ChevronDown className="w-6 h-6 text-[#F0E6FF]/30" />
@@ -528,16 +529,16 @@ export default function Experiences() {
         <div className="space-y-6">
           {[
             {
-              phase: isFr ? 'Avant la Martinique' : 'Before Martinique',
+              phase: isFr ? 'Avant le départ' : 'Before You Travel',
               color: '#7B2FBE', icon: '🌱',
               body_en: 'Your experience begins well before departure. You\'ll complete an onboarding process, reflect on your goals, and participate in guided therapeutic preparation — establishing psychological safety and readiness several weeks in advance.',
               body_fr: 'Votre expérience commence bien avant le départ. Vous complétez un processus d\'accueil, réfléchissez à vos objectifs et participez à une préparation thérapeutique guidée — établissant sécurité psychologique et état de préparation plusieurs semaines à l\'avance.',
             },
             {
-              phase: isFr ? 'En Martinique' : 'In Martinique',
+              phase: isFr ? 'Sur place' : 'During Your Stay',
               color: '#F5A800', icon: '🌊',
-              body_en: 'Every day balances personal reflection, therapeutic support, experiential learning, relaxation, and genuine human connection. Your experience may include guided workshops, group therapy, relationship education, mindfulness, nature immersion, Caribbean exploration, shared meals, and meaningful conversations.',
-              body_fr: 'Chaque journée équilibre réflexion personnelle, soutien thérapeutique, apprentissage expérientiel, détente et connexion humaine authentique — ateliers guidés, thérapie de groupe, éducation relationnelle, pleine conscience, immersion dans la nature, exploration caribéenne, repas partagés.',
+              body_en: 'Every day balances personal reflection, therapeutic support, experiential learning, relaxation, and genuine human connection. Your experience may include guided workshops, group therapy, relationship education, mindfulness, nature immersion, local exploration, shared meals, and meaningful conversations.',
+              body_fr: 'Chaque journée équilibre réflexion personnelle, soutien thérapeutique, apprentissage expérientiel, détente et connexion humaine authentique — ateliers guidés, thérapie de groupe, éducation relationnelle, pleine conscience, immersion dans la nature, exploration locale, repas partagés.',
             },
             {
               phase: isFr ? 'Retour à la maison' : 'Returning Home',
@@ -620,7 +621,7 @@ export default function Experiences() {
         {DESTINATIONS.map((dest) => {
           const photos = dest.gallery.filter(g => g.type === 'image');
           return (
-            <motion.div key={dest.id} {...fadeUp} className="glass-card-orchid rounded-3xl overflow-hidden">
+            <motion.div key={dest.id} id={`${dest.id}-featured`} {...fadeUp} className="glass-card-orchid rounded-3xl overflow-hidden scroll-mt-24">
               <div className="p-8 md:p-10">
                 <div className="flex items-center gap-3 mb-4">
                   <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-[#F5A800] text-[#0B0510]">
@@ -630,7 +631,13 @@ export default function Experiences() {
                 </div>
                 <h3 className="font-serif text-3xl text-[#F0E6FF] mb-2">{isFr ? dest.name_fr : dest.name_en}</h3>
                 <p className="font-serif text-xl italic text-[#F5A800] mb-4">{isFr ? dest.tagline_fr : dest.tagline_en}</p>
-                <p className="text-[#F0E6FF]/60 leading-relaxed max-w-2xl">{isFr ? dest.description_fr : dest.description_en}</p>
+                <p className="text-[#F0E6FF]/60 leading-relaxed max-w-2xl mb-5">{isFr ? dest.description_fr : dest.description_en}</p>
+                {dest.magic_en && (
+                  <div className="p-5 rounded-2xl bg-[rgba(245,168,0,0.06)] border border-[rgba(245,168,0,0.2)]">
+                    <p className="text-[#F5A800] font-serif text-sm uppercase tracking-widest mb-2">{isFr ? 'Pourquoi c\'est magique' : 'Why it\'s magical'}</p>
+                    <p className="text-[#F0E6FF]/70 leading-relaxed text-sm">{isFr ? dest.magic_fr : dest.magic_en}</p>
+                  </div>
+                )}
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5 px-3 pb-3">
                 {photos.map((photo, i) => (

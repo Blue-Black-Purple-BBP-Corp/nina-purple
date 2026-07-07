@@ -18,6 +18,11 @@ export const MARTINIQUE = {
     'Martinique offers something increasingly rare — space. Its mountains, rainforests, beaches, and slower rhythm create an ideal environment for meaningful personal and relational growth. Sometimes a new landscape creates a new perspective.',
   description_fr:
     "La Martinique offre quelque chose de plus en plus rare : l'espace. Ses montagnes, ses forêts tropicales, ses plages et son rythme plus lent créent un environnement idéal pour une croissance personnelle et relationnelle profonde. Parfois, un nouveau paysage crée une nouvelle perspective.",
+  magic_en:
+    'Martinique is where the Caribbean’s raw beauty meets a deep, grounding stillness. From the volcanic peaks of Mount Pelée to the hidden coves of the Atlantic coast, the island holds a quiet power that invites introspection. The Creole culture, the warmth of its people, and the rhythm of life between sea and forest create a rare container for transformation — a place where you can finally hear yourself think.',
+  magic_fr:
+    "La Martinique est l'endroit où la beauté brute des Caraïbes rencontre un profond calme ancré. Des sommets volcaniques de la montagne Pelée aux criques cachées de la côte atlantique, l'île détient une puissance tranquille qui invite à l'introspection. La culture créole, la chaleur de ses habitants et le rythme de vie entre mer et forêt créent un écrin rare pour la transformation — un lieu où l'on peut enfin s'entendre penser.",
+  hero_image: `${BASE}IMG_1887%20Copy_BESTDiamand.JPG`,
   hero_video: `${BASE}IMG_1950__BestMoonViewFromShoelcherColline.MP4`,
   gallery: [
     { type: 'image', url: `${BASE}IMG_1887%20Copy_BESTDiamand.JPG`, label_en: 'Diamond Rock', label_fr: 'Rocher du Diamant', featured: true },
@@ -37,7 +42,8 @@ export const MARTINIQUE = {
 // ── All destinations (future-ready) ──────────────────────────────────────────
 export const DESTINATIONS = [MARTINIQUE];
 
-// Hero background video (featured destination)
+// Hero background image & video (featured destination)
+export const MARTINIQUE_HERO_IMAGE = MARTINIQUE.hero_image;
 export const MARTINIQUE_HERO_VIDEO = MARTINIQUE.hero_video;
 
 // Curated gallery — mixed photos + videos with varied viewpoints
