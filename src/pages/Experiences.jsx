@@ -6,7 +6,7 @@ import { useLang } from '@/lib/LanguageContext';
 import LanguageToggle from '@/components/LanguageToggle';
 import ThemeToggle from '@/components/ThemeToggle';
 import { ninaHorizontal, ninaIcon } from '@/lib/images';
-import { MARTINIQUE_HERO_VIDEO, MARTINIQUE_GALLERY } from '@/lib/martiniqueMedia';
+import { MARTINIQUE_HERO_VIDEO, MARTINIQUE_GALLERY, DESTINATIONS } from '@/lib/martiniqueMedia';
 import { base44 } from '@/api/base44Client';
 
 const MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -580,7 +580,7 @@ export default function Experiences() {
               {clip.type === 'image' ? (
                 <img
                   src={clip.url}
-                  alt={clip.label}
+                  alt={isFr ? clip.label_fr : clip.label_en}
                   className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-500"
                 />
               ) : (
@@ -596,7 +596,7 @@ export default function Experiences() {
               )}
               <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(180deg, transparent 50%, rgba(11,5,16,0.75) 100%)' }} />
               <div className="absolute bottom-2 left-3 text-[10px] uppercase tracking-widest font-medium" style={{ color: 'rgba(240,230,255,0.85)' }}>
-                {clip.label}
+                {isFr ? clip.label_fr : clip.label_en}
               </div>
             </motion.div>
           ))}
@@ -605,24 +605,47 @@ export default function Experiences() {
 
       <div className="golden-thread w-full" />
 
-      {/* Why Martinique */}
-      <section className="px-6 py-20 max-w-3xl mx-auto text-center">
-        <motion.div {...fadeUp} className="space-y-5">
-          <MapPin className="w-8 h-8 text-[#F5A800] mx-auto" />
-          <h2 className="font-serif text-4xl text-[#F0E6FF]">{isFr ? 'Pourquoi la Martinique ?' : 'Why Martinique?'}</h2>
-          <p className="text-[#F0E6FF]/60 text-lg">{isFr ? 'La Martinique offre quelque chose de plus en plus rare.' : 'Martinique offers something increasingly rare.'}</p>
-          <div className="space-y-2 font-serif text-2xl text-[#F5A800]">
-            <p>{isFr ? 'L\'espace.' : 'Space.'}</p>
-            <p>{isFr ? 'L\'espace pour respirer.' : 'Space to breathe.'}</p>
-            <p>{isFr ? 'L\'espace pour réfléchir.' : 'Space to reflect.'}</p>
-            <p>{isFr ? 'L\'espace pour se reconnecter.' : 'Space to reconnect.'}</p>
-          </div>
-          <p className="text-[#F0E6FF]/50 leading-relaxed">
+      {/* Destinations */}
+      <section className="px-6 py-20 max-w-5xl mx-auto">
+        <motion.div {...fadeUp} className="text-center mb-14">
+          <MapPin className="w-8 h-8 text-[#F5A800] mx-auto mb-4" />
+          <h2 className="font-serif text-4xl text-[#F0E6FF] mb-4">{isFr ? 'Nos destinations' : 'Our Destinations'}</h2>
+          <p className="text-[#F0E6FF]/60 max-w-2xl mx-auto leading-relaxed">
             {isFr
-              ? 'Ses montagnes, ses forêts tropicales, ses plages et son rythme plus lent créent un environnement idéal pour une croissance personnelle et relationnelle profonde. Parfois, un nouveau paysage crée une nouvelle perspective.'
-              : 'Its mountains, rainforests, beaches, and slower rhythm create an ideal environment for meaningful personal and relational growth. Sometimes a new landscape creates a new perspective.'}
+              ? "Chaque destination Nina Purple est choisie pour sa capacité à offrir de l'espace — pour respirer, réfléchir et se reconnecter. Nous sélectionnons des lieux où le rythme est plus lent, la nature plus présente et la transformation plus profonde."
+              : "Every Nina Purple destination is chosen for its ability to offer space — space to breathe, reflect, and reconnect. We select places where the rhythm is slower, nature is closer, and transformation runs deeper."}
           </p>
         </motion.div>
+
+        {DESTINATIONS.map((dest) => {
+          const photos = dest.gallery.filter(g => g.type === 'image');
+          return (
+            <motion.div key={dest.id} {...fadeUp} className="glass-card-orchid rounded-3xl overflow-hidden">
+              <div className="p-8 md:p-10">
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-[#F5A800] text-[#0B0510]">
+                    {dest.year}
+                  </span>
+                  <span className="text-[#F0E6FF]/50 text-sm">{isFr ? dest.region_fr : dest.region_en}</span>
+                </div>
+                <h3 className="font-serif text-3xl text-[#F0E6FF] mb-2">{isFr ? dest.name_fr : dest.name_en}</h3>
+                <p className="font-serif text-xl italic text-[#F5A800] mb-4">{isFr ? dest.tagline_fr : dest.tagline_en}</p>
+                <p className="text-[#F0E6FF]/60 leading-relaxed max-w-2xl">{isFr ? dest.description_fr : dest.description_en}</p>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5 px-3 pb-3">
+                {photos.map((photo, i) => (
+                  <div key={i} className="relative aspect-square rounded-xl overflow-hidden group">
+                    <img src={photo.url} alt={isFr ? photo.label_fr : photo.label_en} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                    <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(180deg, transparent 55%, rgba(11,5,16,0.75) 100%)' }} />
+                    <div className="absolute bottom-2 left-2 text-[10px] uppercase tracking-widest font-medium text-[#F0E6FF]/85">
+                      {isFr ? photo.label_fr : photo.label_en}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          );
+        })}
       </section>
 
       <div className="golden-thread w-full" />
