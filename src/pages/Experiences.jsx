@@ -6,6 +6,7 @@ import { useLang } from '@/lib/LanguageContext';
 import LanguageToggle from '@/components/LanguageToggle';
 import ThemeToggle from '@/components/ThemeToggle';
 import { ninaHorizontal, ninaIcon } from '@/lib/images';
+import { MARTINIQUE_HERO_VIDEO, MARTINIQUE_GALLERY } from '@/lib/martiniqueMedia';
 import { base44 } from '@/api/base44Client';
 
 const MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -415,7 +416,20 @@ export default function Experiences() {
       </nav>
 
       {/* Hero */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-6 pt-20 pb-16">
+      <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-6 pt-20 pb-16 overflow-hidden">
+        {/* Background video */}
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover opacity-30"
+          poster=""
+        >
+          <source src={MARTINIQUE_HERO_VIDEO} type="video/mp4" />
+        </video>
+        {/* Dark overlay for legibility */}
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(11,5,16,0.6) 0%, rgba(11,5,16,0.85) 100%)' }} />
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full"
             style={{ background: 'radial-gradient(circle, rgba(123,47,190,0.12) 0%, transparent 70%)' }} />
@@ -544,6 +558,44 @@ export default function Experiences() {
 
       <div className="golden-thread w-full" />
 
+      {/* Martinique in Motion — video gallery */}
+      <section className="px-6 py-20 max-w-6xl mx-auto">
+        <motion.div {...fadeUp} className="text-center mb-12">
+          <h2 className="font-serif text-4xl text-[#F0E6FF] mb-3">{isFr ? 'La Martinique en mouvement' : 'Martinique in Motion'}</h2>
+          <p className="text-[#F0E6FF]/50 max-w-xl mx-auto text-sm">
+            {isFr ? 'Un aperçu du paysage qui vous attend.' : 'A glimpse of the landscape that awaits you.'}
+          </p>
+        </motion.div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {MARTINIQUE_GALLERY.map((clip, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: (i % 4) * 0.08 }}
+              className={`relative rounded-2xl overflow-hidden glass-card group ${i % 5 === 0 ? 'md:row-span-2 md:col-span-2 aspect-square md:aspect-auto' : 'aspect-square'}`}
+            >
+              <video
+                autoPlay
+                muted
+                loop
+                playsInline
+                className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500"
+              >
+                <source src={clip.url} type={clip.url.endsWith('.MOV') ? 'video/quicktime' : 'video/mp4'} />
+              </video>
+              <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(180deg, transparent 50%, rgba(11,5,16,0.7) 100%)' }} />
+              <div className="absolute bottom-2 left-3 text-[#F0E6FF]/70 text-[10px] uppercase tracking-widest font-medium">
+                {clip.label}
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      <div className="golden-thread w-full" />
+
       {/* Why Martinique */}
       <section className="px-6 py-20 max-w-3xl mx-auto text-center">
         <motion.div {...fadeUp} className="space-y-5">
@@ -601,7 +653,7 @@ export default function Experiences() {
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <img src={ninaHorizontal} alt="Nina Purple" className="h-8 object-contain opacity-60" />
           <div className="text-[#F0E6FF]/30 text-sm text-center">
-            © 2026 Nina Purple · A Blue Black Purple (BBP) Corp. company
+            © 2026 Nina Purple
             <span className="mx-2">·</span>
             <Link to="/" className="underline hover:text-[#F5A800]">{isFr ? 'Accueil' : 'Home'}</Link>
             <span className="mx-2">·</span>

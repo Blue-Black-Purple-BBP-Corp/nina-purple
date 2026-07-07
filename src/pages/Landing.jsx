@@ -380,7 +380,7 @@ export default function Landing() {
             className="h-8 object-contain opacity-60"
           />
           <div className="text-[#F0E6FF]/30 text-sm text-center">
-            © 2026 Nina Purple · A Blue Black Purple (BBP) Corp. company · contact@NinaPurple.love
+            © 2026 Nina Purple · contact@NinaPurple.love
             <span className="mx-2">·</span>
             <Link to="/experiences" className="underline hover:text-[#F5A800] transition-colors">
               {lang === 'fr' ? 'Expériences' : 'Experiences'}
