@@ -1,33 +1,37 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.36';
 import Stripe from 'npm:stripe@14';
+
+// Price IDs — read from env (per-environment: test vs live) with hardcoded
+// live-mode fallbacks so the function keeps working if env vars are absent.
+const priceFromEnv = (key, fallback) => Deno.env.get(`STRIPE_PRICE_${key.toUpperCase()}`) || fallback;
 
 const PRICE_MAP = {
   // Lunar
-  lunar_1m:   'price_1ThadzJyNPXqDP7PjdEodCzY',  // $10/month recurring
-  lunar_14d:  'price_1ThafYJyNPXqDP7PF2dar2xZ',   // $5
-  lunar_3m:   'price_1ThafcJyNPXqDP7PhTApILWe',   // $27.50
-  lunar_6m:   'price_1ThafeJyNPXqDP7PHPWBv7p4',   // $55
-  lunar_1y:   'price_1ThafhJyNPXqDP7PepZOW4EJ',   // $110
+  lunar_1m:    priceFromEnv('lunar_1m',    'price_1ThadzJyNPXqDP7PjdEodCzY'),
+  lunar_14d:   priceFromEnv('lunar_14d',   'price_1ThafYJyNPXqDP7PF2dar2xZ'),
+  lunar_3m:    priceFromEnv('lunar_3m',     'price_1ThafcJyNPXqDP7PhTApILWe'),
+  lunar_6m:    priceFromEnv('lunar_6m',    'price_1ThafeJyNPXqDP7PHPWBv7p4'),
+  lunar_1y:    priceFromEnv('lunar_1y',    'price_1ThafhJyNPXqDP7PepZOW4EJ'),
   // Stellar
-  stellar_14d:'price_1ThafmJyNPXqDP7P5zJeW8cV',   // $10
-  stellar_1m: 'price_1Thae3JyNPXqDP7PyHoUSP8x',   // $15/month recurring
-  stellar_3m: 'price_1ThafpJyNPXqDP7PpqGREGjI',   // $41.25
-  stellar_6m: 'price_1ThafsJyNPXqDP7PiwZ9brVs',   // $82.50
-  stellar_1y: 'price_1ThafvJyNPXqDP7PpbkUmOBQ',   // $165
+  stellar_14d: priceFromEnv('stellar_14d', 'price_1ThafmJyNPXqDP7P5zJeW8cV'),
+  stellar_1m:  priceFromEnv('stellar_1m',  'price_1Thae3JyNPXqDP7PyHoUSP8x'),
+  stellar_3m:  priceFromEnv('stellar_3m',  'price_1ThafpJyNPXqDP7PpqGREGjI'),
+  stellar_6m:  priceFromEnv('stellar_6m',  'price_1ThafsJyNPXqDP7PiwZ9brVs'),
+  stellar_1y:  priceFromEnv('stellar_1y',  'price_1ThafvJyNPXqDP7PpbkUmOBQ'),
   // Galactic
-  galactic_7d: 'price_1ThafyJyNPXqDP7PChh0i70e',  // $7
-  galactic_14d:'price_1Thag1JyNPXqDP7PBFMCP4a9',  // $14
-  galactic_1m: 'price_1Thae5JyNPXqDP7PXCLj24hR',  // $20/month recurring
-  galactic_3m: 'price_1Thag4JyNPXqDP7PkHPOIPQa',  // $55
-  galactic_6m: 'price_1Thag7JyNPXqDP7PFJR0Ml55',  // $110
-  galactic_1y: 'price_1Thag9JyNPXqDP7P12m7udNQ',  // $220
-  galactic_life:'price_1ThagCJyNPXqDP7PIlBniKEg',  // $400
+  galactic_7d:  priceFromEnv('galactic_7d',  'price_1ThafyJyNPXqDP7PChh0i70e'),
+  galactic_14d: priceFromEnv('galactic_14d', 'price_1Thag1JyNPXqDP7PBFMCP4a9'),
+  galactic_1m:  priceFromEnv('galactic_1m',  'price_1Thae5JyNPXqDP7PXCLj24hR'),
+  galactic_3m:  priceFromEnv('galactic_3m',  'price_1Thag4JyNPXqDP7PkHPOIPQa'),
+  galactic_6m:  priceFromEnv('galactic_6m',  'price_1Thag7JyNPXqDP7PFJR0Ml55'),
+  galactic_1y:  priceFromEnv('galactic_1y',  'price_1Thag9JyNPXqDP7P12m7udNQ'),
+  galactic_life:priceFromEnv('galactic_life','price_1ThagCJyNPXqDP7PIlBniKEg'),
   // Wallet top-ups (one-time, USD)
-  wallet_5:   'price_1ThakXJyNPXqDP7P47WbhGto',   // $5
-  wallet_10:  'price_1ThakZJyNPXqDP7Pka3g4Hjx',   // $10
-  wallet_25:  'price_1ThakcJyNPXqDP7PAEbkpudR',   // $25
-  wallet_50:  'price_1ThakfJyNPXqDP7PS3HisLEp',   // $50
-  wallet_100: 'price_1ThakiJyNPXqDP7PY4jAmmcD',   // $100
+  wallet_5:    priceFromEnv('wallet_5',    'price_1ThakXJyNPXqDP7P47WbhGto'),
+  wallet_10:   priceFromEnv('wallet_10',   'price_1ThakZJyNPXqDP7Pka3g4Hjx'),
+  wallet_25:   priceFromEnv('wallet_25',   'price_1ThakcJyNPXqDP7PAEbkpudR'),
+  wallet_50:   priceFromEnv('wallet_50',   'price_1ThakfJyNPXqDP7PS3HisLEp'),
+  wallet_100:  priceFromEnv('wallet_100',  'price_1ThakiJyNPXqDP7PY4jAmmcD'),
 };
 
 // Allowlisted origins for success/cancel URLs
@@ -47,15 +51,45 @@ function isAllowedUrl(url) {
   }
 }
 
+// ── Simple in-memory per-IP rate limiting (best-effort; Deno Deploy isolates
+// are stateless across instances, so this is a first layer, not a hard cap). ──
+const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minute
+const RATE_LIMIT_MAX = 10;           // 10 checkout requests per minute per IP
+const rateLimitMap = new Map();
+
+function checkRateLimit(ip) {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  if (!entry || now - entry.timestamp > RATE_LIMIT_WINDOW_MS) {
+    rateLimitMap.set(ip, { timestamp: now, count: 1 });
+    return true;
+  }
+  entry.count++;
+  return entry.count <= RATE_LIMIT_MAX;
+}
+
+function getClientIp(req) {
+  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+         req.headers.get('x-real-ip') ||
+         'unknown';
+}
+
 Deno.serve(async (req) => {
   try {
+    // Rate limit
+    const ip = getClientIp(req);
+    if (!checkRateLimit(ip)) {
+      console.warn('[createCheckout] Rate limit exceeded for IP:', ip);
+      return Response.json({ error: 'Too many requests. Please try again shortly.' }, { status: 429 });
+    }
+
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
     const base44 = createClientFromRequest(req);
 
-    // BLOCKER 1 FIX: derive identity server-side — never trust client-supplied user_id
+    // Derive identity server-side — never trust client-supplied user_id
     const user = await base44.auth.me();
     if (!user) {
-      console.warn('createCheckout: unauthenticated request rejected');
+      console.warn('[createCheckout] Unauthenticated request rejected');
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -63,11 +97,10 @@ Deno.serve(async (req) => {
 
     const priceId = PRICE_MAP[price_key];
     if (!priceId) {
-      console.error('Invalid price_key:', price_key);
+      console.error('[createCheckout] Invalid price_key:', price_key);
       return Response.json({ error: 'Invalid price key' }, { status: 400 });
     }
 
-    // Validate redirect URLs to prevent open-redirect attacks
     const safeSuccessUrl = isAllowedUrl(success_url) ? success_url : 'https://ninapurple.love/home?payment=success';
     const safeCancelUrl = isAllowedUrl(cancel_url) ? cancel_url : 'https://ninapurple.love/home?payment=cancelled';
 
@@ -80,15 +113,15 @@ Deno.serve(async (req) => {
       cancel_url: safeCancelUrl,
       metadata: {
         base44_app_id: Deno.env.get('BASE44_APP_ID'),
-        user_id: user.id,  // set server-side — never from client body
+        user_id: user.id,
         price_key,
       },
     });
 
-    console.info('Checkout session created:', session.id, 'for price_key:', price_key, 'user:', user.id);
+    console.info('[createCheckout] Session created:', session.id, 'price_key:', price_key, 'user:', user.id, 'ip:', ip);
     return Response.json({ url: session.url, session_id: session.id });
   } catch (error) {
-    console.error('Checkout error:', error.message);
+    console.error('[createCheckout] Error:', error.message, error.stack);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });

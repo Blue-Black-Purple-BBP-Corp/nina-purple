@@ -387,6 +387,10 @@ export default function Landing() {
             <Link to="/privacy" className="underline hover:text-[#F5A800] transition-colors">
               {lang === 'fr' ? 'Confidentialité' : 'Privacy Policy'}
             </Link>
+            <span className="mx-2">·</span>
+            <Link to="/terms" className="underline hover:text-[#F5A800] transition-colors">
+              {lang === 'fr' ? 'Conditions' : 'Terms'}
+            </Link>
           </div>
           <LanguageToggle />
         </div>

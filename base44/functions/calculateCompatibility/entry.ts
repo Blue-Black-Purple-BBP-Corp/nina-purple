@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.36';
 
 // Compatibility score matrix for each question.
 // Key format: "optA_optB" (sorted alphabetically), value 1-4.

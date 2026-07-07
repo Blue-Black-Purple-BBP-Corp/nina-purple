@@ -65,6 +65,7 @@ export default function Onboarding() {
   const [photoError, setPhotoError] = useState('');
   const [formError, setFormError] = useState('');
   const [phone, setPhone] = useState('');
+  const [consentAccepted, setConsentAccepted] = useState(false);
 
   // Registration state
   const [regEmail, setRegEmail] = useState('');
@@ -518,8 +519,18 @@ export default function Onboarding() {
                   <p className="text-foreground/80 text-sm leading-relaxed">{g}</p>
                 </div>
               ))}
-              <button onClick={goNext}
-                className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all">
+              {/* Art. 9 (GDPR) explicit consent for sensitive data */}
+              <label className="glass-card rounded-2xl p-4 flex items-start gap-3 cursor-pointer border-[rgba(123,47,190,0.2)]">
+                <input type="checkbox" checked={consentAccepted} onChange={e => setConsentAccepted(e.target.checked)}
+                  className="mt-1 w-4 h-4 accent-[#F5A800] shrink-0" />
+                <span className="text-foreground/70 text-xs leading-relaxed">
+                  {lang === 'fr'
+                    ? <>Je consens expressément (art. 9 RGPD / Loi 25 Québec) à ce que Nina Purple traite mes données sensibles — orientation sexuelle et préférences relationnelles — exclusivement aux fins de compatibilité. Je peux retirer ce consentement à tout moment en supprimant mon compte. Voir la <a href="/privacy" className="text-[#F5A800] underline">politique de confidentialité</a>.</>
+                    : <>I expressly consent (GDPR Art. 9 / Quebec Law 25) to Nina Purple processing my sensitive data — sexual orientation and relationship preferences — solely for compatibility matching. I may withdraw this consent at any time by deleting my account. See the <a href="/privacy" className="text-[#F5A800] underline">Privacy Policy</a>.</>}
+                </span>
+              </label>
+              <button onClick={goNext} disabled={!consentAccepted}
+                className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
                 {t('onboarding.accept_guidelines')}
               </button>
             </motion.div>
