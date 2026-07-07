@@ -435,21 +435,22 @@ export default function Experiences() {
             style={{ background: 'radial-gradient(circle, rgba(123,47,190,0.12) 0%, transparent 70%)' }} />
         </div>
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="relative z-10 max-w-3xl mx-auto space-y-6">
-          <div className="inline-block px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-widest text-[#F5A800] border border-[rgba(245,168,0,0.3)] mb-2">
+          <div className="inline-block px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-widest border mb-2"
+            style={{ color: '#F5A800', borderColor: 'rgba(245,168,0,0.5)' }}>
             2026 · Martinique · Caribbean
           </div>
-          <h1 className="font-serif text-4xl md:text-6xl text-[#F0E6FF] leading-tight">
+          <h1 className="font-serif text-4xl md:text-6xl leading-tight" style={{ color: '#F0E6FF' }}>
             {isFr ? 'Découvrez la relation la plus importante de votre vie.' : 'Discover the most important relationship of your life.'}
           </h1>
-          <p className="font-serif text-xl md:text-2xl text-[#F5A800] italic">
+          <p className="font-serif text-xl md:text-2xl italic" style={{ color: '#F5A800' }}>
             {isFr ? 'Celle que vous avez avec vous-même.' : 'The one you have with yourself.'}
           </p>
-          <p className="text-[#F0E6FF]/60 text-lg leading-relaxed max-w-2xl mx-auto">
+          <p className="text-lg leading-relaxed max-w-2xl mx-auto" style={{ color: 'rgba(240,230,255,0.75)' }}>
             {isFr
               ? 'Imaginez vous éloigner du bruit du quotidien pour entrer dans un environnement conçu pour vous reconnecter — à vous-même, aux autres, et à ce qui compte vraiment.'
               : 'Imagine stepping away from the noise of everyday life and into an environment designed to help you reconnect — with yourself, with others, and with what truly matters.'}
           </p>
-          <p className="text-[#F0E6FF]/50 text-base">
+          <p className="text-base" style={{ color: 'rgba(240,230,255,0.6)' }}>
             {isFr
               ? 'Célibataire ou en couple, chaque expérience Nina Purple est conçue pour favoriser la conscience de soi, la croissance émotionnelle et une transformation durable.'
               : 'Whether you\'re single or in a relationship, every Nina Purple Experience is thoughtfully designed to foster self-awareness, emotional growth, and lasting transformation.'}
@@ -576,17 +577,25 @@ export default function Experiences() {
               transition={{ duration: 0.5, delay: (i % 4) * 0.08 }}
               className={`relative rounded-2xl overflow-hidden glass-card group ${i % 5 === 0 ? 'md:row-span-2 md:col-span-2 aspect-square md:aspect-auto' : 'aspect-square'}`}
             >
-              <video
-                autoPlay
-                muted
-                loop
-                playsInline
-                className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500"
-              >
-                <source src={clip.url} type={clip.url.endsWith('.MOV') ? 'video/quicktime' : 'video/mp4'} />
-              </video>
-              <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(180deg, transparent 50%, rgba(11,5,16,0.7) 100%)' }} />
-              <div className="absolute bottom-2 left-3 text-[#F0E6FF]/70 text-[10px] uppercase tracking-widest font-medium">
+              {clip.type === 'image' ? (
+                <img
+                  src={clip.url}
+                  alt={clip.label}
+                  className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-500"
+                />
+              ) : (
+                <video
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500"
+                >
+                  <source src={clip.url} type={clip.url.endsWith('.MOV') ? 'video/quicktime' : 'video/mp4'} />
+                </video>
+              )}
+              <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(180deg, transparent 50%, rgba(11,5,16,0.75) 100%)' }} />
+              <div className="absolute bottom-2 left-3 text-[10px] uppercase tracking-widest font-medium" style={{ color: 'rgba(240,230,255,0.85)' }}>
                 {clip.label}
               </div>
             </motion.div>
