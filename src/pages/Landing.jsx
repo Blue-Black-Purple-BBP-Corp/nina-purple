@@ -393,8 +393,8 @@ export default function Landing() {
           </h2>
           <p className="text-[#F0E6FF]/60 text-lg mb-8">
             {lang === 'fr'
-              ? 'Que vous soyez célibataire, en transition, ou en train de vous reconstruire — cet espace a été construit pour vous.'
-              : 'Whether single, navigating a transition, or rebuilding after loss — this space was built for you.'}
+              ? 'Que vous soyez célibataire, en couple, en transition, ou en train de vous reconstruire — cet espace a été construit pour vous.'
+              : 'Whether single, in a relationship, navigating a transition, or rebuilding after loss — this space was built for you.'}
           </p>
           <Link
             to="/onboarding"
