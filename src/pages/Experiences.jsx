@@ -7,6 +7,7 @@ import LanguageToggle from '@/components/LanguageToggle';
 import ThemeToggle from '@/components/ThemeToggle';
 import { ninaHorizontal, ninaIcon } from '@/lib/images';
 import { MARTINIQUE_HERO_IMAGE, MARTINIQUE_GALLERY, DESTINATIONS } from '@/lib/martiniqueMedia';
+import MartiniqueResources from '@/components/MartiniqueResources';
 import { base44 } from '@/api/base44Client';
 
 const MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -654,6 +655,11 @@ export default function Experiences() {
           ))}
         </div>
       </section>
+
+      <div className="golden-thread w-full" />
+
+      {/* Martinique Resources — SEO */}
+      <MartiniqueResources />
 
       <div className="golden-thread w-full" />
 
