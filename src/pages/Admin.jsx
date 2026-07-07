@@ -11,7 +11,9 @@ const TIER_META = {
 };
 
 export default function Admin() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [denied, setDenied] = useState(false);
   const [users, setUsers] = useState([]);
   const [profiles, setProfiles] = useState([]);
   const [notifications, setNotifications] = useState([]);
@@ -25,15 +27,28 @@ export default function Admin() {
 
   const loadData = async () => {
     setLoading(true);
-    const [allProfiles, allUsers, allNotifs] = await Promise.all([
-      base44.entities.UserProfile.list(),
-      base44.entities.User.list(),
-      base44.entities.AdminNotification.list('-created_date', 50),
-    ]);
-    setProfiles(allProfiles);
-    setUsers(allUsers);
-    setNotifications(allNotifs);
-    setLoading(false);
+    try {
+      // BLOCKER 2 FIX: verify admin role server-side before loading any data
+      const me = await base44.auth.me();
+      if (!me || me.role !== 'admin') {
+        setDenied(true);
+        setLoading(false);
+        return;
+      }
+      const [allProfiles, allUsers, allNotifs] = await Promise.all([
+        base44.entities.UserProfile.list(),
+        base44.entities.User.list(),
+        base44.entities.AdminNotification.list('-created_date', 50),
+      ]);
+      setProfiles(allProfiles);
+      setUsers(allUsers);
+      setNotifications(allNotifs);
+    } catch (err) {
+      console.error('Admin loadData error:', err.message);
+      setDenied(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Merge UserProfile with User entity data (email, full_name)
@@ -93,6 +108,22 @@ export default function Admin() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <Loader2 className="w-8 h-8 text-[#F5A800] animate-spin" />
+      </div>
+    );
+  }
+
+  if (denied) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-center px-6">
+        <Shield className="w-12 h-12 text-red-400/60" />
+        <h2 className="font-serif text-2xl text-[#F0E6FF]">Access Denied</h2>
+        <p className="text-[#F0E6FF]/50 text-sm max-w-sm">
+          You do not have permission to view this page. Admin access is required.
+        </p>
+        <button onClick={() => navigate('/home')}
+          className="mt-2 px-6 py-2.5 bg-[#F5A800] text-[#0B0510] rounded-full font-bold text-sm hover:bg-yellow-400 transition-all">
+          Back to Home
+        </button>
       </div>
     );
   }
