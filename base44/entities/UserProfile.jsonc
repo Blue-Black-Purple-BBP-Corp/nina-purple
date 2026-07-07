@@ -91,6 +91,14 @@
       "type": "number",
       "default": 0
     },
+    "consecutive_no_match_months": {
+      "type": "number",
+      "default": 0
+    },
+    "last_bbp_conversion_date": {
+      "type": "string",
+      "format": "date-time"
+    },
     "is_verified": {
       "type": "boolean",
       "default": false

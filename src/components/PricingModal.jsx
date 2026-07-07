@@ -3,11 +3,13 @@ import { X } from 'lucide-react';
 import { PRICING_TABLE } from '@/lib/i18n';
 import { useLang } from '@/lib/LanguageContext';
 import { useTranslation } from '@/lib/i18n';
+import BBPConversionChart from '@/components/BBPConversionChart';
 
 const TABS = [
   { id: 'membership',  en: 'Membership',        fr: 'Abonnement' },
   { id: 'unlock',      en: 'Profile Unlock',   fr: 'Déverrouillage' },
   { id: 'micro',       en: 'Messaging',         fr: 'Messagerie' },
+  { id: 'guarantee',   en: 'Value Guarantee',  fr: 'Garantie de valeur' },
 ];
 
 const MEMBERSHIP_ROWS = [
@@ -169,6 +171,30 @@ export default function PricingModal({ isOpen, onClose }) {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {/* ── VALUE GUARANTEE TAB ── */}
+            {activeTab === 'guarantee' && (
+              <div className="p-4 space-y-4">
+                <div className="rounded-2xl bg-[#150C1E] border border-purple-900/30 p-4">
+                  <p className="text-[#F0E6FF]/70 text-sm leading-relaxed">
+                    {lang === 'fr'
+                      ? "Les correspondances sont offertes selon la disponibilité des candidats. Lorsqu'aucune correspondance ne vous est proposée au cours d'un mois, une part croissante de la valeur de votre abonnement est convertie en points BBP."
+                      : "Matches are offered subject to candidate availability. When no match is offered to you in a given month, an increasing share of your membership value is converted into BBP points."}
+                  </p>
+                </div>
+                <div className="rounded-2xl bg-[#150C1E] border border-purple-900/30 p-4">
+                  <p className="text-[#F5A800] text-xs font-semibold uppercase tracking-widest mb-3">
+                    {lang === 'fr' ? 'Conversion mensuelle en points BBP' : 'Monthly BBP Point Conversion'}
+                  </p>
+                  <BBPConversionChart />
+                  <p className="text-[#F0E6FF]/40 text-xs mt-3 leading-relaxed">
+                    {lang === 'fr'
+                      ? "Les points BBP peuvent être utilisés pour les interactions sur la plateforme ou pour les Expériences Nina Purple."
+                      : "BBP points can be used for platform interactions or toward Nina Purple Experiences."}
+                  </p>
+                </div>
               </div>
             )}
           </div>

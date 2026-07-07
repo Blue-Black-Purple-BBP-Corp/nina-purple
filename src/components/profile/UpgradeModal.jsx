@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import CheckoutButton from '@/components/CheckoutButton';
 import { ALL_PLANS } from '@/lib/plans';
 import { base44 } from '@/api/base44Client';
@@ -64,12 +65,17 @@ export default function UpgradeModal({ isOpen, onClose, lang, currentTier }) {
                 </p>
               </div>
               <ul className="space-y-1.5">
-                {(lang === 'fr' ? activePlan.perks_fr : activePlan.perks_en).map((perk, i) => (
+                {(lang === 'fr' ? activePlan.perks_fr : activePlan.perks_en).map((perk, i) => {
+                  const isExpLink = /Nina Purple Experiences|Expériences Nina Purple/i.test(perk);
+                  return (
                   <li key={i} className="flex items-start gap-2 text-xs text-[#F0E6FF]/70">
                     <span style={{ color: activePlan.color }} className="mt-0.5">✓</span>
-                    {perk}
+                    {isExpLink ? (
+                      <Link to="/experiences" className="text-[#F5A800] underline underline-offset-2 hover:opacity-80 transition-opacity font-medium">{perk}</Link>
+                    ) : perk}
                   </li>
-                ))}
+                  );
+                })}
               </ul>
             </div>
           )}

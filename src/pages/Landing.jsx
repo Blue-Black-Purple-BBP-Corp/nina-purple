@@ -119,12 +119,12 @@ export default function Landing() {
             >
               {t('landing.cta_join')}
             </Link>
-            <button
-              onClick={() => setPricingOpen(true)}
+            <Link
+              to="/experiences"
               className="px-10 py-4 border border-[rgba(245,168,0,0.3)] text-[#F5A800] rounded-full text-base font-medium tracking-wide hover:bg-[rgba(245,168,0,0.08)] transition-all duration-300"
             >
-              {lang === 'fr' ? 'Voir les Prix' : 'View Pricing'}
-            </button>
+              {lang === 'fr' ? 'Découvrir la Martinique 2026' : 'Discover Martinique 2026'}
+            </Link>
           </motion.div>
         </div>
 
@@ -304,13 +304,18 @@ export default function Landing() {
 
                 {/* Perks */}
                 <ul className="space-y-2 flex-1">
-                  {(lang === 'fr' ? plan.perks_fr : plan.perks_en).map((perk, j) => (
+                  {(lang === 'fr' ? plan.perks_fr : plan.perks_en).map((perk, j) => {
+                    const isExpLink = /Nina Purple Experiences|Expériences Nina Purple/i.test(perk);
+                    return (
                     <li key={j} className="flex items-start gap-2.5 text-xs text-foreground/65 leading-relaxed">
                       <span className="mt-0.5 shrink-0 flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold"
                         style={{ background: `${plan.color}18`, color: plan.color }}>✓</span>
-                      {perk}
+                      {isExpLink ? (
+                        <Link to="/experiences" className="text-[#F5A800] underline underline-offset-2 hover:opacity-80 transition-opacity font-medium">{perk}</Link>
+                      ) : perk}
                     </li>
-                  ))}
+                    );
+                  })}
                 </ul>
 
                 {/* CTA */}
