@@ -3,9 +3,22 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.36';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+
+    // Require an authenticated user — prevents unauthenticated abuse
+    const user = await base44.auth.me();
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { data, event } = await req.json();
 
     const profile = data || {};
+
+    // Enforce that the caller can only notify about their own registration
+    if (profile.user_id && profile.user_id !== user.id) {
+      console.warn('[notifyNewUser] user_id mismatch — caller:', user.id, 'payload user_id:', profile.user_id);
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    }
     const displayName = profile.display_name || 'Unknown';
     const city = profile.city || 'Unknown';
     const phone = profile.phone || 'Not provided';
