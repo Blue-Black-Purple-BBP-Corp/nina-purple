@@ -93,7 +93,7 @@ export const ALL_PLANS = [
   {
     key: 'galactic', profile_type: 'individual', color: '#F5A800', icon: '🌌',
     label_en: 'Galactic', label_fr: 'Galactique',
-    desc_en: 'Unlimited consciousness', desc_fr: 'Conscience illimitée',
+    desc_en: 'Full access', desc_fr: 'Accès complet',
     price_en: 'From $7 / 7 days', price_fr: 'À partir de $7 / 7 jours',
     perks_en: [
       'Everything in Stellar',
@@ -193,7 +193,7 @@ export const ALL_PLANS = [
   {
     key: 'galactic_couple', profile_type: 'couple', color: '#F5A800', icon: '🌌',
     label_en: 'Galactic Couple', label_fr: 'Galactique Couple',
-    desc_en: 'Unlimited consciousness — for two', desc_fr: 'Conscience illimitée — pour deux',
+    desc_en: 'Full access — for two', desc_fr: 'Accès complet — pour deux',
     price_en: '$20 / month / person', price_fr: '$20 / mois / personne',
     perks_en: [
       'Everything in Stellar Couple',
