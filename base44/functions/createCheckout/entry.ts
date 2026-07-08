@@ -32,6 +32,28 @@ const PRICE_MAP = {
   wallet_25:   priceFromEnv('wallet_25',   'price_1ThakcJyNPXqDP7PAEbkpudR'),
   wallet_50:   priceFromEnv('wallet_50',   'price_1ThakfJyNPXqDP7PS3HisLEp'),
   wallet_100:  priceFromEnv('wallet_100',  'price_1ThakiJyNPXqDP7PY4jAmmcD'),
+  // Lunar Couple
+  lunar_couple_14d:  priceFromEnv('lunar_couple_14d',  'price_1Tqk98JyNPXqDP7P1NEhdTRa'),
+  lunar_couple_1m:   priceFromEnv('lunar_couple_1m',   'price_1Tqk98JyNPXqDP7PO2nee2Ik'),
+  lunar_couple_3m:   priceFromEnv('lunar_couple_3m',   'price_1Tqk98JyNPXqDP7PBHvEhPSL'),
+  lunar_couple_6m:   priceFromEnv('lunar_couple_6m',   'price_1Tqk98JyNPXqDP7P0j97yIAq'),
+  lunar_couple_1y:   priceFromEnv('lunar_couple_1y',   'price_1Tqk98JyNPXqDP7PAzK2D5NT'),
+  // Stellar Couple
+  stellar_couple_14d: priceFromEnv('stellar_couple_14d', 'price_1Tqk98JyNPXqDP7Ppuop1UNk'),
+  stellar_couple_1m:  priceFromEnv('stellar_couple_1m',  'price_1Tqk98JyNPXqDP7PX7VTKF6N'),
+  stellar_couple_3m:  priceFromEnv('stellar_couple_3m',  'price_1Tqk98JyNPXqDP7Po8nvxFMq'),
+  stellar_couple_6m:  priceFromEnv('stellar_couple_6m',  'price_1Tqk98JyNPXqDP7PQbOrMzm2'),
+  stellar_couple_1y:  priceFromEnv('stellar_couple_1y',  'price_1Tqk98JyNPXqDP7PWt5oepyw'),
+  // Galactic Couple
+  galactic_couple_7d:   priceFromEnv('galactic_couple_7d',   'price_1Tqk98JyNPXqDP7PUOP1yMpg'),
+  galactic_couple_14d:  priceFromEnv('galactic_couple_14d',  'price_1Tqk98JyNPXqDP7PpR28pAMS'),
+  galactic_couple_1m:   priceFromEnv('galactic_couple_1m',   'price_1Tqk98JyNPXqDP7PYpNGZ8TR'),
+  galactic_couple_3m:   priceFromEnv('galactic_couple_3m',   'price_1Tqk98JyNPXqDP7PQneDtxjF'),
+  galactic_couple_6m:   priceFromEnv('galactic_couple_6m',   'price_1Tqk98JyNPXqDP7PdSajOD9Y'),
+  galactic_couple_1y:   priceFromEnv('galactic_couple_1y',   'price_1Tqk98JyNPXqDP7PCdOkpHgH'),
+  galactic_couple_life: priceFromEnv('galactic_couple_life', 'price_1Tqk98JyNPXqDP7PTXIgt1cE'),
+  // Therapy Add-On (weekly recurring — available to all members)
+  therapy_weekly:  priceFromEnv('therapy_weekly', 'price_1Tqk98JyNPXqDP7PeNHVSmmW'),
 };
 
 // Allowlisted origins for success/cancel URLs
@@ -105,7 +127,7 @@ Deno.serve(async (req) => {
     const safeSuccessUrl = isAllowedUrl(success_url) ? success_url : 'https://ninapurple.love/home?payment=success';
     const safeCancelUrl = isAllowedUrl(cancel_url) ? cancel_url : 'https://ninapurple.love/home?payment=cancelled';
 
-    const isSubscription = ['lunar_1m', 'stellar_1m', 'galactic_1m'].includes(price_key);
+    const isSubscription = ['lunar_1m', 'stellar_1m', 'galactic_1m', 'lunar_couple_1m', 'stellar_couple_1m', 'galactic_couple_1m', 'therapy_weekly'].includes(price_key);
 
     const session = await stripe.checkout.sessions.create({
       mode: isSubscription ? 'subscription' : 'payment',

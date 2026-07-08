@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import CheckoutButton from '@/components/CheckoutButton';
-import { ALL_PLANS } from '@/lib/plans';
+import { ALL_PLANS, INDIVIDUAL_PLANS, COUPLE_PLANS } from '@/lib/plans';
 import { base44 } from '@/api/base44Client';
 
 const PLANS = ALL_PLANS.filter(p => p.key !== 'solar');
@@ -11,16 +11,28 @@ export default function UpgradeModal({ isOpen, onClose, lang, currentTier }) {
   const [selectedPlan, setSelectedPlan] = useState('galactic');
   const [selectedDuration, setSelectedDuration] = useState('1m');
   const [userId, setUserId] = useState('');
+  const [profileType, setProfileType] = useState('individual');
 
   useEffect(() => {
     if (isOpen) {
-      base44.auth.me().then(u => u && setUserId(u.id)).catch(() => {});
+      base44.auth.me().then(u => {
+        if (u) {
+          setUserId(u.id);
+          base44.entities.UserProfile.filter({ user_id: u.id }).then(res => {
+            if (res[0]?.profile_type === 'couple') {
+              setProfileType('couple');
+              setSelectedPlan('galactic_couple');
+            }
+          }).catch(() => {});
+        }
+      }).catch(() => {});
     }
   }, [isOpen]);
 
   if (!isOpen) return null;
 
-  const activePlan = ALL_PLANS.find(p => p.key === selectedPlan);
+  const plans = profileType === 'couple' ? COUPLE_PLANS : INDIVIDUAL_PLANS;
+  const activePlan = plans.find(p => p.key === selectedPlan) || ALL_PLANS.find(p => p.key === selectedPlan);
 
   return (
     <>
@@ -34,7 +46,7 @@ export default function UpgradeModal({ isOpen, onClose, lang, currentTier }) {
 
           {/* Plan selector — all 4 tiers */}
           <div className="grid grid-cols-4 gap-1.5">
-            {ALL_PLANS.map(plan => {
+            {plans.map(plan => {
               const isSel = selectedPlan === plan.key;
               return (
                 <button key={plan.key}

@@ -1,6 +1,22 @@
+// Therapy Add-On — weekly recurring subscription, available to all members
+export const THERAPY_ADDON = {
+  key: 'therapy_weekly',
+  color: '#F5A800',
+  icon: '🧠',
+  label_en: 'Therapy Add-On',
+  label_fr: 'Supplément Thérapie',
+  desc_en: '1× weekly individual or couple therapy + 1× weekly group therapy',
+  desc_fr: '1× thérapie individuelle ou de couple hebdomadaire + 1× thérapie de groupe hebdomadaire',
+  price_en: '$100 / week',
+  price_fr: '$100 / semaine',
+  recurring: true,
+  price_key: 'therapy_weekly',
+};
+
 export const ALL_PLANS = [
+  // ═══ Individual Plans ═══
   {
-    key: 'solar', color: '#A78BFA', icon: '☀️',
+    key: 'solar', profile_type: 'individual', color: '#A78BFA', icon: '☀️',
     label_en: 'Solar', label_fr: 'Solaire',
     desc_en: 'Free forever', desc_fr: 'Gratuit pour toujours',
     price_en: 'Free', price_fr: 'Gratuit',
@@ -21,7 +37,7 @@ export const ALL_PLANS = [
     durations: [],
   },
   {
-    key: 'lunar', color: '#7B2FBE', icon: '🌙',
+    key: 'lunar', profile_type: 'individual', color: '#7B2FBE', icon: '🌙',
     label_en: 'Lunar', label_fr: 'Lunaire',
     desc_en: 'Deepen your search', desc_fr: 'Approfondissez votre recherche',
     price_en: 'From $5 / 14 days', price_fr: 'À partir de $5 / 14 jours',
@@ -42,13 +58,13 @@ export const ALL_PLANS = [
     durations: [
       { key: 'lunar_14d', label_en: '14 days', label_fr: '14 jours', price: '$5' },
       { key: 'lunar_1m',  label_en: '1 month',  label_fr: '1 mois',  price: '$10' },
-      { key: 'lunar_3m',  label_en: '3 months', label_fr: '3 mois',  price: '$27.50' },
-      { key: 'lunar_6m',  label_en: '6 months', label_fr: '6 mois',  price: '$55' },
+      { key: 'lunar_3m',  label_en: '3 months', label_fr: '3 mois', price: '$27.50' },
+      { key: 'lunar_6m',  label_en: '6 months', label_fr: '6 mois', price: '$55' },
       { key: 'lunar_1y',  label_en: '1 year',   label_fr: '1 an',    price: '$110' },
     ],
   },
   {
-    key: 'stellar', color: '#A855F7', icon: '⭐',
+    key: 'stellar', profile_type: 'individual', color: '#A855F7', icon: '⭐',
     label_en: 'Stellar', label_fr: 'Stellaire',
     desc_en: 'Expand your horizons', desc_fr: 'Élargissez vos horizons',
     price_en: 'From $10 / 14 days', price_fr: 'À partir de $10 / 14 jours',
@@ -69,13 +85,13 @@ export const ALL_PLANS = [
     durations: [
       { key: 'stellar_14d', label_en: '14 days', label_fr: '14 jours', price: '$10' },
       { key: 'stellar_1m',  label_en: '1 month',  label_fr: '1 mois',  price: '$15' },
-      { key: 'stellar_3m',  label_en: '3 months', label_fr: '3 mois',  price: '$41.25' },
-      { key: 'stellar_6m',  label_en: '6 months', label_fr: '6 mois',  price: '$82.50' },
+      { key: 'stellar_3m',  label_en: '3 months', label_fr: '3 mois', price: '$41.25' },
+      { key: 'stellar_6m',  label_en: '6 months', label_fr: '6 mois', price: '$82.50' },
       { key: 'stellar_1y',  label_en: '1 year',   label_fr: '1 an',    price: '$165' },
     ],
   },
   {
-    key: 'galactic', color: '#F5A800', icon: '🌌',
+    key: 'galactic', profile_type: 'individual', color: '#F5A800', icon: '🌌',
     label_en: 'Galactic', label_fr: 'Galactique',
     desc_en: 'Unlimited consciousness', desc_fr: 'Conscience illimitée',
     price_en: 'From $7 / 7 days', price_fr: 'À partir de $7 / 7 jours',
@@ -105,4 +121,121 @@ export const ALL_PLANS = [
       { key: 'galactic_life', label_en: 'Lifetime', label_fr: 'À vie',    price: '$400' },
     ],
   },
+
+  // ═══ Couple Plans ═══
+  {
+    key: 'solar_couple', profile_type: 'couple', color: '#A78BFA', icon: '☀️',
+    label_en: 'Solar Couple', label_fr: 'Solaire Couple',
+    desc_en: 'Free forever — for two', desc_fr: 'Gratuit pour toujours — pour deux',
+    price_en: 'Free', price_fr: 'Gratuit',
+    perks_en: [
+      'Shared couple profile',
+      'Side-by-side compatibility view',
+      'Join community rooms',
+      '5 free messages / month (includes community rooms, except your own)',
+      'Access to Nina Purple Experiences',
+    ],
+    perks_fr: [
+      'Profil de couple partagé',
+      'Vue de compatibilité côte à côte',
+      'Rejoindre les salons communautaires',
+      '5 messages gratuits / mois (inclut les salons communautaires, sauf les vôtres)',
+      'Accès aux Expériences Nina Purple',
+    ],
+    durations: [],
+  },
+  {
+    key: 'lunar_couple', profile_type: 'couple', color: '#7B2FBE', icon: '🌙',
+    label_en: 'Lunar Couple', label_fr: 'Lunaire Couple',
+    desc_en: 'Deepen your bond', desc_fr: 'Approfondissez votre lien',
+    price_en: 'From $5 / 14 days', price_fr: 'À partir de $5 / 14 jours',
+    perks_en: [
+      'Everything in Solar Couple',
+      'Full couple compatibility deep-dive',
+      '30 messages / month (includes community rooms, except your own)',
+      'Couples-only community rooms',
+      'Eligibility for experience exchange program',
+      'Access to Nina Purple Experiences',
+    ],
+    perks_fr: [
+      'Tout ce qui est dans Solaire Couple',
+      'Analyse approfondie de compatibilité de couple',
+      '30 messages / mois (inclut les salons communautaires, sauf les vôtres)',
+      'Salons communautaires réservés aux couples',
+      "Éligibilité au programme d'échange d'expériences",
+      'Accès aux Expériences Nina Purple',
+    ],
+    durations: [
+      { key: 'lunar_couple_14d', label_en: '14 days', label_fr: '14 jours', price: '$5' },
+      { key: 'lunar_couple_1m',  label_en: '1 month',  label_fr: '1 mois',  price: '$10' },
+      { key: 'lunar_couple_3m',  label_en: '3 months', label_fr: '3 mois', price: '$27.50' },
+      { key: 'lunar_couple_6m',  label_en: '6 months', label_fr: '6 mois', price: '$55' },
+      { key: 'lunar_couple_1y',  label_en: '1 year',   label_fr: '1 an',    price: '$110' },
+    ],
+  },
+  {
+    key: 'stellar_couple', profile_type: 'couple', color: '#A855F7', icon: '⭐',
+    label_en: 'Stellar Couple', label_fr: 'Stellaire Couple',
+    desc_en: 'Grow together', desc_fr: 'Grandir ensemble',
+    price_en: 'From $10 / 14 days', price_fr: 'À partir de $10 / 14 jours',
+    perks_en: [
+      'Everything in Lunar Couple',
+      'Priority in couples community',
+      '100 messages / month (includes community rooms, except your own)',
+      'Relationship growth prompts & exercises',
+      'Access to Nina Purple Experiences',
+    ],
+    perks_fr: [
+      'Tout ce qui est dans Lunaire Couple',
+      'Priorité dans la communauté des couples',
+      '100 messages / mois (inclut les salons communautaires, sauf les vôtres)',
+      'Exercices et pistes de croissance relationnelle',
+      'Accès aux Expériences Nina Purple',
+    ],
+    durations: [
+      { key: 'stellar_couple_14d', label_en: '14 days', label_fr: '14 jours', price: '$10' },
+      { key: 'stellar_couple_1m',  label_en: '1 month',  label_fr: '1 mois',  price: '$15' },
+      { key: 'stellar_couple_3m',  label_en: '3 months', label_fr: '3 mois', price: '$41.25' },
+      { key: 'stellar_couple_6m',  label_en: '6 months', label_fr: '6 mois', price: '$82.50' },
+      { key: 'stellar_couple_1y',  label_en: '1 year',   label_fr: '1 an',    price: '$165' },
+    ],
+  },
+  {
+    key: 'galactic_couple', profile_type: 'couple', color: '#F5A800', icon: '🌌',
+    label_en: 'Galactic Couple', label_fr: 'Galactique Couple',
+    desc_en: 'Unlimited consciousness — for two', desc_fr: 'Conscience illimitée — pour deux',
+    price_en: 'From $7 / 7 days', price_fr: 'À partir de $7 / 7 jours',
+    perks_en: [
+      'Everything in Stellar Couple',
+      'Unlimited messages (includes community rooms, except your own)',
+      'Gallery unlock included',
+      'Lifetime option available',
+      'Therapy eligibility unlock',
+      'Access to Nina Purple Experiences',
+    ],
+    perks_fr: [
+      'Tout ce qui est dans Stellaire Couple',
+      'Messages illimités (inclut les salons communautaires, sauf les vôtres)',
+      'Déverrouillage de galerie inclus',
+      'Option à vie disponible',
+      "Déverrouillage de l'éligibilité à la thérapie",
+      'Accès aux Expériences Nina Purple',
+    ],
+    durations: [
+      { key: 'galactic_couple_7d',   label_en: '7 days',   label_fr: '7 jours',  price: '$7' },
+      { key: 'galactic_couple_14d',  label_en: '14 days',  label_fr: '14 jours', price: '$14' },
+      { key: 'galactic_couple_1m',   label_en: '1 month',  label_fr: '1 mois',   price: '$20' },
+      { key: 'galactic_couple_3m',   label_en: '3 months', label_fr: '3 mois',   price: '$55' },
+      { key: 'galactic_couple_6m',   label_en: '6 months', label_fr: '6 mois',   price: '$110' },
+      { key: 'galactic_couple_1y',   label_en: '1 year',   label_fr: '1 an',     price: '$220' },
+      { key: 'galactic_couple_life', label_en: 'Lifetime', label_fr: 'À vie',    price: '$400' },
+    ],
+  },
 ];
+
+export const INDIVIDUAL_PLANS = ALL_PLANS.filter(p => p.profile_type === 'individual');
+export const COUPLE_PLANS = ALL_PLANS.filter(p => p.profile_type === 'couple');
+
+export function getPlansByType(type) {
+  return ALL_PLANS.filter(p => p.profile_type === type);
+}

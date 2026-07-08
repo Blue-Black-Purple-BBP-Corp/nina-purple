@@ -50,6 +50,7 @@ export default function PricingModal({ isOpen, onClose }) {
   const { lang } = useLang();
   const { t } = useTranslation(lang);
   const [activeTab, setActiveTab] = useState('membership');
+  const [membershipType, setMembershipType] = useState('individual');
 
   useEffect(() => {
     if (isOpen) {
@@ -124,6 +125,17 @@ export default function PricingModal({ isOpen, onClose }) {
             {/* ── MEMBERSHIP TAB ── */}
             {activeTab === 'membership' && (
               <div className="p-4 space-y-3">
+                {/* Singles / Couples toggle */}
+                <div className="flex items-center justify-center gap-2 pb-2">
+                  <button onClick={() => setMembershipType('individual')}
+                    className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${membershipType === 'individual' ? 'bg-[#F5A800] text-[#0B0510]' : 'bg-[#150C1E] text-[#F0E6FF]/50 border border-purple-900/30'}`}>
+                    {lang === 'fr' ? 'Célibataires' : 'Singles'}
+                  </button>
+                  <button onClick={() => setMembershipType('couple')}
+                    className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${membershipType === 'couple' ? 'bg-[#7B2FBE] text-white' : 'bg-[#150C1E] text-[#F0E6FF]/50 border border-purple-900/30'}`}>
+                    {lang === 'fr' ? 'Couples' : 'Couples'}
+                  </button>
+                </div>
                 {MEMBERSHIP_ROWS.map(row => (
                   <div key={row.key} className="rounded-2xl bg-[#150C1E] border border-purple-900/30 overflow-hidden">
                     <div className="px-4 py-2 bg-[#1F1026] border-b border-purple-900/30">
@@ -133,10 +145,10 @@ export default function PricingModal({ isOpen, onClose }) {
                     </div>
                     <div className="grid grid-cols-4 divide-x divide-purple-900/30">
                       {[
-                        { label: 'Solar',                               val: row.solar,   color: 'text-[#A78BFA]' },
-                        { label: lang === 'fr' ? 'Lunaire' : 'Lunar',  val: row.lunar,   color: 'text-[#7B2FBE]' },
-                        { label: lang === 'fr' ? 'Stellaire':'Stellar', val: row.stellar, color: 'text-[#A855F7]' },
-                        { label: lang === 'fr' ? 'Galactique':'Galactic',val: row.galactic,color: 'text-[#F5A800]' },
+                        { label: membershipType === 'couple' ? (lang === 'fr' ? 'Solaire C.' : 'Solar C.') : 'Solar', val: row.solar, color: 'text-[#A78BFA]' },
+                        { label: membershipType === 'couple' ? (lang === 'fr' ? 'Lunaire C.' : 'Lunar C.') : (lang === 'fr' ? 'Lunaire' : 'Lunar'), val: row.lunar, color: 'text-[#7B2FBE]' },
+                        { label: membershipType === 'couple' ? (lang === 'fr' ? 'Stellaire C.' : 'Stellar C.') : (lang === 'fr' ? 'Stellaire' : 'Stellar'), val: row.stellar, color: 'text-[#A855F7]' },
+                        { label: membershipType === 'couple' ? (lang === 'fr' ? 'Galactique C.' : 'Galactic C.') : (lang === 'fr' ? 'Galactique' : 'Galactic'), val: row.galactic, color: 'text-[#F5A800]' },
                       ].map(cell => (
                         <div key={cell.label} className="flex flex-col items-center py-3 px-1">
                           <span className="text-[#F0E6FF]/30 text-[10px] uppercase tracking-wide mb-1">{cell.label}</span>
@@ -150,6 +162,24 @@ export default function PricingModal({ isOpen, onClose }) {
                   {lang === 'fr'
                     ? '* Plan International : +5$/mois — accès aux profils hors de votre région.'
                     : '* International Plan: +$5/month — access profiles outside your region.'}
+                </div>
+                {/* Therapy Add-On */}
+                <div className="glass-card-gold rounded-2xl p-4 flex items-center gap-3">
+                  <div className="text-2xl">🧠</div>
+                  <div className="flex-1">
+                    <div className="text-[#F0E6FF] font-medium text-sm">
+                      {lang === 'fr' ? 'Supplément Thérapie' : 'Therapy Add-On'}
+                    </div>
+                    <div className="text-[#F0E6FF]/40 text-xs mt-0.5">
+                      {lang === 'fr'
+                        ? '1× thérapie individuelle ou de couple + 1× thérapie de groupe / semaine'
+                        : '1× individual or couple therapy + 1× group therapy / week'}
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="text-[#F5A800] font-bold text-sm">$100{lang === 'fr' ? '/sem' : '/wk'}</div>
+                    <div className="text-[#F0E6FF]/30 text-[10px]">{lang === 'fr' ? 'Tous membres' : 'All members'}</div>
+                  </div>
                 </div>
               </div>
             )}

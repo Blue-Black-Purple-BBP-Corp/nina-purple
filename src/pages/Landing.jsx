@@ -7,13 +7,14 @@ import ThemeToggle from '@/components/ThemeToggle';
 import PricingModal from '@/components/PricingModal';
 import { useLang } from '@/lib/LanguageContext';
 import { useTranslation, PRICING_TABLE } from '@/lib/i18n';
-import { ALL_PLANS } from '@/lib/plans';
+import { ALL_PLANS, INDIVIDUAL_PLANS, COUPLE_PLANS, THERAPY_ADDON } from '@/lib/plans';
 import { ninaIcon, ninaHorizontal, ninaCharacter } from '@/lib/images';
 
 export default function Landing() {
   const { lang } = useLang();
   const { t } = useTranslation(lang);
   const [pricingOpen, setPricingOpen] = useState(false);
+  const [planType, setPlanType] = useState('individual');
 
   const fadeUp = {
     initial: { opacity: 0, y: 40 },
@@ -281,8 +282,20 @@ export default function Landing() {
           <p className="text-[#F0E6FF]/60 text-lg max-w-xl mx-auto">{t('pricing.subtitle')}</p>
         </motion.div>
 
+        {/* Singles / Couples toggle */}
+        <div className="flex items-center justify-center gap-2 mb-8">
+          <button onClick={() => setPlanType('individual')}
+            className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all ${planType === 'individual' ? 'bg-[#F5A800] text-[#0B0510]' : 'glass-card text-[#F0E6FF]/60 hover:text-[#F0E6FF]'}`}>
+            {lang === 'fr' ? 'Célibataires' : 'Singles'}
+          </button>
+          <button onClick={() => setPlanType('couple')}
+            className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all ${planType === 'couple' ? 'bg-[#7B2FBE] text-white' : 'glass-card text-[#F0E6FF]/60 hover:text-[#F0E6FF]'}`}>
+            {lang === 'fr' ? 'Couples' : 'Couples'}
+          </button>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-          {ALL_PLANS.map((plan, i) => {
+          {(planType === 'couple' ? COUPLE_PLANS : INDIVIDUAL_PLANS).map((plan, i) => {
             const isGalactic = plan.key === 'galactic';
             const isSolar = plan.key === 'solar';
             return (
@@ -361,6 +374,23 @@ export default function Landing() {
               </motion.div>
             );
           })}
+        </div>
+
+        {/* Therapy Add-On */}
+        <div className="glass-card-gold rounded-2xl p-5 max-w-2xl mx-auto mb-8 flex items-center gap-4">
+          <div className="text-3xl">{THERAPY_ADDON.icon}</div>
+          <div className="flex-1 text-left">
+            <h4 className="font-serif text-base text-[#F0E6FF]">
+              {lang === 'fr' ? THERAPY_ADDON.label_fr : THERAPY_ADDON.label_en}
+            </h4>
+            <p className="text-[#F0E6FF]/50 text-xs mt-0.5">
+              {lang === 'fr' ? THERAPY_ADDON.desc_fr : THERAPY_ADDON.desc_en}
+            </p>
+          </div>
+          <div className="text-right shrink-0">
+            <div className="text-[#F5A800] font-bold text-lg">{lang === 'fr' ? THERAPY_ADDON.price_fr : THERAPY_ADDON.price_en}</div>
+            <p className="text-[#F0E6FF]/30 text-[10px]">{lang === 'fr' ? 'Disponible pour tous' : 'Available to all'}</p>
+          </div>
         </div>
 
         <div className="text-center">
