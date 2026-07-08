@@ -40,13 +40,13 @@ Deno.serve(async (req) => {
             base44.asServiceRole.entities.Event.filter({ created_by_id: user.id }),
         ]);
 
-        // Profile
-        if (profiles.length) {
-            await safeDelete('UserProfile', () => base44.asServiceRole.entities.UserProfile.delete(profiles[0].id));
+        // Profile — loop all in case of duplicates
+        for (const profile of profiles) {
+            await safeDelete('UserProfile', () => base44.asServiceRole.entities.UserProfile.delete(profile.id));
         }
-        // Matching answers
-        if (answers.length) {
-            await safeDelete('MatchingAnswers', () => base44.asServiceRole.entities.MatchingAnswers.delete(answers[0].id));
+        // Matching answers — loop all in case of duplicates
+        for (const answer of answers) {
+            await safeDelete('MatchingAnswers', () => base44.asServiceRole.entities.MatchingAnswers.delete(answer.id));
         }
         // Messages
         for (const msg of messages) {

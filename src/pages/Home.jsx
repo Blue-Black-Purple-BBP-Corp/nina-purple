@@ -55,15 +55,15 @@ export default function Home() {
     setConnections(conns);
     setRooms(chatRooms);
 
-    // Load display names for connections
+    // Load display names for connections via server-mediated projection (never direct UserProfile access)
     if (conns.length > 0) {
       const toIds = [...new Set(conns.map(c => c.to_user_id))];
-      const matchProfiles = {};
-      await Promise.all(toIds.map(async uid => {
-        const res = await base44.entities.UserProfile.filter({ user_id: uid });
-        if (res[0]) matchProfiles[uid] = res[0];
-      }));
-      setMatchProfiles(matchProfiles);
+      try {
+        const res = await base44.functions.invoke('getConnectionProfiles', { user_ids: toIds });
+        setMatchProfiles(res.data?.profiles || {});
+      } catch (e) {
+        console.warn('getConnectionProfiles failed:', e.message);
+      }
     }
 
     setLoading(false);

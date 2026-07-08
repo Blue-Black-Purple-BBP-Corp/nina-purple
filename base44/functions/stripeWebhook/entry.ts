@@ -34,6 +34,14 @@ Deno.serve(async (req) => {
       return Response.json({ received: true, duplicate: true });
     }
 
+    // ── Write idempotency record FIRST (before any money mutations) ──
+    // This prevents double-crediting on Stripe retries if the isolate crashes mid-handler.
+    await base44.asServiceRole.entities.WebhookEvent.create({
+      event_id: event.id,
+      event_type: event.type,
+      processed_at: new Date().toISOString(),
+    });
+
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object;
       const { user_id, price_key } = session.metadata || {};
@@ -96,12 +104,6 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ── Record processed event for idempotency ──
-    await base44.asServiceRole.entities.WebhookEvent.create({
-      event_id: event.id,
-      event_type: event.type,
-      processed_at: new Date().toISOString(),
-    });
   } catch (err) {
     console.error('[stripeWebhook] Handler error:', err.message, err.stack);
     return Response.json({ error: err.message }, { status: 500 });

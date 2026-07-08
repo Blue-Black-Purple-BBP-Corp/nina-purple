@@ -46,13 +46,17 @@ export default function Connections() {
     // Load connections where current user is involved
     const conns = await base44.entities.Connection.filter({ from_user_id: user.id });
 
-    // Load the profiles of matched users
+    // Load profiles via server-mediated projection (enforces connection check, hides PII)
     const toIds = [...new Set(conns.map(c => c.to_user_id))];
-    const profileMap = {};
-    await Promise.all(toIds.map(async (uid) => {
-      const results = await base44.entities.UserProfile.filter({ user_id: uid });
-      if (results[0]) profileMap[uid] = results[0];
-    }));
+    let profileMap = {};
+    if (toIds.length > 0) {
+      try {
+        const res = await base44.functions.invoke('getConnectionProfiles', { user_ids: toIds });
+        profileMap = res.data?.profiles || {};
+      } catch (e) {
+        console.warn('getConnectionProfiles failed:', e.message);
+      }
+    }
 
     setConnections(conns);
     setProfiles(profileMap);

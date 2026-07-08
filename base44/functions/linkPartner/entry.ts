@@ -17,12 +17,11 @@ Deno.serve(async (req) => {
         return Response.json({ error: 'You cannot link to your own email' }, { status: 400 });
       }
 
-      // Check if partner has an existing account (search User by email via UserProfile)
-      // We search all UserProfiles — but we need the User entity. Use service role to find user by email.
+      // Look up partner by indexed email filter — never list() the full user table
       let partnerUser = null;
       try {
-        const users = await base44.asServiceRole.entities.User.list();
-        partnerUser = users.find(u => u.email?.toLowerCase() === partner_email.toLowerCase());
+        const matches = await base44.asServiceRole.entities.User.filter({ email: partner_email.toLowerCase() });
+        partnerUser = matches[0] || null;
       } catch (e) {
         console.log('User search failed, treating as new user:', e.message);
       }

@@ -45,7 +45,8 @@ function isAllowedUrl(url) {
   if (!url) return false;
   try {
     const parsed = new URL(url);
-    return ALLOWED_ORIGINS.some(o => parsed.origin === o || parsed.origin.endsWith('.base44.app'));
+    // Exact origin match only — no wildcard subdomain matching to prevent attacker-controlled preview apps
+    return ALLOWED_ORIGINS.includes(parsed.origin);
   } catch {
     return false;
   }

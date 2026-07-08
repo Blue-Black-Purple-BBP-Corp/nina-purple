@@ -30,6 +30,7 @@ import Community from '@/pages/Community';
 import Profile from '@/pages/Profile';
 import Admin from '@/pages/Admin';
 import AppLayout from '@/components/AppLayout';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -81,7 +82,9 @@ const AuthenticatedApp = () => {
         <Route path="/events" element={<Events />} />
         <Route path="/community" element={<Community />} />
         <Route path="/profile" element={<Profile />} />
-        <Route path="/admin" element={<Admin />} />
+        <Route element={<ProtectedRoute requireRole="admin" unauthenticatedElement={<Navigate to="/home" replace />} />}>
+          <Route path="/admin" element={<Admin />} />
+        </Route>
       </Route>
 
       <Route path="*" element={<PageNotFound />} />
