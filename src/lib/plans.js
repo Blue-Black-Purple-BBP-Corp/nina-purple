@@ -148,7 +148,7 @@ export const ALL_PLANS = [
     key: 'lunar_couple', profile_type: 'couple', color: '#7B2FBE', icon: '🌙',
     label_en: 'Lunar Couple', label_fr: 'Lunaire Couple',
     desc_en: 'Deepen your bond', desc_fr: 'Approfondissez votre lien',
-    price_en: '$10 / month', price_fr: '$10 / mois',
+    price_en: '$10 / month / person', price_fr: '$10 / mois / personne',
     perks_en: [
       'Everything in Solar Couple',
       'Full couple compatibility deep-dive',
@@ -173,7 +173,7 @@ export const ALL_PLANS = [
     key: 'stellar_couple', profile_type: 'couple', color: '#A855F7', icon: '⭐',
     label_en: 'Stellar Couple', label_fr: 'Stellaire Couple',
     desc_en: 'Grow together', desc_fr: 'Grandir ensemble',
-    price_en: '$15 / month', price_fr: '$15 / mois',
+    price_en: '$15 / month / person', price_fr: '$15 / mois / personne',
     perks_en: [
       'Everything in Lunar Couple',
       '100 messages / month (includes community rooms, except your own)',
@@ -194,7 +194,7 @@ export const ALL_PLANS = [
     key: 'galactic_couple', profile_type: 'couple', color: '#F5A800', icon: '🌌',
     label_en: 'Galactic Couple', label_fr: 'Galactique Couple',
     desc_en: 'Unlimited consciousness — for two', desc_fr: 'Conscience illimitée — pour deux',
-    price_en: '$20 / month', price_fr: '$20 / mois',
+    price_en: '$20 / month / person', price_fr: '$20 / mois / personne',
     perks_en: [
       'Everything in Stellar Couple',
       'Unlimited messages (includes community rooms, except your own)',

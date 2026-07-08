@@ -136,6 +136,11 @@ export default function PricingModal({ isOpen, onClose }) {
                     {lang === 'fr' ? 'Couples' : 'Couples'}
                   </button>
                 </div>
+                {membershipType === 'couple' && (
+                  <p className="text-center text-[#F0E6FF]/40 text-xs pb-1">
+                    {lang === 'fr' ? 'Les prix sont par personne — chaque membre a son propre compte.' : 'Prices are per person — each member has their own account.'}
+                  </p>
+                )}
                 {(membershipType === 'couple' ? MEMBERSHIP_ROWS.filter(r => r.key === '1m') : MEMBERSHIP_ROWS).map(row => (
                   <div key={row.key} className="rounded-2xl bg-[#150C1E] border border-purple-900/30 overflow-hidden">
                     <div className="px-4 py-2 bg-[#1F1026] border-b border-purple-900/30">

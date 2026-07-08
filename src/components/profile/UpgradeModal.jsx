@@ -64,6 +64,12 @@ export default function UpgradeModal({ isOpen, onClose, lang, currentTier }) {
             })}
           </div>
 
+          {profileType === 'couple' && (
+            <p className="text-center text-[#F0E6FF]/40 text-xs">
+              {lang === 'fr' ? 'Les prix sont par personne — chaque membre a son propre compte.' : 'Prices are per person — each member has their own account.'}
+            </p>
+          )}
+
           {/* Plan description + perks */}
           {activePlan && (
             <div className="rounded-2xl px-4 py-4 space-y-3"
