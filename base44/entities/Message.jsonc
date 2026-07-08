@@ -58,7 +58,9 @@
           "data.from_user_id": "{{user.id}}"
         },
         {
-          "data.to_user_id": "{{user.id}}"
+          "user_condition": {
+            "role": "admin"
+          }
         }
       ]
     },
