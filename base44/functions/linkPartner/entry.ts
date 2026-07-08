@@ -56,15 +56,9 @@ Deno.serve(async (req) => {
           });
         }
 
-        // Also set partner's profile to pending if they have one
-        const partnerProfiles = await base44.asServiceRole.entities.UserProfile.filter({ user_id: partnerUser.id });
-        if (partnerProfiles[0]) {
-          await base44.asServiceRole.entities.UserProfile.update(partnerProfiles[0].id, {
-            paired_status: 'pending',
-            partner_email: user.email?.toLowerCase(),
-            partner_user_id: user.id,
-          });
-        }
+        // Do NOT mutate the partner's profile here — only the PartnerLink record is created.
+        // The partner's profile is updated only after they explicitly accept the request
+        // via the 'accept' action, preventing unauthorized profile state manipulation.
 
         return Response.json({
           success: true,
