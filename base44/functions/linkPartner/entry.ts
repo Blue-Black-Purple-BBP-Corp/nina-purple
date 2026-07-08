@@ -9,6 +9,15 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { partner_email, from_display_name, action } = body;
 
+    // HTML-escape untrusted display name to prevent HTML injection in emails
+    const escapeHtml = (str) => String(str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+    const safeDisplayName = escapeHtml(from_display_name || user.full_name);
+
     if (action === 'link') {
       if (!partner_email || !partner_email.includes('@')) {
         return Response.json({ error: 'Valid partner email required' }, { status: 400 });
@@ -88,7 +97,7 @@ Deno.serve(async (req) => {
           <div style="font-family: Inter, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
             <h2 style="color: #7B2FBE; font-family: Playfair Display, serif;">You're Invited to Nina Purple</h2>
             <p style="color: #333; font-size: 16px; line-height: 1.6;">
-              ${from_display_name || user.full_name} has invited you to join them on Nina Purple as a couple.
+              ${safeDisplayName} has invited you to join them on Nina Purple as a couple.
             </p>
             <p style="color: #555; font-size: 14px; line-height: 1.6;">
               Nina Purple is a conscious dating and community platform. Your partner has created a couple profile
@@ -107,7 +116,7 @@ Deno.serve(async (req) => {
         try {
           await base44.integrations.Core.SendEmail({
             to: partner_email,
-            subject: `${from_display_name || user.full_name} invited you to Nina Purple`,
+            subject: `${safeDisplayName} invited you to Nina Purple`,
             body: inviteBody,
           });
         } catch (emailErr) {
