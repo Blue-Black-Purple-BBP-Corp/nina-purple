@@ -18,8 +18,13 @@ Deno.serve(async (req) => {
     if (!connection_id) return Response.json({ error: 'connection_id required' }, { status: 400 });
 
     // Load the connection via service role so ownership can be verified regardless of RLS.
-    const conns = await base44.asServiceRole.entities.Connection.filter({ id: connection_id });
-    const conn = conns[0];
+    let conn = null;
+    try {
+      const conns = await base44.asServiceRole.entities.Connection.filter({ id: connection_id });
+      conn = conns[0] || null;
+    } catch (lookupErr) {
+      console.error('unlockConnection lookup error:', lookupErr.message);
+    }
     if (!conn) return Response.json({ error: 'Connection not found' }, { status: 404 });
 
     // Only the matcher (from_user) may unlock their own connection.
