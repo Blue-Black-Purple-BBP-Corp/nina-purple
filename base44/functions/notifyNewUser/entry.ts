@@ -19,6 +19,14 @@ Deno.serve(async (req) => {
       console.warn('[notifyNewUser] user_id mismatch — caller:', user.id, 'payload user_id:', profile.user_id);
       return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
+    // HTML-escape untrusted user-supplied fields before interpolation into the email body
+    const escapeHtml = (str) => String(str ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+
     const displayName = profile.display_name || 'Unknown';
     const city = profile.city || 'Unknown';
     const phone = profile.phone || 'Not provided';
@@ -26,6 +34,14 @@ Deno.serve(async (req) => {
     const lang = profile.language || 'en';
     const archetype = profile.dating_archetype || 'N/A';
     const createdDate = new Date().toLocaleString('en-CA', { timeZone: 'America/Toronto' });
+
+    const safeDisplayName = escapeHtml(displayName);
+    const safeCity = escapeHtml(city);
+    const safePhone = escapeHtml(phone);
+    const safeArchetype = escapeHtml(archetype);
+    const safeTier = escapeHtml(tier.charAt(0).toUpperCase() + tier.slice(1));
+    const safeLang = escapeHtml(lang.toUpperCase());
+    const safeProfileId = escapeHtml(profile.user_id || 'N/A');
 
     const body = [
       `👤 Name: ${displayName}`,
@@ -40,7 +56,7 @@ Deno.serve(async (req) => {
 
     await base44.asServiceRole.entities.AdminNotification.create({
       type: 'new_registration',
-      title: `New Member: ${displayName}`,
+      title: `New Member: ${safeDisplayName}`,
       body,
       related_user_id: profile.user_id || null,
     });
@@ -53,14 +69,14 @@ Deno.serve(async (req) => {
           A new member has just joined Nina Purple.
         </p>
         <div style="background: #F5F0FF; border: 1px solid rgba(123,47,190,0.2); border-radius: 12px; padding: 20px; font-size: 14px; color: #1A0A2E; line-height: 1.8;">
-          <div>👤 <strong>Name:</strong> ${displayName}</div>
-          <div>📍 <strong>City:</strong> ${city}</div>
-          <div>📞 <strong>Phone:</strong> ${phone}</div>
-          <div>🌌 <strong>Archetype:</strong> ${archetype}</div>
-          <div>⭐ <strong>Plan:</strong> ${tier.charAt(0).toUpperCase() + tier.slice(1)}</div>
-          <div>🌐 <strong>Language:</strong> ${lang.toUpperCase()}</div>
+          <div>👤 <strong>Name:</strong> ${safeDisplayName}</div>
+          <div>📍 <strong>City:</strong> ${safeCity}</div>
+          <div>📞 <strong>Phone:</strong> ${safePhone}</div>
+          <div>🌌 <strong>Archetype:</strong> ${safeArchetype}</div>
+          <div>⭐ <strong>Plan:</strong> ${safeTier}</div>
+          <div>🌐 <strong>Language:</strong> ${safeLang}</div>
           <div>🕐 <strong>Joined:</strong> ${createdDate} (ET)</div>
-          <div>🆔 <strong>Profile ID:</strong> ${profile.user_id || 'N/A'}</div>
+          <div>🆔 <strong>Profile ID:</strong> ${safeProfileId}</div>
         </div>
         <p style="color: #999; font-size: 12px; text-align: center; margin-top: 24px;">
           © 2026 Nina Purple
@@ -71,7 +87,7 @@ Deno.serve(async (req) => {
     try {
       await base44.integrations.Core.SendEmail({
         to: 'contact@NinaPurple.Love',
-        subject: `New Member: ${displayName}`,
+        subject: `New Member: ${safeDisplayName}`,
         body: emailBody,
       });
       console.info('Admin email sent to contact@NinaPurple.Love for:', displayName);
