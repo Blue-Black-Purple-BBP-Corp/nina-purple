@@ -27,7 +27,7 @@ export default function ManagePhotosModal({ isOpen, onClose, userProfile, onUpda
   const handleSave = async () => {
     setSaving(true);
     const newCompleteness = calcCompleteness(photos.length);
-    await base44.entities.UserProfile.update(userProfile.id, { photos, profile_completeness: newCompleteness });
+    await base44.functions.invoke('updateProfile', { photos, profile_completeness: newCompleteness });
     onUpdate({ ...userProfile, photos, profile_completeness: newCompleteness });
     setSaving(false);
     onClose();

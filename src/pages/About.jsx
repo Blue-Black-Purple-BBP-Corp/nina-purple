@@ -38,7 +38,7 @@ export default function About() {
       {/* Hero */}
       <motion.div {...fadeUp} className="mb-14 text-center">
         <img
-          src="https://media.base44.com/images/public/user_6a21c0f76d807658e5c95962/36ab8cc0a_NinaPurpleIcon.png"
+          src="/images/nina-icon.png"
           alt="Nina Purple"
           className="w-20 h-20 mx-auto mb-6 drop-shadow-[0_0_30px_rgba(123,47,190,0.5)] object-contain"
         />

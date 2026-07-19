@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
       // Update inviter's profile
       const myProfiles = await base44.entities.UserProfile.filter({ user_id: user.id });
       if (myProfiles[0]) {
-        await base44.entities.UserProfile.update(myProfiles[0].id, {
+        await base44.asServiceRole.entities.UserProfile.update(myProfiles[0].id, {
           profile_type: 'couple',
           paired_status: 'pending',
           partner_email: partner_email.toLowerCase(),
@@ -144,7 +144,7 @@ Deno.serve(async (req) => {
       // Set both profiles to paired
       const myProfiles = await base44.entities.UserProfile.filter({ user_id: user.id });
       if (myProfiles[0]) {
-        await base44.entities.UserProfile.update(myProfiles[0].id, {
+        await base44.asServiceRole.entities.UserProfile.update(myProfiles[0].id, {
           paired_status: 'paired',
           profile_type: 'couple',
           partner_user_id: link.from_user_id,
@@ -203,7 +203,7 @@ Deno.serve(async (req) => {
       // Also mark on the user profile
       const myProfiles = await base44.entities.UserProfile.filter({ user_id: user.id });
       if (myProfiles[0]) {
-        await base44.entities.UserProfile.update(myProfiles[0].id, { couple_consent_given: true });
+        await base44.asServiceRole.entities.UserProfile.update(myProfiles[0].id, { couple_consent_given: true });
       }
 
       // Check if both have consented
@@ -212,7 +212,7 @@ Deno.serve(async (req) => {
         // Finalize: set both to paired
         const myProf = await base44.entities.UserProfile.filter({ user_id: user.id });
         if (myProf[0]) {
-          await base44.entities.UserProfile.update(myProf[0].id, { paired_status: 'paired' });
+          await base44.asServiceRole.entities.UserProfile.update(myProf[0].id, { paired_status: 'paired' });
         }
         const partnerId = isFrom ? link.to_user_id : link.from_user_id;
         const partnerProf = await base44.asServiceRole.entities.UserProfile.filter({ user_id: partnerId });

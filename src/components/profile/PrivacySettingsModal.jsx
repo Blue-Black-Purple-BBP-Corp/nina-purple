@@ -12,7 +12,7 @@ export default function PrivacySettingsModal({ isOpen, onClose, userProfile, onU
 
   const handleSave = async () => {
     setSaving(true);
-    await base44.entities.UserProfile.update(userProfile.id, {
+    await base44.functions.invoke('updateProfile', {
       photos_private: photosPrivate,
       show_in_listings: showInListings,
       allow_messages_all: allowMessages,

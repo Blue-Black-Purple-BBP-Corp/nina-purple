@@ -111,7 +111,7 @@ Deno.serve(async (req) => {
   // Fetch both users' answers
   const [myAnswersArr, theirAnswersArr] = await Promise.all([
     base44.entities.MatchingAnswers.filter({ user_id: user.id }),
-    base44.entities.MatchingAnswers.filter({ user_id: target_user_id }),
+    base44.asServiceRole.entities.MatchingAnswers.filter({ user_id: target_user_id }),
   ]);
 
   if (!myAnswersArr.length || !theirAnswersArr.length) {

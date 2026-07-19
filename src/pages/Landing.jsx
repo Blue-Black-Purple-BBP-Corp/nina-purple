@@ -9,6 +9,7 @@ import { useLang } from '@/lib/LanguageContext';
 import { useTranslation, PRICING_TABLE } from '@/lib/i18n';
 import { ALL_PLANS, INDIVIDUAL_PLANS, COUPLE_PLANS, THERAPY_ADDON } from '@/lib/plans';
 import { ninaIcon, ninaHorizontal, ninaCharacter } from '@/lib/images';
+import FAQ from '@/components/FAQ';
 
 export default function Landing() {
   const { lang } = useLang();
@@ -85,6 +86,15 @@ export default function Landing() {
               className="w-24 h-24 md:w-32 md:h-32 object-contain drop-shadow-[0_0_40px_rgba(123,47,190,0.5)]"
             />
           </motion.div>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.15 }}
+            className="text-[#F5A800] text-sm font-semibold uppercase tracking-[0.25em] mb-5"
+          >
+            {lang === 'fr' ? 'Application de rencontres conscientes' : 'Conscious Dating App · No Swiping · Compatibility First'}
+          </motion.p>
 
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
@@ -434,6 +444,8 @@ export default function Landing() {
           </Link>
         </motion.div>
       </section>
+
+      <FAQ />
 
       {/* Footer */}
       <footer className="border-t border-[rgba(240,230,255,0.06)] px-6 py-8">

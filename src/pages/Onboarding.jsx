@@ -207,8 +207,7 @@ export default function Onboarding() {
     compScore += Math.round((answeredCount / 21) * 15);
     const profileCompleteness = Math.min(100, compScore);
 
-    await base44.entities.UserProfile.create({
-      user_id: user.id,
+    await base44.functions.invoke('createProfile', {
       display_name: profile.display_name || user.full_name,
       city: profile.city,
       birthdate: profile.birthdate,
@@ -217,9 +216,7 @@ export default function Onboarding() {
       gender_pronoun: profile.gender_pronoun,
       relationship_status: profile.relationship_status,
       dating_archetype: archetype,
-      subscription_tier: selectedPlan,
       photos: photos.filter(Boolean),
-      credit_balance: 0,
       onboarding_complete: true,
       age_verified: true,
       guidelines_accepted: true,

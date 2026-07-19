@@ -42,7 +42,7 @@ export default function CoupleComparison({ myProfile, partnerUserId, isFr }) {
     setSubmitting(true);
     try {
       const user = await base44.auth.me();
-      await base44.entities.UserProfile.update(myProfile.id, { couple_consent_given: true });
+      await base44.functions.invoke('updateProfile', { couple_consent_given: true });
       setConsentGiven(true);
       // Check if partner also consented via backend
       const res = await base44.functions.invoke('linkPartner', { action: 'get_status' });

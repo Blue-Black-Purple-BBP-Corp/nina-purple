@@ -59,32 +59,25 @@ export default function Messages() {
   const handleSend = async () => {
     if (!input.trim() || !activeConvId || !currentUser) return;
     setLimitError('');
-    // Check plan limits before sending
+    const activeConn = connections.find(c => c.id === activeConvId);
+    if (!activeConn) return;
     try {
-      const check = await base44.functions.invoke('checkPlanLimits', { action: 'message' });
-      if (!check.data?.allowed) {
-        setLimitError(check.data?.reason || (lang === 'fr' ? 'Limite de messages atteinte.' : 'Message limit reached.'));
-        return;
+      const res = await base44.functions.invoke('sendMessage', {
+        conversation_id: activeConvId,
+        to_user_id: activeConn.to_user_id,
+        content: input.trim(),
+      });
+      if (res.data?.success && res.data?.message) {
+        setMessages(prev => [...prev, res.data.message]);
+        setInput('');
+        setShowNinaSuggestions(false);
+        refreshLimits();
+      } else {
+        setLimitError(res.data?.error || (lang === 'fr' ? 'Une erreur est survenue.' : 'Something went wrong.'));
       }
     } catch (e) {
-      setLimitError(lang === 'fr' ? 'Impossible de vérifier les limites.' : 'Unable to verify limits.');
-      return;
+      setLimitError(e?.response?.data?.error || (lang === 'fr' ? 'Une erreur est survenue.' : 'Something went wrong.'));
     }
-    const activeConn = connections.find(c => c.id === activeConvId);
-    const pricing = getPricingForCompatibility(activeConn?.compatibility_score || 0);
-    const newMsg = {
-      conversation_id: activeConvId,
-      from_user_id: currentUser.id,
-      to_user_id: activeConn.to_user_id,
-      content: input.trim(),
-      cost: pricing.msg,
-      message_type: 'text',
-    };
-    const created = await base44.entities.Message.create(newMsg);
-    setMessages(prev => [...prev, created]);
-    setInput('');
-    setShowNinaSuggestions(false);
-    refreshLimits();
   };
 
   if (activeConvId) {

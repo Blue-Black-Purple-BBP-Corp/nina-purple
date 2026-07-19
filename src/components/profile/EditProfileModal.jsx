@@ -50,7 +50,7 @@ export default function EditProfileModal({ isOpen, onClose, userProfile, matchin
   const handleSave = async () => {
     setSaving(true);
     const completeness = calcCompleteness();
-    await base44.entities.UserProfile.update(userProfile.id, {
+    await base44.functions.invoke('updateProfile', {
       ...profile,
       dating_archetype: archetype,
       profile_completeness: completeness,
