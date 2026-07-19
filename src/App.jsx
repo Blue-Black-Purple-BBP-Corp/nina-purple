@@ -12,6 +12,7 @@ import Terms from '@/pages/Terms';
 import About from '@/pages/About';
 import Contact from '@/pages/Contact';
 import CookieConsent from '@/components/CookieConsent';
+import WhatsAppFloat from '@/components/WhatsAppFloat';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { ninaIcon } from '@/lib/images';
 
@@ -101,6 +102,7 @@ function App() {
             <Router>
               <AuthenticatedApp />
               <CookieConsent />
+              <WhatsAppFloat />
             </Router>
             <Toaster />
           </ThemeProvider>
