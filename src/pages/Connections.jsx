@@ -66,41 +66,42 @@ export default function Connections() {
   const confirmUnlock = async () => {
     if (!selectedUnlock) return;
     setLimitError('');
-    // Check plan limits before unlocking
+    // Unlock is authorized server-side — the client never writes is_unlocked / unlock_cost_paid.
     try {
-      const check = await base44.functions.invoke('checkPlanLimits', { action: 'unlock' });
-      if (!check.data?.allowed) {
-        setLimitError(check.data?.reason || (lang === 'fr' ? 'Limite atteinte.' : 'Limit reached.'));
-        return;
+      const res = await base44.functions.invoke('unlockConnection', {
+        connection_id: selectedUnlock.id,
+        action: 'unlock',
+      });
+      if (res.data?.success) {
+        const paid = res.data.unlock_cost_paid ?? 0;
+        setConnections(prev => prev.map(c => c.id === selectedUnlock.id ? { ...c, is_unlocked: true, unlock_cost_paid: paid } : c));
+        setSelectedUnlock(null);
+        setLimitError('');
+        refreshLimits();
+      } else {
+        setLimitError(res.data?.reason || (lang === 'fr' ? 'Déverrouillage refusé.' : 'Unlock denied.'));
       }
     } catch (e) {
-      setLimitError(lang === 'fr' ? 'Impossible de vérifier les limites.' : 'Unable to verify limits.');
-      return;
+      setLimitError(e?.response?.data?.reason || e?.response?.data?.error || (lang === 'fr' ? 'Une erreur est survenue.' : 'Something went wrong.'));
     }
-    const pricing = getPricingForCompatibility(selectedUnlock.compatibility_score || 0);
-    await base44.entities.Connection.update(selectedUnlock.id, {
-      is_unlocked: true,
-      unlock_cost_paid: pricing.unlock,
-    });
-    setConnections(prev => prev.map(c => c.id === selectedUnlock.id ? { ...c, is_unlocked: true } : c));
-    setSelectedUnlock(null);
-    refreshLimits();
   };
 
   const handleGalleryUnlock = async (conn) => {
     setLimitError('');
+    // Gallery unlock is authorized server-side — the client never writes gallery_unlocked.
     try {
-      const check = await base44.functions.invoke('checkPlanLimits', { action: 'gallery_unlock' });
-      if (!check.data?.allowed) {
+      const res = await base44.functions.invoke('unlockConnection', {
+        connection_id: conn.id,
+        action: 'gallery_unlock',
+      });
+      if (res.data?.success) {
+        setConnections(prev => prev.map(c => c.id === conn.id ? { ...c, gallery_unlocked: true } : c));
+      } else {
         setLimitError(lang === 'fr'
           ? 'Le déverrouillage de galerie n\'est pas inclus dans votre plan. Passez à Galactic pour un accès gratuit.'
           : 'Gallery unlock is not included in your plan. Upgrade to Galactic for free access.');
         setPricingOpen(true);
-        return;
       }
-      // Galactic — free gallery unlock
-      await base44.entities.Connection.update(conn.id, { gallery_unlocked: true });
-      setConnections(prev => prev.map(c => c.id === conn.id ? { ...c, gallery_unlocked: true } : c));
     } catch (e) {
       setLimitError(lang === 'fr' ? 'Une erreur est survenue.' : 'Something went wrong.');
     }

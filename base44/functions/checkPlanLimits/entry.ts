@@ -1,12 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.36';
-
-// Plan limits — segregated per tier
-const PLAN_LIMITS = {
-  solar:   { unlocks_per_month: 0,         messages_per_month: 5,    gallery_unlock_free: false, priority_search: false, see_viewers: false },
-  lunar:   { unlocks_per_month: 1,         messages_per_month: 30,   gallery_unlock_free: false, priority_search: false, see_viewers: true  },
-  stellar: { unlocks_per_month: 2,         messages_per_month: 100,  gallery_unlock_free: false, priority_search: true,  see_viewers: true  },
-  galactic:{ unlocks_per_month: 3,         messages_per_month: Infinity, gallery_unlock_free: true, priority_search: true, see_viewers: true },
-};
+import { PLAN_LIMITS } from '../../shared/planLimits.ts';
 
 Deno.serve(async (req) => {
   try {
