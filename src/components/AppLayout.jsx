@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Home, Users, MessageCircle, Calendar, User, Star, LogIn, Loader2 } from 'lucide-react';
+import { Home, Users, MessageCircle, Calendar, User, Star, LogIn, Loader2, Heart } from 'lucide-react';
 import LanguageToggle from './LanguageToggle';
 import ThemeToggle from './ThemeToggle';
 import NinaAvatar from './NinaAvatar';
@@ -29,6 +29,7 @@ export default function AppLayout() {
     { path: '/messages', icon: MessageCircle, label: t('nav.messages') },
     { path: '/events', icon: Calendar, label: t('nav.events') },
     { path: '/community', icon: Star, label: t('nav.community') },
+    { path: '/relationship', icon: Heart, label: lang === 'fr' ? 'Relation' : 'Relationship' },
     { path: '/profile', icon: User, label: t('nav.profile') },
   ];
 

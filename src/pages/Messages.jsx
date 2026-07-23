@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Sparkles, ChevronLeft, Loader2, MessageCircle } from 'lucide-react';
+import { Send, Sparkles, ChevronLeft, Loader2, MessageCircle, Layers } from 'lucide-react';
 import NinaAvatar from '@/components/NinaAvatar';
 import { useLang } from '@/lib/LanguageContext';
 import { useTranslation, getPricingForCompatibility, NINA_QUESTIONS } from '@/lib/i18n';
 import { base44 } from '@/api/base44Client';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
+import CardStack from '@/components/cards/CardStack';
+import { GOING_DEEPER, DEEP_CONNECTION, DEEP_CONNECTION_GATE } from '@/lib/connectionCardContent';
 
 const ARCHETYPE_COLORS = { blue: '#60A5FA', black: '#9CA3AF', purple: '#A855F7' };
 
@@ -22,8 +24,14 @@ export default function Messages() {
   const [showNinaSuggestions, setShowNinaSuggestions] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [limitError, setLimitError] = useState('');
+  const [showCards, setShowCards] = useState(false);
   const { data: limitsData, refresh: refreshLimits } = usePlanLimits();
   const bottomRef = useRef(null);
+
+  const cardDecks = [
+    { id: 'going_deeper', label_en: 'Going Deeper', label_fr: 'Aller plus loin', color: '#7B2FBE', cards: GOING_DEEPER },
+    { id: 'deep_connection', label_en: 'Deep Connection', label_fr: 'Connexion profonde', color: '#F5A800', gate: DEEP_CONNECTION_GATE, cards: DEEP_CONNECTION },
+  ];
 
   useEffect(() => { loadConversations(); }, []);
   useEffect(() => { if (activeConvId) loadMessages(activeConvId); }, [activeConvId]);
@@ -105,6 +113,12 @@ export default function Messages() {
             <p className="text-[#F0E6FF] font-medium text-sm">{profile?.display_name}</p>
             <p className="text-[#F0E6FF]/40 text-xs">{activeConn?.compatibility_score || 0}% {t('home.compatibility')}</p>
           </div>
+          <button onClick={() => setShowCards(true)}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-full glass-card text-[#F0E6FF]/70 text-xs font-medium hover:text-[#F5A800] transition-all"
+            title={lang === 'fr' ? 'Cartes de connexion' : 'Connection cards'}>
+            <Layers className="w-4 h-4" />
+            <span className="hidden sm:inline">{lang === 'fr' ? 'Cartes' : 'Cards'}</span>
+          </button>
           <div className="text-right">
             <div className="text-[#F5A800] text-xs font-medium">${pricing.msg.toFixed(2)}</div>
             <div className="text-[#F0E6FF]/30 text-[10px]">{t('messages.cost_per_msg')}</div>
@@ -192,6 +206,23 @@ export default function Messages() {
             <p className="text-red-400 text-xs mt-2 text-center">{limitError}</p>
           )}
         </div>
+
+        {/* Connection cards — Going Deeper & Deep Connection (post-match only) */}
+        {showCards && (
+          <div className="fixed inset-0 z-[200] flex items-end md:items-center justify-center px-0 md:px-6"
+            style={{ background: 'rgba(11,5,16,0.85)', backdropFilter: 'blur(8px)' }}
+            onClick={e => { if (e.target === e.currentTarget) setShowCards(false); }}>
+            <div className="w-full max-w-lg bg-[#1F1026] rounded-t-3xl md:rounded-3xl p-6 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-serif text-xl text-[#F0E6FF]">{lang === 'fr' ? 'Cartes de connexion' : 'Connection Cards'}</h2>
+                <button onClick={() => setShowCards(false)} className="text-[#F0E6FF]/40 hover:text-[#F0E6FF] text-xl">✕</button>
+              </div>
+              <div className="h-[60vh]">
+                <CardStack decks={cardDecks} lang={lang} />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
