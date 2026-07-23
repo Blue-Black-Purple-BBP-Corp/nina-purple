@@ -7,6 +7,7 @@ import { useTranslation } from '@/lib/i18n';
 import PricingModal from '@/components/PricingModal';
 import PartnerLinkNotifications from '@/components/PartnerLinkNotifications';
 import CoupleComparison from '@/components/CoupleComparison';
+import DailyInsightCard from '@/components/DailyInsightCard';
 import { base44 } from '@/api/base44Client';
 
 const ARCHETYPE_COLORS = { blue: '#60A5FA', black: '#9CA3AF', purple: '#A855F7' };
@@ -128,6 +129,9 @@ export default function Home() {
           <span>${credits} {t('home.credits')}</span>
         </button>
       </motion.div>
+
+      {/* Daily Insight — personalized to the Compatibility Profile */}
+      <DailyInsightCard profile={userProfile} lang={lang} />
 
       {/* Couple journey banner */}
       {isCouple && (
