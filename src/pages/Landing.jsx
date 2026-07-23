@@ -125,8 +125,8 @@ export default function Landing() {
             className="text-[#F0E6FF]/60 text-base md:text-lg max-w-2xl mx-auto mb-10 leading-relaxed"
           >
             {lang === 'fr'
-              ? "Que vous cherchiez l'amour pour vous-même ou que vous souhaitiez approfondir votre relation de couple — Nina Purple vous accompagne."
-              : "Whether you are seeking love for yourself or wanting to deepen your relationship as a couple — Nina Purple supports you."}
+              ? "Que vous cherchiez l'amour pour vous-même ou que vous souhaitiez approfondir votre relation de couple, Nina Purple vous accompagne."
+              : "Whether you are seeking love for yourself or wanting to deepen your relationship as a couple, Nina Purple supports you."}
           </motion.p>
 
           <motion.div
@@ -195,13 +195,13 @@ export default function Landing() {
           </h2>
           <p className="text-[#F0E6FF]/70 text-lg leading-relaxed">
             {lang === 'fr'
-              ? "Il faut du courage pour chercher une vraie connexion. Vous êtes ici parce que vous savez que quelque chose de plus profond est possible — et vous avez raison."
-              : 'It takes courage to seek real connection. You are here because you know something deeper is possible — and you are right.'}
+              ? "Il faut du courage pour chercher une vraie connexion. Vous êtes ici parce que vous savez que quelque chose de plus profond est possible, et vous avez raison."
+              : 'It takes courage to seek real connection. You are here because you know something deeper is possible, and you are right.'}
           </p>
           <p className="text-[#F0E6FF]/60 text-base leading-relaxed">
             {lang === 'fr'
-              ? "D'autres partagent ce même voyage. Non pas à la recherche d'une distraction, mais d'une présence authentique — peut-être pour la première fois de leur vie."
-              : 'Others share this same journey. Not searching for distraction, but for genuine presence — perhaps for the first time in their lives.'}
+              ? "D'autres partagent ce même voyage. Non pas à la recherche d'une distraction, mais d'une présence authentique, peut-être pour la première fois de leur vie."
+              : 'Others share this same journey. Not searching for distraction, but for genuine presence, perhaps for the first time in their lives.'}
           </p>
 
           {/* Magic Number highlight */}
@@ -433,8 +433,8 @@ export default function Landing() {
           </h2>
           <p className="text-[#F0E6FF]/60 text-lg mb-8">
             {lang === 'fr'
-              ? 'Que vous soyez célibataire, en couple, en transition, ou en train de vous reconstruire — cet espace a été construit pour vous.'
-              : 'Whether single, in a relationship, navigating a transition, or rebuilding after loss — this space was built for you.'}
+              ? 'Que vous soyez célibataire, en couple, en transition, ou en train de vous reconstruire, cet espace a été construit pour vous.'
+              : 'Whether single, in a relationship, navigating a transition, or rebuilding after loss, this space was built for you.'}
           </p>
           <Link
             to="/onboarding"

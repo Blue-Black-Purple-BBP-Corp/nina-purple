@@ -7,20 +7,20 @@ import { useLang } from '@/lib/LanguageContext';
 const fadeUp = { initial: { opacity: 0, y: 24 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true }, transition: { duration: 0.7 } };
 
 const VALUES_EN = [
-  { icon: Heart,  color: '#F5A800', title: 'Intention',          desc: 'Every interaction on Nina Purple is meaningful. No swiping — only connections built on who you truly are.' },
+  { icon: Heart,  color: '#F5A800', title: 'Intention',          desc: 'Every interaction on Nina Purple is meaningful. No swiping, only connections built on who you truly are.' },
   { icon: Star,   color: '#A855F7', title: 'Compatibility',      desc: '21 deep questions power our algorithm. The higher your compatibility, the less it costs to connect.' },
   { icon: Shield, color: '#7B2FBE', title: 'Safety',             desc: 'A safe, honest, and moderated space where every member commits to the community guidelines.' },
   { icon: Users,  color: '#60A5FA', title: 'Community',          desc: 'Chat rooms, online and in-person events, and a global community of intentional people.' },
-  { icon: Zap,    color: '#F5A800', title: 'Micro-Transactions', desc: 'Invest in your connections. The higher the compatibility, the lower the cost — because real connections deserve to be encouraged.' },
+  { icon: Zap,    color: '#F5A800', title: 'Micro-Transactions', desc: 'Invest in your connections. The higher the compatibility, the lower the cost, because real connections deserve to be encouraged.' },
   { icon: Globe,  color: '#A855F7', title: 'Global & Bilingual', desc: 'Nina Purple is available in English and French, built for an international community.' },
 ];
 
 const VALUES_FR = [
-  { icon: Heart,  color: '#F5A800', title: 'Intention',             desc: "Chaque interaction sur Nina Purple est significative. Pas de glissement d'écran — uniquement des connexions fondées sur qui vous êtes vraiment." },
+  { icon: Heart,  color: '#F5A800', title: 'Intention',             desc: "Chaque interaction sur Nina Purple est significative. Pas de glissement d'écran, uniquement des connexions fondées sur qui vous êtes vraiment." },
   { icon: Star,   color: '#A855F7', title: 'Compatibilité',         desc: '21 questions profondes alimentent notre algorithme. Plus vous êtes compatibles, moins la connexion vous coûte.' },
   { icon: Shield, color: '#7B2FBE', title: 'Sécurité',              desc: "Un espace sûr, honnête et modéré où chaque membre s'engage à respecter les règles de la communauté." },
   { icon: Users,  color: '#60A5FA', title: 'Communauté',            desc: 'Des salons, des événements en ligne et en présentiel, et une communauté mondiale de personnes intentionnelles.' },
-  { icon: Zap,    color: '#F5A800', title: 'Micro-transactions',    desc: "Investissez dans vos connexions. Plus la compatibilité est élevée, plus le coût est bas — parce que les vraies connexions méritent d'être encouragées." },
+  { icon: Zap,    color: '#F5A800', title: 'Micro-transactions',    desc: "Investissez dans vos connexions. Plus la compatibilité est élevée, plus le coût est bas, parce que les vraies connexions méritent d'être encouragées." },
   { icon: Globe,  color: '#A855F7', title: 'Mondial & Bilingue',    desc: 'Nina Purple est disponible en anglais et en français, conçu pour une communauté internationale.' },
 ];
 
@@ -62,8 +62,8 @@ export default function About() {
         </p>
         <p className="text-foreground/80 leading-relaxed">
           {fr
-            ? "Nous avons supprimé la mise en scène — les photos soigneusement choisies, le glissement d'écran sans fin, les petites conversations qui ne mènent nulle part — pour construire quelque chose de différent. Un espace où la compatibilité se mesure à ce qui nourrit vraiment une relation : vos valeurs, votre vision de l'avenir, et la façon dont vous donnez et recevez l'amour."
-            : "We stripped away the performance — the curated photos, the endless swiping, the small talk that goes nowhere — and built something different. A space where compatibility is measured by what actually sustains a relationship: your values, your vision for the future, and the way you give and receive love."}
+            ? "Nous avons supprimé la mise en scène, les photos soigneusement choisies, le glissement d'écran sans fin, les petites conversations qui ne mènent nulle part, pour construire quelque chose de différent. Un espace où la compatibilité se mesure à ce qui nourrit vraiment une relation : vos valeurs, votre vision de l'avenir, et la façon dont vous donnez et recevez l'amour."
+            : "We stripped away the performance, the curated photos, the endless swiping, the small talk that goes nowhere, and built something different. A space where compatibility is measured by what actually sustains a relationship: your values, your vision for the future, and the way you give and receive love."}
         </p>
         <p className="text-foreground/80 leading-relaxed">
           {fr
@@ -72,8 +72,8 @@ export default function About() {
         </p>
         <p className="text-foreground/80 leading-relaxed">
           {fr
-            ? "Nina Purple est pour les adultes intentionnels — ceux qui ont assez vécu pour savoir ce qu'ils veulent, et qui sont prêts à le poursuivre avec honnêteté et profondeur. Que vous soyez célibataire, en transition, ou en train de vous reconstruire après une perte, vous avez votre place ici."
-            : "Nina Purple is for intentional adults — those who have lived enough to know what they want, and who are ready to pursue it with honesty and depth. Whether you are single, navigating a transition, or rebuilding after loss, you belong here."}
+            ? "Nina Purple est pour les adultes intentionnels, ceux qui ont assez vécu pour savoir ce qu'ils veulent, et qui sont prêts à le poursuivre avec honnêteté et profondeur. Que vous soyez célibataire, en transition, ou en train de vous reconstruire après une perte, vous avez votre place ici."
+            : "Nina Purple is for intentional adults, those who have lived enough to know what they want, and who are ready to pursue it with honesty and depth. Whether you are single, navigating a transition, or rebuilding after loss, you belong here."}
         </p>
         <p className="text-foreground font-serif italic text-lg">
           {fr
@@ -111,8 +111,8 @@ export default function About() {
         <h3 className="font-serif text-xl text-foreground mb-3">{fr ? 'Le Nombre Magique' : 'The Magic Number'}</h3>
         <p className="text-foreground/70 text-sm leading-relaxed max-w-lg mx-auto">
           {fr
-            ? "Vous vous connectez avec les autres selon vos intentions relationnelles en répondant à 21 questions profondes sur la façon dont vous aimez être aimé·e. Ce ne sont pas des détails de surface — ce sont vos valeurs fondamentales."
-            : "You connect with others based on your relationship intentions by answering 21 deep questions about how you like to be loved. These aren't surface-level details — they are your core values."}
+            ? "Vous vous connectez avec les autres selon vos intentions relationnelles en répondant à 21 questions profondes sur la façon dont vous aimez être aimé·e. Ce ne sont pas des détails de surface, ce sont vos valeurs fondamentales."
+            : "You connect with others based on your relationship intentions by answering 21 deep questions about how you like to be loved. These aren't surface-level details, they are your core values."}
         </p>
       </motion.div>
 

@@ -142,7 +142,7 @@ function ExperienceProfileForm({ lang }) {
       <AnimatePresence mode="wait">
         <motion.div key={section} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.3 }} className="space-y-4">
 
-          {/* Section 0 — About You */}
+          {/* Section 0, About You */}
           {section === 0 && (
             <div className="space-y-4">
               <Field label={isFr ? 'Nom complet' : 'Full Name'} required>
@@ -170,7 +170,7 @@ function ExperienceProfileForm({ lang }) {
             </div>
           )}
 
-          {/* Section 1 — Interest */}
+          {/* Section 1, Interest */}
           {section === 1 && (
             <div className="space-y-4">
               <p className="text-foreground/60 text-sm">{isFr ? 'Quel type d\'expérience vous intéresse ?' : 'What type of experience interests you?'}</p>
@@ -200,7 +200,7 @@ function ExperienceProfileForm({ lang }) {
             </div>
           )}
 
-          {/* Section 2 — Goals */}
+          {/* Section 2, Goals */}
           {section === 2 && (
             <div className="space-y-4">
               <Field label={isFr ? 'Qu\'aimeriez-vous retirer de cette expérience ?' : 'What would you most like to gain from this experience?'}>
@@ -223,7 +223,7 @@ function ExperienceProfileForm({ lang }) {
             </div>
           )}
 
-          {/* Section 3 — Availability */}
+          {/* Section 3, Availability */}
           {section === 3 && (
             <div className="space-y-5">
               <Field label={isFr ? 'Mois de départ le plus tôt possible' : 'Earliest departure month'}>
@@ -276,7 +276,7 @@ function ExperienceProfileForm({ lang }) {
             </div>
           )}
 
-          {/* Section 4 — Budget */}
+          {/* Section 4, Budget */}
           {section === 4 && (
             <div className="space-y-3">
               <p className="text-foreground/60 text-sm">{isFr ? 'Quel investissement envisagez-vous (hors vols) ?' : 'What investment range are you comfortable considering (excluding flights)?'}</p>
@@ -296,7 +296,7 @@ function ExperienceProfileForm({ lang }) {
             </div>
           )}
 
-          {/* Section 5 — Accommodation */}
+          {/* Section 5, Accommodation */}
           {section === 5 && (
             <div className="space-y-3">
               <p className="text-foreground/60 text-sm">{isFr ? 'Préférence d\'hébergement' : 'Accommodation preference'}</p>
@@ -314,7 +314,7 @@ function ExperienceProfileForm({ lang }) {
             </div>
           )}
 
-          {/* Section 6 — More Questions */}
+          {/* Section 6, More Questions */}
           {section === 6 && (
             <div className="space-y-5">
               <label className="flex items-center gap-3 cursor-pointer">
@@ -443,8 +443,8 @@ export default function Experiences() {
           </p>
           <p className="text-lg leading-relaxed max-w-2xl mx-auto" style={{ color: 'rgba(240,230,255,0.75)' }}>
             {isFr
-              ? 'Imaginez vous éloigner du bruit du quotidien pour entrer dans un environnement conçu pour vous reconnecter — à vous-même, aux autres, et à ce qui compte vraiment.'
-              : 'Imagine stepping away from the noise of everyday life and into an environment designed to help you reconnect — with yourself, with others, and with what truly matters.'}
+              ? 'Imaginez vous éloigner du bruit du quotidien pour entrer dans un environnement conçu pour vous reconnecter, à vous-même, aux autres, et à ce qui compte vraiment.'
+              : 'Imagine stepping away from the noise of everyday life and into an environment designed to help you reconnect, with yourself, with others, and with what truly matters.'}
           </p>
           <p className="text-base" style={{ color: 'rgba(240,230,255,0.6)' }}>
             {isFr
@@ -504,7 +504,7 @@ export default function Experiences() {
             {
               icon: Users, color: '#7B2FBE',
               title_en: 'Couples Experiences', title_fr: 'Expériences pour couples',
-              body_en: 'Couples enjoy greater flexibility. Whether celebrating a new chapter, rebuilding after challenges, or simply investing in your relationship — your experience can be tailored to your needs.',
+              body_en: 'Couples enjoy greater flexibility. Whether celebrating a new chapter, rebuilding after challenges, or simply investing in your relationship, your experience can be tailored to your needs.',
               body_fr: 'Les couples bénéficient d\'une plus grande flexibilité. Que vous célébriez un nouveau chapitre, reconstruisiez après des défis ou investissiez simplement dans votre relation.',
             },
           ].map((card, i) => (
@@ -532,14 +532,14 @@ export default function Experiences() {
             {
               phase: isFr ? 'Avant le départ' : 'Before You Travel',
               color: '#7B2FBE', icon: '🌱',
-              body_en: 'Your experience begins well before departure. You\'ll complete an onboarding process, reflect on your goals, and participate in guided therapeutic preparation — establishing psychological safety and readiness several weeks in advance.',
-              body_fr: 'Votre expérience commence bien avant le départ. Vous complétez un processus d\'accueil, réfléchissez à vos objectifs et participez à une préparation thérapeutique guidée — établissant sécurité psychologique et état de préparation plusieurs semaines à l\'avance.',
+              body_en: 'Your experience begins well before departure. You\'ll complete an onboarding process, reflect on your goals, and participate in guided therapeutic preparation, establishing psychological safety and readiness several weeks in advance.',
+              body_fr: 'Votre expérience commence bien avant le départ. Vous complétez un processus d\'accueil, réfléchissez à vos objectifs et participez à une préparation thérapeutique guidée, établissant sécurité psychologique et état de préparation plusieurs semaines à l\'avance.',
             },
             {
               phase: isFr ? 'Sur place' : 'During Your Stay',
               color: '#F5A800', icon: '🌊',
               body_en: 'Every day balances personal reflection, therapeutic support, experiential learning, relaxation, and genuine human connection. Your experience may include guided workshops, group therapy, relationship education, mindfulness, nature immersion, local exploration, shared meals, and meaningful conversations.',
-              body_fr: 'Chaque journée équilibre réflexion personnelle, soutien thérapeutique, apprentissage expérientiel, détente et connexion humaine authentique — ateliers guidés, thérapie de groupe, éducation relationnelle, pleine conscience, immersion dans la nature, exploration locale, repas partagés.',
+              body_fr: 'Chaque journée équilibre réflexion personnelle, soutien thérapeutique, apprentissage expérientiel, détente et connexion humaine authentique, ateliers guidés, thérapie de groupe, éducation relationnelle, pleine conscience, immersion dans la nature, exploration locale, repas partagés.',
             },
             {
               phase: isFr ? 'Retour à la maison' : 'Returning Home',
@@ -568,8 +568,8 @@ export default function Experiences() {
           <h2 className="font-serif text-4xl text-[#F0E6FF] mb-4">{isFr ? 'Nos destinations' : 'Our Destinations'}</h2>
           <p className="text-[#F0E6FF]/60 max-w-2xl mx-auto leading-relaxed">
             {isFr
-              ? "Chaque destination Nina Purple est choisie pour sa capacité à offrir de l'espace — pour respirer, réfléchir et se reconnecter. Nous sélectionnons des lieux où le rythme est plus lent, la nature plus présente et la transformation plus profonde."
-              : "Every Nina Purple destination is chosen for its ability to offer space — space to breathe, reflect, and reconnect. We select places where the rhythm is slower, nature is closer, and transformation runs deeper."}
+              ? "Chaque destination Nina Purple est choisie pour sa capacité à offrir de l'espace, pour respirer, réfléchir et se reconnecter. Nous sélectionnons des lieux où le rythme est plus lent, la nature plus présente et la transformation plus profonde."
+              : "Every Nina Purple destination is chosen for its ability to offer space, space to breathe, reflect, and reconnect. We select places where the rhythm is slower, nature is closer, and transformation runs deeper."}
           </p>
         </motion.div>
 
@@ -612,7 +612,7 @@ export default function Experiences() {
 
       <div className="golden-thread w-full" />
 
-      {/* Martinique in Motion — video gallery */}
+      {/* Martinique in Motion, video gallery */}
       <section className="px-6 py-20 max-w-6xl mx-auto">
         <motion.div {...fadeUp} className="text-center mb-12">
           <h2 className="font-serif text-4xl text-[#F0E6FF] mb-3">{isFr ? 'La Martinique en mouvement' : 'Martinique in Motion'}</h2>
@@ -658,7 +658,7 @@ export default function Experiences() {
 
       <div className="golden-thread w-full" />
 
-      {/* Martinique Resources — SEO */}
+      {/* Martinique Resources, SEO */}
       <MartiniqueResources />
 
       <div className="golden-thread w-full" />

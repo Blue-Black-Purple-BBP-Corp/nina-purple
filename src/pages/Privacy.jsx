@@ -32,9 +32,9 @@ function PrivacyEN() {
           <p>This Privacy Policy applies to all users of Nina Purple globally. It is designed to comply with:</p>
           <ul className="list-disc ml-5 mt-2 space-y-1">
             <li><strong>Wyoming Statutory Close Corporation Act</strong> (W.S. § 17-17-101 et seq.) and <strong>Wyoming Consumer Protection Act</strong> (W.S. § 40-12-101 et seq.)</li>
-            <li><strong>COPPA</strong> (Children's Online Privacy Protection Act, USA — our platform is strictly 18+)</li>
-            <li><strong>CAN-SPAM Act</strong> (USA) — governing commercial email communications</li>
-            <li><strong>GDPR</strong> (EU General Data Protection Regulation 2016/679) — to the extent applicable for EU-based users</li>
+            <li><strong>COPPA</strong> (Children's Online Privacy Protection Act, USA, our platform is strictly 18+)</li>
+            <li><strong>CAN-SPAM Act</strong> (USA), governing commercial email communications</li>
+            <li><strong>GDPR</strong> (EU General Data Protection Regulation 2016/679), to the extent applicable for EU-based users</li>
           </ul>
         </Section>
 
@@ -44,7 +44,7 @@ function PrivacyEN() {
             <li><strong>Identity & Profile:</strong> display name, date of birth, gender pronouns, sexual orientation, relationship status, city/country, photos, bio, dating archetype</li>
             <li><strong>Matching Data:</strong> answers to our 21 compatibility questions (values, lifestyle, relationship goals)</li>
             <li><strong>Communications:</strong> messages exchanged between users on the platform</li>
-            <li><strong>Transactional Data:</strong> subscription tier, credit balance, purchase history (processed via Stripe — we do not store full card details)</li>
+            <li><strong>Transactional Data:</strong> subscription tier, credit balance, purchase history (processed via Stripe, we do not store full card details)</li>
             <li><strong>Technical Data:</strong> IP address, device type, browser, access logs, language preference</li>
             <li><strong>Sensitive Data:</strong> sexual orientation and relationship information. This data is collected solely for matching purposes and is never sold or shared with third parties for advertising.</li>
           </ul>
@@ -78,7 +78,7 @@ function PrivacyEN() {
         </Section>
 
         <Section title="7. Data Sharing & Third Parties">
-          <p>We do not sell your personal data. We share it only when strictly necessary to operate the platform — with trusted payment processors, hosting providers, and mapping services. We may also disclose data when required by law or to protect the safety of our users.</p>
+          <p>We do not sell your personal data. We share it only when strictly necessary to operate the platform, with trusted payment processors, hosting providers, and mapping services. We may also disclose data when required by law or to protect the safety of our users.</p>
           <p className="mt-2">All third-party service providers are contractually bound to protect your data and may only use it for the purposes we specify.</p>
         </Section>
 
@@ -155,9 +155,9 @@ function PrivacyFR() {
           <p>Cette politique s'applique à tous les utilisateurs de Nina Purple dans le monde et est conforme aux lois suivantes :</p>
           <ul className="list-disc ml-5 mt-2 space-y-1">
             <li><strong>Wyoming Statutory Close Corporation Act</strong> (W.S. § 17-17-101 et suiv.) et <strong>Loi sur la protection des consommateurs du Wyoming</strong> (W.S. § 40-12-101 et suiv.)</li>
-            <li><strong>COPPA</strong> (États-Unis) — notre plateforme est strictement réservée aux 18 ans et plus</li>
-            <li><strong>CAN-SPAM Act</strong> (États-Unis) — communications par courriel</li>
-            <li><strong>RGPD</strong> (UE 2016/679) — dans la mesure applicable aux utilisateurs de l'UE</li>
+            <li><strong>COPPA</strong> (États-Unis), notre plateforme est strictement réservée aux 18 ans et plus</li>
+            <li><strong>CAN-SPAM Act</strong> (États-Unis), communications par courriel</li>
+            <li><strong>RGPD</strong> (UE 2016/679), dans la mesure applicable aux utilisateurs de l'UE</li>
           </ul>
         </Section>
 
@@ -166,9 +166,9 @@ function PrivacyFR() {
             <li><strong>Identité et profil :</strong> nom d'affichage, date de naissance, pronoms, orientation sexuelle, statut relationnel, ville/pays, photos, biographie, archétype</li>
             <li><strong>Données de compatibilité :</strong> réponses aux 21 questions de compatibilité</li>
             <li><strong>Communications :</strong> messages échangés sur la plateforme</li>
-            <li><strong>Données transactionnelles :</strong> abonnement, solde de crédits, historique d'achats (traitement via Stripe — nous ne stockons pas les données de carte complètes)</li>
+            <li><strong>Données transactionnelles :</strong> abonnement, solde de crédits, historique d'achats (traitement via Stripe, nous ne stockons pas les données de carte complètes)</li>
             <li><strong>Données techniques :</strong> adresse IP, type d'appareil, navigateur, journaux d'accès, préférence de langue</li>
-            <li><strong>Données sensibles :</strong> orientation sexuelle et préférences relationnelles — collectées uniquement à des fins de compatibilité, jamais vendues ni partagées à des fins publicitaires</li>
+            <li><strong>Données sensibles :</strong> orientation sexuelle et préférences relationnelles, collectées uniquement à des fins de compatibilité, jamais vendues ni partagées à des fins publicitaires</li>
           </ul>
         </Section>
 
@@ -200,7 +200,7 @@ function PrivacyFR() {
         </Section>
 
         <Section title="7. Partage et tiers">
-          <p>Nous ne vendons pas vos données personnelles. Nous les partageons uniquement lorsque c'est strictement nécessaire au fonctionnement de la plateforme — avec des prestataires de paiement, d'hébergement et de cartographie de confiance. Nous pouvons également divulguer des données lorsque la loi l'exige ou pour protéger la sécurité de nos utilisateurs.</p>
+          <p>Nous ne vendons pas vos données personnelles. Nous les partageons uniquement lorsque c'est strictement nécessaire au fonctionnement de la plateforme, avec des prestataires de paiement, d'hébergement et de cartographie de confiance. Nous pouvons également divulguer des données lorsque la loi l'exige ou pour protéger la sécurité de nos utilisateurs.</p>
           <p className="mt-2">Tous nos prestataires sont contractuellement tenus de protéger vos données et ne peuvent les utiliser qu'aux fins que nous définissons.</p>
         </Section>
 
