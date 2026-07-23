@@ -145,7 +145,7 @@ export default function Landing() {
               to="/experiences"
               className="px-10 py-4 border border-[rgba(245,168,0,0.3)] text-[#F5A800] rounded-full text-base font-medium tracking-wide hover:bg-[rgba(245,168,0,0.08)] transition-all duration-300"
             >
-              {lang === 'fr' ? 'Se découvrir en Martinique' : 'Discover yourself in Martinique'}
+              {lang === 'fr' ? 'Explorer les expériences' : 'Explore Experiences'}
             </Link>
           </motion.div>
 
