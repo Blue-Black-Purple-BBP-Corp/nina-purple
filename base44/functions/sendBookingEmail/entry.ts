@@ -1,5 +1,16 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.36';
 
+// Escape HTML special characters to prevent HTML injection / content spoofing
+// in emails when event fields (title, host, link) are user-supplied.
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -17,11 +28,11 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Event not found' }, { status: 404 });
     }
 
-    const title = match.title_en || match.title_fr || 'Event';
-    const date = match.event_date || '';
-    const time = match.event_time || '';
-    const link = match.connection_link || '';
-    const host = match.host_name || 'Nina Purple';
+    const title = escapeHtml(match.title_en || match.title_fr || 'Event');
+    const date = escapeHtml(match.event_date || '');
+    const time = escapeHtml(match.event_time || '');
+    const link = escapeHtml(match.connection_link || '');
+    const host = escapeHtml(match.host_name || 'Nina Purple');
 
     if (action === 'book') {
       await base44.integrations.Core.SendEmail({
