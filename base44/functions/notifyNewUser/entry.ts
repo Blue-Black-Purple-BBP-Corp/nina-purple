@@ -10,15 +10,15 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data, event } = await req.json();
+    const { event } = await req.json();
 
-    const profile = data || {};
+    // Fetch the caller's profile directly from the database rather than trusting
+    // user-supplied data in the request body. This prevents system-notification
+    // spoofing, where an attacker could craft a misleading display_name/city to
+    // social-engineer admins viewing the Admin Panel.
+    const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_id: user.id });
+    const profile = profiles[0] || {};
 
-    // Enforce that the caller can only notify about their own registration
-    if (profile.user_id && profile.user_id !== user.id) {
-      console.warn('[notifyNewUser] user_id mismatch — caller:', user.id, 'payload user_id:', profile.user_id);
-      return Response.json({ error: 'Forbidden' }, { status: 403 });
-    }
     // HTML-escape untrusted user-supplied fields before interpolation into the email body
     const escapeHtml = (str) => String(str ?? '')
       .replace(/&/g, '&amp;')
@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;');
 
-    const displayName = profile.display_name || 'Unknown';
+    const displayName = profile.full_name || profile.display_name || 'Unknown';
     const city = profile.city || 'Unknown';
     const phone = profile.phone || 'Not provided';
     const tier = profile.subscription_tier || 'solar';
@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
     const safeArchetype = escapeHtml(archetype);
     const safeTier = escapeHtml(tier.charAt(0).toUpperCase() + tier.slice(1));
     const safeLang = escapeHtml(lang.toUpperCase());
-    const safeProfileId = escapeHtml(profile.user_id || 'N/A');
+    const safeProfileId = escapeHtml(user.id);
 
     const body = [
       `👤 Name: ${displayName}`,
@@ -51,14 +51,14 @@ Deno.serve(async (req) => {
       `⭐ Plan: ${tier.charAt(0).toUpperCase() + tier.slice(1)}`,
       `🌐 Language: ${lang.toUpperCase()}`,
       `🕐 Joined: ${createdDate} (ET)`,
-      `Profile ID: ${profile.user_id || 'N/A'}`,
+      `Profile ID: ${user.id}`,
     ].join('\n');
 
     await base44.asServiceRole.entities.AdminNotification.create({
       type: 'new_registration',
       title: `New Member: ${safeDisplayName}`,
       body,
-      related_user_id: profile.user_id || null,
+      related_user_id: user.id,
     });
 
     // Send email notification to admin inbox
