@@ -108,6 +108,20 @@ Deno.serve(async (req) => {
   const { target_user_id } = await req.json();
   if (!target_user_id) return Response.json({ error: 'target_user_id required' }, { status: 400 });
 
+  // Authorization: an unlocked connection between the caller and the target must exist.
+  // RLS on Connection already restricts reads to connections involving the caller,
+  // and is_unlocked enforces the payment/privacy boundary before answers are revealed.
+  const connections = await base44.entities.Connection.filter({
+    $or: [
+      { from_user_id: user.id, to_user_id: target_user_id },
+      { from_user_id: target_user_id, to_user_id: user.id },
+    ],
+    is_unlocked: true,
+  });
+  if (!connections.length) {
+    return Response.json({ error: 'No unlocked connection with this user' }, { status: 403 });
+  }
+
   // Fetch both users' answers
   const [myAnswersArr, theirAnswersArr] = await Promise.all([
     base44.entities.MatchingAnswers.filter({ user_id: user.id }),
