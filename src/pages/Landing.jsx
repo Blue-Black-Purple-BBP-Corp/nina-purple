@@ -93,7 +93,7 @@ export default function Landing() {
             transition={{ duration: 0.6, delay: 0.15 }}
             className="text-[#F5A800] text-sm font-semibold uppercase tracking-[0.25em] mb-5"
           >
-            {lang === 'fr' ? 'Communauté de rencontres conscientes · Sans swipe · La compatibilité avant tout' : 'Conscious Dating Community · No Swiping · Compatibility First'}
+            {lang === 'fr' ? 'Communauté de rencontres conscientes' : 'Conscious Dating Community'}
           </motion.p>
 
           <motion.h1
