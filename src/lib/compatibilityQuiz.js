@@ -90,7 +90,7 @@ export const BIG5_ITEMS = [
   // Neuroticism
   { id: 'b5_n1', trait: 'neuroticism', reverse: false,
     en: 'I get stressed easily.',
-    fr: 'Je me stresse facilement.' },
+    fr: 'Je stresse facilement.' },
   { id: 'b5_n2', trait: 'neuroticism', reverse: true,
     en: 'I relax easily.',
     fr: 'Je me détends facilement.' },
@@ -98,8 +98,8 @@ export const BIG5_ITEMS = [
     en: 'I worry about a lot of things.',
     fr: "Je m'inquiète pour beaucoup de choses." },
   { id: 'b5_n4', trait: 'neuroticism', reverse: true,
-    en: 'I seldom feel down.',
-    fr: 'Je me sens rarement abattu(e).' },
+    en: 'I rarely feel depressed.',
+    fr: 'Je me sens rarement déprimé.' },
   // Openness
   { id: 'b5_o1', trait: 'openness', reverse: false,
     en: 'I have a vivid imagination.',
