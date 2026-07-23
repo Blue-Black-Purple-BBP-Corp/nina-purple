@@ -5,8 +5,6 @@ import { ChevronLeft, ChevronRight, Loader2, Share2, Sparkles, Check } from 'luc
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LanguageContext';
 import { ninaIcon } from '@/lib/images';
-import ThemeToggle from '@/components/ThemeToggle';
-import LanguageToggle from '@/components/LanguageToggle';
 import CompatibilityResultCard from '@/components/CompatibilityResultCard';
 import {
   ECRS_ITEMS, BIG5_ITEMS, LIKERT_7, LIKERT_5,
@@ -146,12 +144,6 @@ export default function CompatibilityProfile() {
 
   return (
     <div className="min-h-screen bg-[#0B0510] flex flex-col">
-      {/* Top toggles */}
-      <div className="fixed top-4 right-4 z-[100] flex items-center gap-2">
-        <ThemeToggle />
-        <LanguageToggle />
-      </div>
-
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 max-w-xl mx-auto w-full">
         <AnimatePresence mode="wait">
 
