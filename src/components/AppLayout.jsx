@@ -15,11 +15,28 @@ export default function AppLayout() {
   const { t } = useTranslation(lang);
   const [authChecked, setAuthChecked] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [checkingOnboarding, setCheckingOnboarding] = useState(false);
 
   useEffect(() => {
-    base44.auth.isAuthenticated().then(auth => {
+    base44.auth.isAuthenticated().then(async (auth) => {
       setIsAuthenticated(auth);
       setAuthChecked(true);
+      if (!auth) return;
+      // Onboarding gate: any authenticated user without a completed profile
+      // must go through onboarding. This closes the Google/OAuth signup bypass.
+      setCheckingOnboarding(true);
+      try {
+        const user = await base44.auth.me();
+        const profiles = await base44.entities.UserProfile.filter({ user_id: user.id });
+        const profile = profiles[0];
+        if (!profile || !profile.onboarding_complete) {
+          window.location.href = '/onboarding';
+          return;
+        }
+      } catch (e) {
+        console.error('Onboarding gate check failed:', e);
+      }
+      setCheckingOnboarding(false);
     });
   }, []);
 
@@ -35,7 +52,7 @@ export default function AppLayout() {
 
   const isActive = (path) => location.pathname === path;
 
-  if (!authChecked) {
+  if (!authChecked || (isAuthenticated && checkingOnboarding)) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-[#0B0510]">
         <Loader2 className="w-8 h-8 text-[#F5A800] animate-spin" />
