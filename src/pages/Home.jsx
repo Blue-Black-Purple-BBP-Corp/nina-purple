@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Calendar, MessageCircle, Star, Coins, Users, Loader2, Heart, User } from 'lucide-react';
 import { useLang } from '@/lib/LanguageContext';
@@ -24,6 +24,7 @@ function CompatibilityOrb({ score }) {
 }
 
 export default function Home() {
+  const navigate = useNavigate();
   const { lang } = useLang();
   const { t } = useTranslation(lang);
   const [pricingOpen, setPricingOpen] = useState(false);
@@ -54,6 +55,12 @@ export default function Home() {
     setUserProfile(profile);
     setConnections(conns);
     setRooms(chatRooms);
+
+    // Compatibility Profile must be completed before matches are shown
+    if (profile && !profile.attachment_style) {
+      navigate('/compatibility-profile');
+      return;
+    }
 
     // Load display names for connections via server-mediated projection (never direct UserProfile access)
     if (conns.length > 0) {

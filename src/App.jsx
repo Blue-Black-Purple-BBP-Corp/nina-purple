@@ -29,6 +29,7 @@ import Messages from '@/pages/Messages';
 import Events from '@/pages/Events';
 import Community from '@/pages/Community';
 import Profile from '@/pages/Profile';
+import CompatibilityProfile from '@/pages/CompatibilityProfile';
 import Admin from '@/pages/Admin';
 import AppLayout from '@/components/AppLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -83,6 +84,7 @@ const AuthenticatedApp = () => {
         <Route path="/events" element={<Events />} />
         <Route path="/community" element={<Community />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/compatibility-profile" element={<CompatibilityProfile />} />
         <Route element={<ProtectedRoute requireRole="admin" unauthenticatedElement={<Navigate to="/home" replace />} />}>
           <Route path="/admin" element={<Admin />} />
         </Route>

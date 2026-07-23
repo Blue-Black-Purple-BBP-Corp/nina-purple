@@ -10,6 +10,9 @@ const ALLOWED_FIELDS = new Set([
   'dating_archetype', 'bio', 'photos', 'photos_private',
   'show_in_listings', 'allow_messages_all', 'profile_completeness',
   'couple_consent_given', 'language',
+  'attachment_style', 'attachment_anxiety', 'attachment_avoidance',
+  'big5_openness', 'big5_conscientiousness', 'big5_extraversion',
+  'big5_agreeableness', 'big5_neuroticism',
 ]);
 
 Deno.serve(async (req) => {

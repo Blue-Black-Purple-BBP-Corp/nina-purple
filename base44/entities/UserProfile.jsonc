@@ -149,6 +149,36 @@
     "couple_consent_given": {
       "type": "boolean",
       "default": false
+    },
+    "attachment_style": {
+      "type": "string",
+      "enum": [
+        "secure",
+        "anxious",
+        "avoidant",
+        "fearful"
+      ]
+    },
+    "attachment_anxiety": {
+      "type": "number"
+    },
+    "attachment_avoidance": {
+      "type": "number"
+    },
+    "big5_openness": {
+      "type": "number"
+    },
+    "big5_conscientiousness": {
+      "type": "number"
+    },
+    "big5_extraversion": {
+      "type": "number"
+    },
+    "big5_agreeableness": {
+      "type": "number"
+    },
+    "big5_neuroticism": {
+      "type": "number"
     }
   },
   "required": [

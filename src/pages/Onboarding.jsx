@@ -905,7 +905,7 @@ export default function Onboarding() {
                   <p className="text-foreground/60 leading-relaxed">{t('onboarding.complete_desc')}</p>
                 )}
               </div>
-              <button onClick={() => { window.location.href = '/home'; }}
+              <button onClick={() => { window.location.href = '/compatibility-profile'; }}
                 className="w-full py-5 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all shadow-[0_0_40px_rgba(245,168,0,0.4)] text-lg">
                 {t('onboarding.go_home')}
               </button>
