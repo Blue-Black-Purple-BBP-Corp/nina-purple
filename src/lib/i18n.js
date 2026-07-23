@@ -214,7 +214,7 @@ export const translations = {
       tagline2: 'Vraie Profondeur.',
       tagline3: 'L\'amour qui tient.',
       subtitle: 'Pour ceux qui ont assez vécu pour savoir ce qu\'ils veulent, et qui sont prêts à le poursuivre avec honnêteté et profondeur.',
-      cta_join: 'Commencer Votre Voyage',
+      cta_join: 'Commencer Votre Parcours',
       cta_learn: 'Comment Ça Marche',
       mission_title: 'Rencontres avec Intention',
       mission_body: 'Nous avons supprimé la mise en scène. La compatibilité se mesure à ce qui nourrit vraiment une relation : vos valeurs, votre vision, et la façon dont vous donnez et recevez l\'amour.',
