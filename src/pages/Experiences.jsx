@@ -433,7 +433,7 @@ export default function Experiences() {
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="relative z-10 max-w-3xl mx-auto space-y-6">
           <div className="inline-block px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-widest border mb-2"
             style={{ color: '#F5A800', borderColor: 'rgba(245,168,0,0.5)' }}>
-            2026 · Martinique · Caribbean
+            Martinique · Caribbean
           </div>
           <h1 className="font-serif text-4xl md:text-6xl leading-tight" style={{ color: '#F0E6FF' }}>
             {isFr ? 'Découvrez la relation la plus importante de votre vie.' : 'Discover the most important relationship of your life.'}
@@ -580,9 +580,8 @@ export default function Experiences() {
               <div className="p-8 md:p-10">
                 <div className="flex items-center gap-3 mb-4">
                   <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-[#F5A800] text-[#0B0510]">
-                    {dest.year}
+                    {isFr ? dest.region_fr : dest.region_en}
                   </span>
-                  <span className="text-[#F0E6FF]/50 text-sm">{isFr ? dest.region_fr : dest.region_en}</span>
                 </div>
                 <h3 className="font-serif text-3xl text-[#F0E6FF] mb-2">{isFr ? dest.name_fr : dest.name_en}</h3>
                 <p className="font-serif text-xl italic text-[#F5A800] mb-4">{isFr ? dest.tagline_fr : dest.tagline_en}</p>
@@ -698,7 +697,7 @@ export default function Experiences() {
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <img src={ninaHorizontal} alt="Nina Purple" className="h-8 object-contain opacity-60" />
           <div className="text-[#F0E6FF]/30 text-sm text-center">
-            © 2026 Nina Purple
+            © Nina Purple
             <span className="mx-2">·</span>
             <Link to="/" className="underline hover:text-[#F5A800]">{isFr ? 'Accueil' : 'Home'}</Link>
             <span className="mx-2">·</span>

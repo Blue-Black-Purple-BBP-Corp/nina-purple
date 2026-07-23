@@ -4,10 +4,9 @@
 
 const BASE = '/images/Martinique/';
 
-// ── Martinique (featured destination, 2026) ─────────────────────────────────
+// ── Martinique (featured destination) ───────────────────────────────────────
 export const MARTINIQUE = {
   id: 'martinique',
-  year: 2026,
   name_en: 'Martinique',
   name_fr: 'Martinique',
   region_en: 'Caribbean',
