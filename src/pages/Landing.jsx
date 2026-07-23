@@ -145,7 +145,7 @@ export default function Landing() {
               to="/experiences"
               className="px-10 py-4 border border-[rgba(245,168,0,0.3)] text-[#F5A800] rounded-full text-base font-medium tracking-wide hover:bg-[rgba(245,168,0,0.08)] transition-all duration-300"
             >
-              {lang === 'fr' ? 'Découvrir la Martinique 2026' : 'Discover Martinique 2026'}
+              {lang === 'fr' ? 'Se découvrir en Martinique' : 'Discover yourself in Martinique'}
             </Link>
           </motion.div>
 
@@ -456,7 +456,7 @@ export default function Landing() {
             className="h-8 object-contain opacity-60"
           />
           <div className="text-[#F0E6FF]/30 text-sm text-center">
-            © 2026 Nina Purple · contact@NinaPurple.love
+            © Nina Purple · contact@NinaPurple.love
             <span className="mx-2">·</span>
             <Link to="/experiences" className="underline hover:text-[#F5A800] transition-colors">
               {lang === 'fr' ? 'Expériences' : 'Experiences'}
