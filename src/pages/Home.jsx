@@ -90,7 +90,7 @@ export default function Home() {
     );
   }
 
-  const displayName = userProfile?.display_name || authUser?.full_name || (lang === 'fr' ? 'Bienvenue' : 'Welcome');
+  const displayName = userProfile?.full_name || userProfile?.display_name || authUser?.full_name || (lang === 'fr' ? 'Bienvenue' : 'Welcome');
   const tier = userProfile?.subscription_tier || 'solar';
   const credits = userProfile?.credit_balance ?? 0;
   const completeness = userProfile?.profile_completeness ?? 0;

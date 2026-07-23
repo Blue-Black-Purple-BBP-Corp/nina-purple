@@ -5,7 +5,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.36';
 // consecutive_no_match_months, last_bbp_conversion_date, is_verified) are
 // intentionally excluded — only Stripe webhooks and admin functions set those.
 const ALLOWED_FIELDS = new Set([
-  'display_name', 'birthdate', 'city', 'country', 'phone',
+  'full_name', 'display_name', 'birthdate', 'city', 'country', 'phone',
   'sexual_orientation', 'gender_pronoun', 'relationship_status',
   'dating_archetype', 'bio', 'photos', 'photos_private',
   'show_in_listings', 'allow_messages_all', 'profile_completeness',

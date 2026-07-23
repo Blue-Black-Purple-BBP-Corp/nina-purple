@@ -5,6 +5,9 @@
     "user_id": {
       "type": "string"
     },
+    "full_name": {
+      "type": "string"
+    },
     "display_name": {
       "type": "string"
     },

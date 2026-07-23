@@ -105,7 +105,9 @@ export default function Profile() {
     );
   }
 
-  const displayName = userProfile?.display_name || authUser?.full_name || '—';
+  const fullName = userProfile?.full_name || '';
+  const displayAlias = userProfile?.display_name || '';
+  const displayName = fullName || displayAlias || authUser?.full_name || '—';
   const city        = userProfile?.city || '';
   const tier        = userProfile?.subscription_tier || 'solar';
   const credits     = userProfile?.credit_balance ?? 0;
@@ -114,6 +116,7 @@ export default function Profile() {
 
   const calcMissingItems = () => {
     const items = [];
+    if (!userProfile?.full_name) items.push(lang === 'fr' ? 'Ajouter votre nom' : 'Add your name');
     if (!userProfile?.display_name) items.push(lang === 'fr' ? 'Ajouter un nom d\'affichage' : 'Add a display name');
     if (!userProfile?.city) items.push(lang === 'fr' ? 'Ajouter votre ville' : 'Add your city');
     if (!userProfile?.birthdate) items.push(lang === 'fr' ? 'Ajouter votre date de naissance' : 'Add your birthdate');
@@ -206,6 +209,9 @@ export default function Profile() {
         </div>
 
         <h2 className="font-serif text-2xl text-[#F0E6FF]">{displayName}</h2>
+        {displayAlias && displayAlias !== displayName && (
+          <p className="text-[#F0E6FF]/40 text-sm mt-0.5 italic">@{displayAlias}</p>
+        )}
         {city && <p className="text-[#F0E6FF]/40 text-sm mt-0.5">{city}</p>}
 
         <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full mt-2"
@@ -290,7 +296,7 @@ export default function Profile() {
         {/* Delete Account */}
         {!deleteConfirm ? (
           <button onClick={() => setDeleteConfirm(true)}
-            className="flex items-center gap-2 text-[#F0E6FF]/15 text-xs hover:text-red-500 transition-colors mt-2">
+            className="flex items-center gap-2 text-red-400/70 text-xs hover:text-red-500 transition-colors mt-2">
             <Trash2 className="w-3.5 h-3.5" />
             {lang === 'fr' ? 'Supprimer mon compte' : 'Delete my account'}
           </button>

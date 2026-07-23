@@ -15,6 +15,7 @@ export default function EditProfileModal({ isOpen, onClose, userProfile, matchin
   useEffect(() => {
     if (isOpen && userProfile) {
       setProfile({
+        full_name: userProfile.full_name || '',
         display_name: userProfile.display_name || '',
         city: userProfile.city || '',
         phone: userProfile.phone || '',
@@ -70,7 +71,8 @@ export default function EditProfileModal({ isOpen, onClose, userProfile, matchin
 
   const calcCompleteness = () => {
     let score = 0;
-    if (profile.display_name) score += 10;
+    if (profile.full_name) score += 5;
+    if (profile.display_name) score += 5;
     if (profile.city) score += 10;
     if (profile.birthdate) score += 10;
     if (profile.sexual_orientation) score += 10;
@@ -116,6 +118,10 @@ export default function EditProfileModal({ isOpen, onClose, userProfile, matchin
           {/* TAB: Profile Info */}
           {tab === 'profile' && (
             <div className="space-y-3">
+              <div>
+                <label className={labelClass}>{lang === 'fr' ? 'Nom' : 'Name'}</label>
+                <input value={profile.full_name} onChange={e => set('full_name', e.target.value)} className={inputClass} />
+              </div>
               <div>
                 <label className={labelClass}>{lang === 'fr' ? 'Nom affiché' : 'Display name'}</label>
                 <input value={profile.display_name} onChange={e => set('display_name', e.target.value)} className={inputClass} />

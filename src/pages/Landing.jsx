@@ -143,7 +143,7 @@ export default function Landing() {
             </Link>
             <Link
               to="/experiences"
-              className="px-10 py-4 border border-[rgba(245,168,0,0.3)] text-[#F5A800] rounded-full text-base font-medium tracking-wide hover:bg-[rgba(245,168,0,0.08)] transition-all duration-300"
+              className="px-10 py-4 border border-[#7B2FBE] text-[#7B2FBE] rounded-full text-base font-medium tracking-wide hover:bg-[rgba(123,47,190,0.12)] transition-all duration-300"
             >
               {lang === 'fr' ? 'Explorer les expériences' : 'Explore Experiences'}
             </Link>

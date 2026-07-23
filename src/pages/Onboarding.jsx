@@ -53,7 +53,7 @@ export default function Onboarding() {
 
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState({});
-  const [profile, setProfile] = useState({ display_name: '', city: '', birthdate: '', sexual_orientation: '', gender_pronoun: '', relationship_status: '' });
+  const [profile, setProfile] = useState({ full_name: '', display_name: '', city: '', birthdate: '', sexual_orientation: '', gender_pronoun: '', relationship_status: '' });
   const [archetype, setArchetype] = useState('');
   const [selectedPlan, setSelectedPlan] = useState('solar');
   const [selectedDuration, setSelectedDuration] = useState('1m');
@@ -192,7 +192,8 @@ export default function Onboarding() {
 
     // Calculate accurate completeness from onboarding data
     let compScore = 0;
-    if (profile.display_name) compScore += 10;
+    if (profile.full_name) compScore += 5;
+    if (profile.display_name) compScore += 5;
     if (profile.city) compScore += 10;
     if (profile.birthdate) compScore += 10;
     if (profile.sexual_orientation) compScore += 10;
@@ -208,7 +209,8 @@ export default function Onboarding() {
     const profileCompleteness = Math.min(100, compScore);
 
     await base44.functions.invoke('createProfile', {
-      display_name: profile.display_name || user.full_name,
+      full_name: profile.full_name,
+      display_name: profile.display_name.trim() || profile.full_name.trim() || user.full_name,
       city: profile.city,
       birthdate: profile.birthdate,
       phone: phone,
@@ -575,10 +577,17 @@ export default function Onboarding() {
               <h2 className="font-serif text-3xl text-foreground">{t('onboarding.profile_title')}</h2>
 
               <div>
-                <label className="block text-foreground/60 text-sm mb-2">{t('onboarding.name_label')} <span className="text-[#F5A800]">*</span></label>
+                <label className="block text-foreground/60 text-sm mb-2">{t('onboarding.full_name_label')} <span className="text-[#F5A800]">*</span></label>
+                <input type="text" value={profile.full_name} onChange={e => setProfile(p => ({ ...p, full_name: e.target.value }))}
+                  className="w-full glass-card rounded-xl px-4 py-3 text-foreground outline-none focus:border-[rgba(245,168,0,0.4)] transition-all bg-transparent"
+                  placeholder={lang === 'fr' ? 'Votre nom complet' : 'Your full name'} />
+              </div>
+              <div>
+                <label className="block text-foreground/60 text-sm mb-2">{t('onboarding.display_name_label')} <span className="text-[#F5A800]">*</span></label>
                 <input type="text" value={profile.display_name} onChange={e => setProfile(p => ({ ...p, display_name: e.target.value }))}
                   className="w-full glass-card rounded-xl px-4 py-3 text-foreground outline-none focus:border-[rgba(245,168,0,0.4)] transition-all bg-transparent"
                   placeholder={t('onboarding.name_label')} />
+                <p className="text-foreground/30 text-xs mt-1">{t('onboarding.display_name_hint')}</p>
               </div>
 
               <div>
@@ -628,7 +637,7 @@ export default function Onboarding() {
               ))}
 
               {(() => {
-                const ok = profile.display_name.trim() && profile.city.trim() && profile.birthdate && isOver18(profile.birthdate) && !ageError && profile.sexual_orientation && profile.gender_pronoun && profile.relationship_status && phone.trim();
+                const ok = profile.full_name.trim() && profile.display_name.trim() && profile.city.trim() && profile.birthdate && isOver18(profile.birthdate) && !ageError && profile.sexual_orientation && profile.gender_pronoun && profile.relationship_status && phone.trim();
                 return (
                   <button onClick={() => ok && goNext()} disabled={!ok}
                     className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed">

@@ -4,7 +4,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.36';
 // Billing fields (subscription_tier, credit_balance) are forced server-side —
 // the client cannot grant itself a paid tier or credits at signup.
 const ALLOWED_FIELDS = new Set([
-  'display_name', 'birthdate', 'city', 'country', 'phone',
+  'full_name', 'display_name', 'birthdate', 'city', 'country', 'phone',
   'sexual_orientation', 'gender_pronoun', 'relationship_status',
   'dating_archetype', 'bio', 'photos', 'photos_private',
   'show_in_listings', 'allow_messages_all', 'profile_completeness',
