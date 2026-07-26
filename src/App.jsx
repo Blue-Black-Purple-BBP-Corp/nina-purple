@@ -34,6 +34,7 @@ import Relationship from '@/pages/Relationship';
 import Admin from '@/pages/Admin';
 import AppLayout from '@/components/AppLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import ScrollToTop from '@/components/ScrollToTop';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -104,6 +105,7 @@ function App() {
         <LanguageProvider>
           <ThemeProvider>
             <Router>
+              <ScrollToTop />
               <AuthenticatedApp />
               <CookieConsent />
               <WhatsAppFloat />
