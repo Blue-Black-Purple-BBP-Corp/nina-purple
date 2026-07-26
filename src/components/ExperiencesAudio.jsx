@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Music } from 'lucide-react';
+import { Music, Play, Volume2 } from 'lucide-react';
 import { useLang } from '@/lib/LanguageContext';
 
 // Public file served from /public/audio — space encoded for the URL.
@@ -10,25 +10,43 @@ export default function ExperiencesAudio() {
   const isFr = lang === 'fr';
   const audioRef = useRef(null);
   const [playing, setPlaying] = useState(false);
+  const [blocked, setBlocked] = useState(false);
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-    // Attempt autoplay on arrival. Browsers may block until a user gesture;
-    // if blocked, the visible native controls let the listener start it.
+    // Autoplay the moment the audio is ready to play. Waiting for `canplay`
+    // avoids calling play() before enough has buffered (a common cause of
+    // silent autoplay failure).
     const tryPlay = () => {
       audio.play()
-        .then(() => setPlaying(true))
-        .catch(() => { /* autoplay blocked — controls remain usable */ });
+        .then(() => { setPlaying(true); setBlocked(false); })
+        .catch((err) => {
+          if (err && err.name === 'NotAllowedError') setBlocked(true);
+          /* autoplay blocked — surface a one-tap affordance */
+        });
     };
-    tryPlay();
-    // Retry once the page receives its first interaction (covers blocked autoplay).
+    if (audio.readyState >= 3) {
+      tryPlay();
+    } else {
+      audio.addEventListener('canplay', tryPlay, { once: true });
+    }
+    // Browsers that block autoplay until a gesture: resume on first interaction.
     const onFirstGesture = () => {
       if (audio.paused) tryPlay();
       window.removeEventListener('pointerdown', onFirstGesture);
+      window.removeEventListener('keydown', onFirstGesture);
+      window.removeEventListener('touchstart', onFirstGesture);
     };
     window.addEventListener('pointerdown', onFirstGesture);
-    return () => window.removeEventListener('pointerdown', onFirstGesture);
+    window.addEventListener('keydown', onFirstGesture);
+    window.addEventListener('touchstart', onFirstGesture);
+    return () => {
+      audio.removeEventListener('canplay', tryPlay);
+      window.removeEventListener('pointerdown', onFirstGesture);
+      window.removeEventListener('keydown', onFirstGesture);
+      window.removeEventListener('touchstart', onFirstGesture);
+    };
   }, []);
 
   return (
@@ -39,16 +57,28 @@ export default function ExperiencesAudio() {
       aria-label={isFr ? 'Lecteur audio Nina Purple' : 'Nina Purple audio player'}
     >
       <div className="flex items-center gap-2 shrink-0">
-        <div className="relative flex items-center justify-center w-8 h-8 rounded-full"
-          style={{ background: 'rgba(245,168,0,0.12)', border: '1px solid rgba(245,168,0,0.3)' }}>
-          <Music className="w-4 h-4 text-[#F5A800]" />
-          {playing && (
+        <button
+          type="button"
+          onClick={() => { const a = audioRef.current; if (a) { a.play().then(() => { setPlaying(true); setBlocked(false); }).catch(() => {}); } }}
+          className="relative flex items-center justify-center w-8 h-8 rounded-full shrink-0"
+          style={{ background: 'rgba(245,168,0,0.12)', border: '1px solid rgba(245,168,0,0.3)' }}
+          aria-label={isFr ? 'Lire la musique' : 'Play music'}
+        >
+          {blocked
+            ? <Play className="w-4 h-4 text-[#F5A800]" fill="currentColor" />
+            : <Music className="w-4 h-4 text-[#F5A800]" />}
+          {playing && !blocked && (
             <span className="absolute inset-0 rounded-full border border-[#F5A800]/50 animate-ping" />
           )}
-        </div>
+          {blocked && (
+            <span className="absolute inset-0 rounded-full border border-[#F5A800]/60 animate-ping" />
+          )}
+        </button>
         <div className="leading-tight">
           <div className="text-[10px] uppercase tracking-widest text-[#F5A800] font-semibold">
-            {isFr ? 'En lecture' : 'Now Playing'}
+            {blocked
+              ? (isFr ? 'Appuyez pour écouter' : 'Tap to play')
+              : (isFr ? 'En lecture' : 'Now Playing')}
           </div>
           <div className="text-[11px] text-[#F0E6FF]/80 font-medium truncate max-w-[7rem]">
             Nina Purple × Martinique
