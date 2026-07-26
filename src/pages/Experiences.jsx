@@ -8,6 +8,7 @@ import ThemeToggle from '@/components/ThemeToggle';
 import { ninaHorizontal, ninaIcon } from '@/lib/images';
 import { MARTINIQUE_HERO_IMAGE, MARTINIQUE_GALLERY, DESTINATIONS } from '@/lib/martiniqueMedia';
 import MartiniqueResources from '@/components/MartiniqueResources';
+import ExperiencesAudio from '@/components/ExperiencesAudio';
 import { base44 } from '@/api/base44Client';
 
 const MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -390,6 +391,8 @@ export default function Experiences() {
 
   return (
     <div className="min-h-screen bg-[#0B0510] overflow-x-hidden scroll-smooth">
+      {/* Ambient audio — autoplays on arrival, loops, with visible controls */}
+      <ExperiencesAudio />
       {/* Styles injected for form inputs */}
       <style>{`
         .form-input { width: 100%; background: transparent; border-radius: 0.75rem; padding: 0.75rem 1rem; color: var(--foreground, #F0E6FF); outline: none; transition: border-color 0.2s; }
