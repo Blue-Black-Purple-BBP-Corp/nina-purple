@@ -13,6 +13,16 @@ const EVENT_TYPE_COLORS = {
   workshop:           '#9CA3AF',
 };
 
+// Only http(s) URLs may be used in href — blocks javascript: and other
+// dangerous schemes that would execute attacker-controlled script on click.
+const SAFE_URL = (value) => {
+  if (!value || typeof value !== 'string') return null;
+  try {
+    const u = new URL(value, window.location.origin);
+    return (u.protocol === 'http:' || u.protocol === 'https:') ? u.href : null;
+  } catch { return null; }
+};
+
 const EVENT_TYPES_EN = ['meet_greet', 'consciousness_talk', 'cultural', 'speed_dating', 'workshop'];
 const EVENT_TYPE_LABELS = {
   meet_greet:         { en: 'Meet & Greet',          fr: 'Rencontre' },
@@ -389,8 +399,8 @@ export default function Events() {
                     </div>
                   )}
 
-                  {event.connection_link && isBooked && (
-                    <a href={event.connection_link} target="_blank" rel="noopener noreferrer"
+                  {SAFE_URL(event.connection_link) && isBooked && (
+                    <a href={SAFE_URL(event.connection_link)} target="_blank" rel="noopener noreferrer"
                       className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[rgba(96,165,250,0.08)] border border-[rgba(96,165,250,0.2)] text-[#60A5FA] text-sm hover:opacity-80 transition-opacity">
                       <LinkIcon className="w-3.5 h-3.5 shrink-0" />
                       <span className="truncate">{lang === 'fr' ? 'Rejoindre l\'événement' : 'Join event'}</span>
