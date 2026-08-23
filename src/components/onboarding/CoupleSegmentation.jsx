@@ -53,7 +53,7 @@ export default function CoupleSegmentation({ profileType, setProfileType, partne
           </div>
           <h3 className="font-serif text-lg text-foreground mb-1">{isFr ? 'En couple' : 'As a Couple'}</h3>
           <p className="text-foreground/50 text-xs leading-relaxed">
-            {isFr ? 'Je crée ce profil avec mon/ma partenaire pour l\'expérience Nina Purple.' : 'I am creating this profile with my partner for the Nina Purple Experience.'}
+            {isFr ? 'Explorez Nina Purple ensemble, un parcours partagé vers une connexion plus profonde.' : 'Explore Nina Purple together, a shared journey for deeper connection.'}
           </p>
           {profileType === 'couple' && <Check className="w-4 h-4 text-[#7B2FBE] mt-2" />}
         </button>
