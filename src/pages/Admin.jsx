@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
+import MigrationForm from '@/components/admin/MigrationForm';
 import { Loader2, Search, Phone, Shield, UserCheck, UserX, Ban, CheckCircle, XCircle, Mail, MapPin, Crown, Filter, ChevronDown, MessageSquare, Bell, BellOff, Copy } from 'lucide-react';
 
 const TIER_META = {
@@ -156,6 +157,7 @@ export default function Admin() {
       <div className="flex gap-2">
         {[
           { id: 'users', label: 'Members' },
+          { id: 'migration', label: 'Migration' },
           { id: 'phone', label: 'Phone Verification' },
           { id: 'notifications', label: `Notifications${notifications.filter(n => !n.is_read).length ? ` (${notifications.filter(n => !n.is_read).length})` : ''}` },
         ].map(t => (
@@ -368,6 +370,13 @@ export default function Admin() {
               All phone numbers verified
             </div>
           )}
+        </div>
+      )}
+
+      {/* Migration Tab */}
+      {tab === 'migration' && (
+        <div className="max-w-2xl mx-auto">
+          <MigrationForm onCreated={loadData} />
         </div>
       )}
     </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, ChevronLeft, Upload, Mail, Lock, Eye, EyeOff, Loader2, X, Shield, Heart } from 'lucide-react';
@@ -78,6 +78,37 @@ export default function Onboarding() {
   const [showPassword, setShowPassword] = useState(false);
   const [showOtp, setShowOtp] = useState(false);
   const [otpCode, setOtpCode] = useState('');
+
+  // Pre-fill from an existing (admin-migrated) profile so the user doesn't
+  // re-enter data the admin already provided. Runs once on mount.
+  useEffect(() => {
+    (async () => {
+      try {
+        const me = await base44.auth.me();
+        if (!me) return;
+        const existing = await base44.entities.UserProfile.filter({ user_id: me.id });
+        if (!existing.length) return;
+        const p = existing[0];
+        const nameParts = (p.full_name || '').split(' ').filter(Boolean);
+        setProfile(prev => ({
+          ...prev,
+          first_name: prev.first_name || nameParts[0] || '',
+          middle_name: prev.middle_name || (nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : ''),
+          last_name: prev.last_name || (nameParts.length > 1 ? nameParts[nameParts.length - 1] : ''),
+          display_name: prev.display_name || p.display_name || '',
+          city: prev.city || p.city || '',
+          birthdate: prev.birthdate || p.birthdate || '',
+          sexual_orientation: prev.sexual_orientation || '',
+          gender_pronoun: prev.gender_pronoun || '',
+          relationship_status: prev.relationship_status || '',
+        }));
+        if (p.dating_archetype) setArchetype(a => a || p.dating_archetype);
+        if (p.phone) setPhone(v => v || p.phone);
+      } catch (e) {
+        // ignore — fresh onboarding if no existing profile or not logged in
+      }
+    })();
+  }, []);
 
   const currentStep = STEPS[step];
   const progress = (step / (STEPS.length - 1)) * 100;
@@ -230,11 +261,16 @@ export default function Onboarding() {
       partner_email: profileType === 'couple' ? partnerEmail.toLowerCase() : null,
     });
 
-    await base44.entities.MatchingAnswers.create({
-      user_id: user.id,
+    const existingAnswers = await base44.entities.MatchingAnswers.filter({ user_id: user.id });
+    const answersPayload = {
       ...answers,
       questions_answered: Object.keys(answers).filter(k => answers[k]).length,
-    });
+    };
+    if (existingAnswers.length > 0) {
+      await base44.entities.MatchingAnswers.update(existingAnswers[0].id, answersPayload);
+    } else {
+      await base44.entities.MatchingAnswers.create({ user_id: user.id, ...answersPayload });
+    }
 
     // If couple, send partner link-up request or invite
     if (profileType === 'couple' && partnerEmail) {

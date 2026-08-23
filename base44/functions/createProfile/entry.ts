@@ -30,10 +30,17 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'display_name is required' }, { status: 400 });
     }
 
-    // Prevent duplicate profile creation
+    // Upsert: if a profile already exists (e.g. admin-migrated account), update it
+    // with the onboarding data instead of rejecting. Billing fields are not
+    // overwritten on update — only the ALLOWED_FIELDS from the request body.
     const existing = await base44.asServiceRole.entities.UserProfile.filter({ user_id: user.id });
     if (existing.length > 0) {
-      return Response.json({ error: 'Profile already exists' }, { status: 409 });
+      const updateData = {};
+      for (const [key, value] of Object.entries(body)) {
+        if (ALLOWED_FIELDS.has(key)) updateData[key] = value;
+      }
+      const updated = await base44.asServiceRole.entities.UserProfile.update(existing[0].id, updateData);
+      return Response.json({ success: true, profile: updated, updated: true });
     }
 
     const created = await base44.asServiceRole.entities.UserProfile.create(profileData);
