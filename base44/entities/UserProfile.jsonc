@@ -182,6 +182,25 @@
     },
     "big5_neuroticism": {
       "type": "number"
+    },
+    "is_ambassador": {
+      "type": "boolean",
+      "default": false
+    },
+    "ambassador_signup_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_profile_review_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reviewed_fields": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
     }
   },
   "required": [

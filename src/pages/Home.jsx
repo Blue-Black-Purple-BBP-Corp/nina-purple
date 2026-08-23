@@ -8,6 +8,9 @@ import PricingModal from '@/components/PricingModal';
 import PartnerLinkNotifications from '@/components/PartnerLinkNotifications';
 import CoupleComparison from '@/components/CoupleComparison';
 import DailyInsightCard from '@/components/DailyInsightCard';
+import ProfileProgressPanel from '@/components/dashboard/ProfileProgressPanel';
+import EditProfileModal from '@/components/profile/EditProfileModal';
+import ManagePhotosModal from '@/components/profile/ManagePhotosModal';
 import { base44 } from '@/api/base44Client';
 
 const ARCHETYPE_COLORS = { blue: '#60A5FA', black: '#9CA3AF', purple: '#A855F7' };
@@ -36,6 +39,9 @@ export default function Home() {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showComparison, setShowComparison] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [photosOpen, setPhotosOpen] = useState(false);
+  const [matchingAnswers, setMatchingAnswers] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -46,16 +52,18 @@ export default function Home() {
     const user = await base44.auth.me();
     setAuthUser(user);
 
-    const [profiles, conns, chatRooms] = await Promise.all([
+    const [profiles, conns, chatRooms, answers] = await Promise.all([
       base44.entities.UserProfile.filter({ user_id: user.id }),
       base44.entities.Connection.filter({ from_user_id: user.id }),
       base44.entities.ChatRoom.filter({ is_active: true }, '-posts_count', 3),
+      base44.entities.MatchingAnswers.filter({ user_id: user.id }),
     ]);
 
     const profile = profiles[0] || null;
     setUserProfile(profile);
     setConnections(conns);
     setRooms(chatRooms);
+    setMatchingAnswers(answers[0] || null);
 
     // Compatibility Profile must be completed before matches are shown
     if (profile && !profile.attachment_style) {
@@ -210,21 +218,15 @@ export default function Home() {
         </motion.div>
       )}
 
-      {/* Profile completeness */}
-      <motion.div {...fadeUp(0.15)} className="glass-card rounded-2xl p-4">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-[#F0E6FF]/70 text-sm">{t('home.profile_complete')}</span>
-          <span className="text-[#F5A800] font-bold text-sm">{completeness}%</span>
-        </div>
-        <div className="w-full bg-[rgba(240,230,255,0.05)] rounded-full h-1.5">
-          <div className="h-1.5 rounded-full bg-[#F5A800]" style={{ width: `${completeness}%`, boxShadow: '0 0 8px rgba(245,168,0,0.5)' }} />
-        </div>
-        {completeness < 100 && (
-          <Link to="/profile" className="text-[#F5A800]/60 text-xs mt-2 block hover:text-[#F5A800] transition-colors">
-            {lang === 'fr' ? 'Compléter votre profil →' : 'Complete your profile →'}
-          </Link>
-        )}
-      </motion.div>
+      {/* Profile progress panel — completeness, changes since last review,
+          key fields to complete, and optional activities (community + ambassador) */}
+      <ProfileProgressPanel
+        profile={userProfile}
+        lang={lang}
+        onRefresh={loadData}
+        onOpenEdit={() => setEditOpen(true)}
+        onOpenPhotos={() => setPhotosOpen(true)}
+      />
 
       {/* My Connections — only for individuals */}
       {!isCouple && (
@@ -308,6 +310,25 @@ export default function Home() {
       </motion.div>
 
       <PricingModal isOpen={pricingOpen} onClose={() => setPricingOpen(false)} />
+
+      {/* Inline edit modals — opened from the profile progress panel so field
+          completion happens without leaving the dashboard (tight feedback loop) */}
+      <EditProfileModal
+        isOpen={editOpen}
+        onClose={() => setEditOpen(false)}
+        userProfile={userProfile}
+        matchingAnswers={matchingAnswers}
+        onUpdate={(updated) => { setUserProfile(updated); loadData(); }}
+        onAnswersUpdate={setMatchingAnswers}
+        lang={lang}
+      />
+      <ManagePhotosModal
+        isOpen={photosOpen}
+        onClose={() => setPhotosOpen(false)}
+        userProfile={userProfile}
+        onUpdate={(updated) => { setUserProfile(updated); loadData(); }}
+        lang={lang}
+      />
 
       {/* Couple Comparison Modal */}
       {showComparison && userProfile?.partner_user_id && (

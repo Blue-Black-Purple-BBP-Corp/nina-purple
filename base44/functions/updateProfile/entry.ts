@@ -13,6 +13,7 @@ const ALLOWED_FIELDS = new Set([
   'attachment_style', 'attachment_anxiety', 'attachment_avoidance',
   'big5_openness', 'big5_conscientiousness', 'big5_extraversion',
   'big5_agreeableness', 'big5_neuroticism',
+  'last_profile_review_date', 'reviewed_fields',
 ]);
 
 Deno.serve(async (req) => {
