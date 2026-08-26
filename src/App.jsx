@@ -1,3 +1,4 @@
+// Nina Purple — Ambassador application pipeline
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
