@@ -661,6 +661,9 @@ export default function Onboarding() {
               </div>
 
               <div>
+                <label className="block text-foreground/60 text-sm mb-2">
+                  {lang === 'fr' ? 'Téléphone' : 'Phone'} <span className="text-[#F5A800]">*</span>
+                </label>
                 <input type="tel" value={phone} onChange={e => setPhone(e.target.value)}
                   className="w-full glass-card rounded-xl px-4 py-3 text-foreground outline-none focus:border-[rgba(245,168,0,0.4)] transition-all bg-transparent"
                   placeholder={lang === 'fr' ? '+1 514 555 0123' : '+1 514 555 0123'} />
