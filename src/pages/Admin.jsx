@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import MigrationForm from '@/components/admin/MigrationForm';
-import { Loader2, Search, Phone, Shield, UserCheck, UserX, Ban, CheckCircle, XCircle, Mail, MapPin, Crown, Filter, ChevronDown, MessageSquare, Bell, BellOff, Copy } from 'lucide-react';
+import AmbassadorManager from '@/components/admin/AmbassadorManager';
+import { Loader2, Search, Phone, Shield, UserCheck, UserX, Ban, CheckCircle, XCircle, Mail, MapPin, Crown, Filter, ChevronDown, MessageSquare, Bell, BellOff, Copy, Award } from 'lucide-react';
 
 const TIER_META = {
   solar:   { color: '#A78BFA', label: 'Solar',    icon: '☀️' },
@@ -157,6 +158,7 @@ export default function Admin() {
       <div className="flex gap-2">
         {[
           { id: 'users', label: 'Members' },
+          { id: 'ambassadors', label: 'Ambassadors' },
           { id: 'migration', label: 'Migration' },
           { id: 'phone', label: 'Phone Verification' },
           { id: 'notifications', label: `Notifications${notifications.filter(n => !n.is_read).length ? ` (${notifications.filter(n => !n.is_read).length})` : ''}` },
@@ -371,6 +373,11 @@ export default function Admin() {
             </div>
           )}
         </div>
+      )}
+
+      {/* Ambassadors Tab */}
+      {tab === 'ambassadors' && (
+        <AmbassadorManager />
       )}
 
       {/* Migration Tab */}

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, ChevronRight, Sparkles, MessageCircle, Heart, Award, Loader2, RefreshCw } from 'lucide-react';
+import { Check, ChevronRight, Sparkles, MessageCircle, Award, Loader2, RefreshCw } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { computeChecklist, computeNewSinceReview, getCompletedFieldKeys } from '@/lib/profileChecklist';
-import AmbassadorModal from '@/components/dashboard/AmbassadorModal';
+import AmbassadorStatusCard from '@/components/dashboard/AmbassadorStatusCard';
 
 // Dashboard panel showing profile completeness, what changed since the last
 // review, key fields still to complete (with NEW badges on recently-added
@@ -14,7 +14,6 @@ import AmbassadorModal from '@/components/dashboard/AmbassadorModal';
 export default function ProfileProgressPanel({ profile, lang, onRefresh, onOpenEdit, onOpenPhotos }) {
   const navigate = useNavigate();
   const isFr = lang === 'fr';
-  const [ambassadorOpen, setAmbassadorOpen] = useState(false);
   const [marking, setMarking] = useState(false);
   const [communityPostCount, setCommunityPostCount] = useState(null);
 
@@ -61,10 +60,8 @@ export default function ProfileProgressPanel({ profile, lang, onRefresh, onOpenE
   };
 
   const communityDone = communityPostCount != null && communityPostCount > 0;
-  const ambassadorDone = !!profile?.is_ambassador;
-
-  // Nothing left to do — celebrate
-  const allDone = incomplete.length === 0 && communityDone && ambassadorDone;
+  // Ambassador is an opt-in program, not a profile field — don't block celebration on it
+  const allDone = incomplete.length === 0 && communityDone;
 
   return (
     <motion.div
@@ -179,26 +176,8 @@ export default function ProfileProgressPanel({ profile, lang, onRefresh, onOpenE
                 <ChevronRight className="w-3.5 h-3.5 text-[#F0E6FF]/20 group-hover:text-[#7B2FBE] transition-colors" />
               </button>
 
-              {/* Ambassador program */}
-              <button onClick={() => setAmbassadorOpen(true)}
-                className="w-full flex items-center gap-2.5 text-left rounded-lg p-2 hover:bg-[rgba(240,230,255,0.04)] transition-all group">
-                <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${ambassadorDone ? 'bg-[rgba(245,168,0,0.15)]' : 'bg-[rgba(245,168,0,0.08)]'}`}>
-                  {ambassadorDone
-                    ? <Award className="w-3.5 h-3.5 text-[#F5A800]" />
-                    : <Heart className="w-3.5 h-3.5 text-[#F5A800]" />}
-                </div>
-                <div className="flex-1">
-                  <span className="text-[#F0E6FF]/70 text-xs block">
-                    {isFr ? 'Devenir ambassadeur Nina Purple' : 'Become a Nina Purple Ambassador'}
-                  </span>
-                  <span className="text-[#F5A800]/60 text-[10px]">
-                    {isFr ? '❤️ Ambassadeur pour l' + "'humanité" : '❤️ Ambassador for humanity'}
-                  </span>
-                </div>
-                {ambassadorDone
-                  ? <span className="text-[9px] font-bold uppercase text-[#F5A800]">{isFr ? 'Actif' : 'Active'}</span>
-                  : <ChevronRight className="w-3.5 h-3.5 text-[#F0E6FF]/20 group-hover:text-[#F5A800] transition-colors" />}
-              </button>
+              {/* Ambassador program — self-contained status card */}
+              <AmbassadorStatusCard profile={profile} lang={lang} onRefresh={onRefresh} />
             </div>
           </div>
 
@@ -215,7 +194,6 @@ export default function ProfileProgressPanel({ profile, lang, onRefresh, onOpenE
         </>
       )}
 
-      <AmbassadorModal isOpen={ambassadorOpen} onClose={() => setAmbassadorOpen(false)} lang={lang} onDone={onRefresh} />
     </motion.div>
   );
 }

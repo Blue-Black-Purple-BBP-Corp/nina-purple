@@ -11,6 +11,7 @@ import PrivacySettingsModal from '@/components/profile/PrivacySettingsModal';
 import ReferralModal from '@/components/profile/ReferralModal';
 import UpgradeModal from '@/components/profile/UpgradeModal';
 import EditProfileModal from '@/components/profile/EditProfileModal';
+import AmbassadorBadge from '@/components/dashboard/AmbassadorBadge';
 import { base44 } from '@/api/base44Client';
 
 const TIER_META = {
@@ -221,6 +222,12 @@ export default function Profile() {
             {lang === 'fr' ? tierMeta.label_fr : tierMeta.label_en}
           </span>
         </div>
+
+        {userProfile?.is_ambassador && (
+          <div className="mt-2">
+            <AmbassadorBadge lang={lang} />
+          </div>
+        )}
       </motion.div>
 
       {/* Profile completeness */}
