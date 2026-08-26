@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import MigrationForm from '@/components/admin/MigrationForm';
-import AmbassadorManager from '@/components/admin/AmbassadorManager';
+// TEMP: import AmbassadorManager from '@/components/admin/AmbassadorManager';
 import { Loader2, Search, Phone, Shield, UserCheck, UserX, Ban, CheckCircle, XCircle, Mail, MapPin, Crown, Filter, ChevronDown, MessageSquare, Bell, BellOff, Copy, Award } from 'lucide-react';
 
 const TIER_META = {
@@ -375,9 +375,9 @@ export default function Admin() {
         </div>
       )}
 
-      {/* Ambassadors Tab */}
+      {/* Ambassadors Tab — temporarily disabled for debugging */}
       {tab === 'ambassadors' && (
-        <AmbassadorManager />
+        <div className="text-center py-12 text-[#F0E6FF]/30">Ambassador manager loading...</div>
       )}
 
       {/* Migration Tab */}

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Check, ChevronRight, Sparkles, MessageCircle, Award, Loader2, RefreshCw } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { computeChecklist, computeNewSinceReview, getCompletedFieldKeys } from '@/lib/profileChecklist';
-import AmbassadorStatusCard from '@/components/dashboard/AmbassadorStatusCard';
+// TEMP: import AmbassadorStatusCard from '@/components/dashboard/AmbassadorStatusCard';
 
 // Dashboard panel showing profile completeness, what changed since the last
 // review, key fields still to complete (with NEW badges on recently-added
@@ -176,8 +176,8 @@ export default function ProfileProgressPanel({ profile, lang, onRefresh, onOpenE
                 <ChevronRight className="w-3.5 h-3.5 text-[#F0E6FF]/20 group-hover:text-[#7B2FBE] transition-colors" />
               </button>
 
-              {/* Ambassador program — self-contained status card */}
-              <AmbassadorStatusCard profile={profile} lang={lang} onRefresh={onRefresh} />
+              {/* Ambassador program — temporarily disabled for debugging */}
+              <div className="text-[#F0E6FF]/30 text-xs px-2">Ambassador program loading...</div>
             </div>
           </div>
 
