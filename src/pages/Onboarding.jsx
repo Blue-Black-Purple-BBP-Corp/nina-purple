@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Check, ChevronLeft, Upload, Mail, Lock, Eye, EyeOff, Loader2, X, Shield, Heart } from 'lucide-react';
 import NinaSpeech from '@/components/NinaSpeech';
 import LocationAutocomplete from '@/components/LocationAutocomplete';
+import PhoneInput from '@/components/PhoneInput';
 import CoupleSegmentation from '@/components/onboarding/CoupleSegmentation';
 import { useLang } from '@/lib/LanguageContext';
 import { useTranslation } from '@/lib/i18n';
@@ -53,7 +54,7 @@ export default function Onboarding() {
 
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState({});
-  const [profile, setProfile] = useState({ first_name: '', middle_name: '', last_name: '', display_name: '', city: '', birthdate: '', sexual_orientation: '', gender_pronoun: '', relationship_status: '' });
+  const [profile, setProfile] = useState({ first_name: '', middle_name: '', last_name: '', display_name: '', city: '', country: '', birthdate: '', sexual_orientation: '', gender_pronoun: '', relationship_status: '' });
   const [archetype, setArchetype] = useState('');
   const [selectedPlan, setSelectedPlan] = useState('solar');
   const [selectedDuration, setSelectedDuration] = useState('1m');
@@ -66,6 +67,8 @@ export default function Onboarding() {
   const [photoError, setPhotoError] = useState('');
   const [formError, setFormError] = useState('');
   const [phone, setPhone] = useState('');
+  const [phoneValid, setPhoneValid] = useState(false);
+  const [locationValid, setLocationValid] = useState(false);
   const [consentAccepted, setConsentAccepted] = useState(false);
   const [profileType, setProfileType] = useState('');
   const [partnerEmail, setPartnerEmail] = useState('');
@@ -244,6 +247,7 @@ export default function Onboarding() {
       full_name: composedFullName,
       display_name: profile.display_name.trim() || composedFullName || user.full_name,
       city: profile.city,
+      country: profile.country,
       birthdate: profile.birthdate,
       phone: phone,
       sexual_orientation: profile.sexual_orientation,
@@ -642,9 +646,22 @@ export default function Onboarding() {
               </div>
 
               <div>
-                <label className="block text-foreground/60 text-sm mb-2">{t('onboarding.location_label')} <span className="text-[#F5A800]">*</span></label>
-                <LocationAutocomplete value={profile.city} onChange={val => setProfile(p => ({ ...p, city: val }))}
-                  placeholder={lang === 'fr' ? 'Rechercher une ville…' : 'Search a city…'} />
+                <label className="block text-foreground/60 text-sm mb-2">
+                  {t('onboarding.location_label')} <span className="text-[#F5A800]">*</span>
+                </label>
+                <LocationAutocomplete
+                  value={profile.city}
+                  onChange={val => setProfile(p => ({ ...p, city: val }))}
+                  onValidityChange={(isValid, data) => {
+                    setLocationValid(isValid);
+                    if (data?.country) setProfile(p => ({ ...p, country: data.country }));
+                  }}
+                  placeholder={lang === 'fr' ? 'Entrez votre ville (ex: Montréal…)' : 'Enter your city (e.g., Montreal…)'} />
+                {profile.city && profile.city.length >= 2 && !locationValid && (
+                  <p className="text-foreground/40 text-xs mt-1">
+                    {lang === 'fr' ? 'Sélectionnez votre ville dans la liste déroulante.' : 'Select your city from the dropdown list.'}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -664,14 +681,7 @@ export default function Onboarding() {
                 <label className="block text-foreground/60 text-sm mb-2">
                   {lang === 'fr' ? 'Téléphone' : 'Phone'} <span className="text-[#F5A800]">*</span>
                 </label>
-                <input type="tel" value={phone} onChange={e => setPhone(e.target.value)}
-                  className="w-full glass-card rounded-xl px-4 py-3 text-foreground outline-none focus:border-[rgba(245,168,0,0.4)] transition-all bg-transparent"
-                  placeholder={lang === 'fr' ? '+1 514 555 0123' : '+1 514 555 0123'} />
-                <p className="text-foreground/30 text-xs mt-1">
-                  {lang === 'fr'
-                    ? 'Vous recevrez un appel pour confirmer que vous êtes une personne réelle. Nina Purple se réserve le droit de vérifier tous les individus par téléphone.'
-                    : 'You will receive a call to verify that you are a real human. Nina Purple reserves the right to verify all individuals by phone.'}
-                </p>
+                <PhoneInput value={phone} onChange={setPhone} onValidityChange={setPhoneValid} lang={lang} />
               </div>
 
               {[
@@ -690,7 +700,7 @@ export default function Onboarding() {
               ))}
 
               {(() => {
-                const ok = profile.first_name.trim() && profile.last_name.trim() && profile.display_name.trim() && profile.city.trim() && profile.birthdate && isOver18(profile.birthdate) && !ageError && profile.sexual_orientation && profile.gender_pronoun && profile.relationship_status && phone.trim();
+                const ok = profile.first_name.trim() && profile.last_name.trim() && profile.display_name.trim() && profile.city.trim() && locationValid && profile.birthdate && isOver18(profile.birthdate) && !ageError && profile.sexual_orientation && profile.gender_pronoun && profile.relationship_status && phoneValid;
                 return (
                   <button onClick={() => ok && goNext()} disabled={!ok}
                     className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
