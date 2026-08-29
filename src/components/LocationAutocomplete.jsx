@@ -2,13 +2,49 @@ import React, { useState, useRef, useEffect } from 'react';
 import { MapPin, Loader2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
+// Singleton promise so the Maps script loads once across all instances
+let mapsScriptPromise = null;
+
+function loadGoogleMapsScript(apiKey) {
+  if (window.google?.maps?.places) return Promise.resolve();
+  if (mapsScriptPromise) return mapsScriptPromise;
+  mapsScriptPromise = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&libraries=places&v=weekly`;
+    script.async = true;
+    script.defer = true;
+    script.onload = () => resolve();
+    script.onerror = () => { mapsScriptPromise = null; reject(new Error('Failed to load Google Maps')); };
+    document.head.appendChild(script);
+  });
+  return mapsScriptPromise;
+}
+
 export default function LocationAutocomplete({ value, onChange, placeholder = 'Search city...', className = '' }) {
   const [query, setQuery] = useState(value || '');
   const [predictions, setPredictions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const [ready, setReady] = useState(false);
   const debounceRef = useRef(null);
   const containerRef = useRef(null);
+
+  // Fetch API key + load Google Maps JS API on mount
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const res = await base44.functions.invoke('getPublicConfig', {});
+        const key = res.data?.googleMapsApiKey;
+        if (!key) { console.error('[LocationAutocomplete] No Google Maps key returned'); return; }
+        await loadGoogleMapsScript(key);
+        if (active) setReady(true);
+      } catch (err) {
+        console.error('[LocationAutocomplete] Failed to load Google Maps:', err.message);
+      }
+    })();
+    return () => { active = false; };
+  }, []);
 
   // Sync external value changes
   useEffect(() => { setQuery(value || ''); }, [value]);
@@ -27,17 +63,30 @@ export default function LocationAutocomplete({ value, onChange, placeholder = 'S
 
     clearTimeout(debounceRef.current);
     if (val.length < 2) { setPredictions([]); setOpen(false); return; }
+    if (!ready || !window.google?.maps?.places) return;
 
-    debounceRef.current = setTimeout(async () => {
+    debounceRef.current = setTimeout(() => {
       setLoading(true);
       try {
-        const res = await base44.functions.invoke('placesAutocomplete', { input: val });
-        setPredictions(res.data?.predictions || []);
-        setOpen(true);
+        const service = new window.google.maps.places.AutocompleteService();
+        service.getPlacePredictions(
+          { input: val, types: ['(cities)'] },
+          (results, status) => {
+            setLoading(false);
+            if (status === window.google.maps.places.PlacesServiceStatus.OK && results) {
+              setPredictions(results.map(p => ({
+                place_id: p.place_id,
+                description: p.description,
+              })));
+              setOpen(true);
+            } else {
+              setPredictions([]);
+            }
+          }
+        );
       } catch {
-        setPredictions([]);
-      } finally {
         setLoading(false);
+        setPredictions([]);
       }
     }, 300);
   };
