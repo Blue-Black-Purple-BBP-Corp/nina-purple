@@ -3,6 +3,7 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Home, Users, MessageCircle, Calendar, User, Star, LogIn, Loader2, Heart, AlertCircle, RefreshCw } from 'lucide-react';
 import LanguageToggle from './LanguageToggle';
 import ThemeToggle from './ThemeToggle';
+import StaffAccountMenu from './StaffAccountMenu';
 import NinaAvatar from './NinaAvatar';
 import { ninaHorizontal } from '@/lib/images';
 import { useLang } from '@/lib/LanguageContext';
@@ -29,10 +30,16 @@ export default function AppLayout() {
         setGateState('ready');
         return;
       }
-      // Incomplete — admins bypass member onboarding so they can reach the dashboard
+      // Incomplete — admins and staff bypass member onboarding so they can reach privileged workspaces
       try {
         const me = await base44.auth.me();
         if (me && (me.role === 'admin' || me.role === 'super_admin')) {
+          setGateState('ready');
+          return;
+        }
+        const sc = await base44.functions.invoke('getStaffContext', {});
+        const scData = sc.data || sc;
+        if (scData?.authorized_contexts?.length) {
           setGateState('ready');
           return;
         }
@@ -135,6 +142,7 @@ export default function AppLayout() {
           />
         </Link>
         <div className="flex items-center gap-3">
+          <StaffAccountMenu />
           <ThemeToggle />
           <LanguageToggle />
         </div>

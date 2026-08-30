@@ -7,6 +7,7 @@ import VerificationQueue from '@/components/admin/VerificationQueue';
 import ModerationQueue from '@/components/admin/ModerationQueue';
 import AuditLogViewer from '@/components/admin/AuditLogViewer';
 import DateRangeSelector from '@/components/admin/DateRangeSelector';
+import { useStaffSession } from '@/lib/StaffSessionContext';
 
 // Unified Admin Dashboard landing page.
 // Three-layer security: client role gate -> server-side role re-check inside
@@ -75,9 +76,10 @@ export default function AdminDashboard() {
     );
   }
 
+  const { currentContext } = useStaffSession();
   const tabs = [
     { id: 'verification', label: 'Verification', icon: ShieldCheck, count: data?.verifications?.length || 0 },
-    { id: 'moderation', label: 'Moderation', icon: AlertTriangle, count: data?.moderation?.length || 0 },
+    ...(currentContext === 'trust_safety' ? [{ id: 'moderation', label: 'Moderation', icon: AlertTriangle, count: data?.moderation?.length || 0 }] : []),
     { id: 'audit', label: 'Audit Log', icon: ScrollText, superOnly: true },
   ];
 

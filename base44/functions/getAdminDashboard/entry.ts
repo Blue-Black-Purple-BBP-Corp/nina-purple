@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.36';
-import { isAdminRole } from '../../shared/adminAudit.ts';
+import { getActivePrivilegedSession } from '../../shared/staffAuth.ts';
 
 // Unified Admin Dashboard data endpoint.
 // Returns aggregate stats + the pending verification and moderation queues
@@ -11,8 +11,10 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
-    if (!user || !isAdminRole(user.role)) {
-      return Response.json({ error: 'Admin access required' }, { status: 403 });
+    if (!user) return Response.json({ error: 'Authentication required' }, { status: 401 });
+    const session = await getActivePrivilegedSession(base44, user.id);
+    if (!session) {
+      return Response.json({ error: 'A privileged session is required. Activate a staff workspace.', code: 'privileged_session_required' }, { status: 403 });
     }
 
     const url = new URL(req.url);
@@ -72,10 +74,12 @@ Deno.serve(async (req) => {
       created_date: m.created_date,
     });
 
+    const ctx = session.operating_context;
     return Response.json({
       stats,
-      verifications: pendingVerifications.map(enrichVerification),
-      moderation: pendingModeration.sort((a, b) => (b.priority || 0) - (a.priority || 0)).map(enrichModeration),
+      verifications: ctx === 'admin' ? pendingVerifications.map(enrichVerification) : [],
+      moderation: ctx === 'trust_safety' ? pendingModeration.sort((a, b) => (b.priority || 0) - (a.priority || 0)).map(enrichModeration) : [],
+      operating_context: ctx,
     });
   } catch (error) {
     console.error('[getAdminDashboard] Error:', error.message);

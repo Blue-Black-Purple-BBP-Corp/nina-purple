@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.36';
-import { writeAuditLog, isAdminRole } from '../../shared/adminAudit.ts';
+import { requirePrivilegedContext, checkConflictOfInterest, writeStaffAuditLog } from '../../shared/staffAuth.ts';
 
 // Act on a ModerationItem. Supports three actions:
 //   - dismiss:  no account change; item marked dismissed.
@@ -14,9 +14,10 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
-    if (!user || !isAdminRole(user.role)) {
-      return Response.json({ error: 'Admin access required' }, { status: 403 });
-    }
+    if (!user) return Response.json({ error: 'Authentication required' }, { status: 401 });
+    const guard = await requirePrivilegedContext(base44, user, 'trust_safety');
+    if (guard.errorResponse) return guard.errorResponse;
+    const { session } = guard;
 
     const { item_id, action, reason, suspension_days } = await req.json().catch(() => ({}));
     if (!item_id) return Response.json({ error: 'item_id is required' }, { status: 400 });
@@ -30,6 +31,24 @@ Deno.serve(async (req) => {
     const items = await base44.asServiceRole.entities.ModerationItem.filter({ id: item_id });
     if (!items.length) return Response.json({ error: 'Moderation item not found' }, { status: 404 });
     const item = items[0];
+
+    // Conflict of interest: staff cannot act on their own account or on a member
+    // they have a connection, conversation, or declared conflict with.
+    const coi = await checkConflictOfInterest(base44, user.id, item.target_user_id);
+    if (coi.conflict) {
+      await writeStaffAuditLog(base44, {
+        actor_native_user_id: user.id,
+        actor_role: session.active_role,
+        operating_context: 'trust_safety',
+        privileged_session_id: session.privileged_session_id,
+        action_type: 'moderation.action_denied',
+        target_entity_type: 'ModerationItem',
+        target_entity_id: item_id,
+        reason_code: 'conflict_of_interest',
+        result: 'denied',
+      });
+      return Response.json({ error: coi.reason, code: 'conflict_of_interest' }, { status: 403 });
+    }
 
     const now = new Date();
     const priorState = { status: item.status, target_account_status: null };
@@ -78,19 +97,17 @@ Deno.serve(async (req) => {
     };
     const updated = await base44.asServiceRole.entities.ModerationItem.update(item_id, modUpdate);
 
-    await writeAuditLog(base44, {
-      actor_admin_id: user.id,
-      actor_role: user.role,
-      action: `moderation.${action}`,
-      target_type: 'ModerationItem',
-      target_id: item_id,
-      reason: reason.trim(),
-      changes: {
-        prior: priorState,
-        moderation: modUpdate,
-        profile_patch: profilePatch,
-        subject_user_id: item.target_user_id,
-      },
+    await writeStaffAuditLog(base44, {
+      actor_native_user_id: user.id,
+      actor_role: session.active_role,
+      operating_context: 'trust_safety',
+      privileged_session_id: session.privileged_session_id,
+      action_type: `moderation.${action}`,
+      target_entity_type: 'ModerationItem',
+      target_entity_id: item_id,
+      reason_code: reason.trim(),
+      previous_state: priorState,
+      new_state: { moderation: modUpdate, profile_patch: profilePatch, subject_user_id: item.target_user_id },
     });
 
     return Response.json({ success: true, moderation_item: updated, profile_patch: profilePatch });

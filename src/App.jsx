@@ -38,7 +38,12 @@ import Admin from '@/pages/Admin';
 import AdminDashboard from '@/pages/AdminDashboard';
 import AppLayout from '@/components/AppLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import PrivilegedRoute from '@/components/PrivilegedRoute';
 import ScrollToTop from '@/components/ScrollToTop';
+import { StaffSessionProvider } from '@/lib/StaffSessionContext';
+import TrustSafety from '@/pages/TrustSafety';
+import Rewards from '@/pages/Rewards';
+import Operations from '@/pages/Operations';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -94,9 +99,18 @@ const AuthenticatedApp = () => {
         <Route path="/compatibility-profile" element={<CompatibilityProfile />} />
         <Route path="/wallet" element={<BBPWallet />} />
         <Route path="/relationship" element={<Relationship />} />
-        <Route element={<ProtectedRoute requireRole="admin" unauthenticatedElement={<Navigate to="/home" replace />} />}>
+        <Route element={<PrivilegedRoute context="admin" />}>
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/members" element={<Admin />} />
+        </Route>
+        <Route element={<PrivilegedRoute context="trust_safety" />}>
+          <Route path="/trust-safety" element={<TrustSafety />} />
+        </Route>
+        <Route element={<PrivilegedRoute context="rewards_finance" />}>
+          <Route path="/rewards" element={<Rewards />} />
+        </Route>
+        <Route element={<PrivilegedRoute context="engineering_operations" />}>
+          <Route path="/operations" element={<Operations />} />
         </Route>
       </Route>
 
@@ -113,7 +127,9 @@ function App() {
           <ThemeProvider>
             <Router>
               <ScrollToTop />
-              <AuthenticatedApp />
+              <StaffSessionProvider>
+                <AuthenticatedApp />
+              </StaffSessionProvider>
               <CookieConsent />
               <WhatsAppFloat />
             </Router>

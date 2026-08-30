@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.36';
-import { writeAuditLog, isAdminRole } from '../../shared/adminAudit.ts';
+import { requirePrivilegedContext, checkConflictOfInterest, writeStaffAuditLog } from '../../shared/staffAuth.ts';
 
 // Approve or reject a single VerificationRequest.
 // On approve, applies the operational effect to the member's profile based on
@@ -12,9 +12,10 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
-    if (!user || !isAdminRole(user.role)) {
-      return Response.json({ error: 'Admin access required' }, { status: 403 });
-    }
+    if (!user) return Response.json({ error: 'Authentication required' }, { status: 401 });
+    const guard = await requirePrivilegedContext(base44, user, 'admin');
+    if (guard.errorResponse) return guard.errorResponse;
+    const { session } = guard;
 
     const { request_id, decision, reason, rejection_reason } = await req.json().catch(() => ({}));
     if (!request_id) return Response.json({ error: 'request_id is required' }, { status: 400 });
@@ -28,6 +29,24 @@ Deno.serve(async (req) => {
     const reqs = await base44.asServiceRole.entities.VerificationRequest.filter({ id: request_id });
     if (!reqs.length) return Response.json({ error: 'Verification request not found' }, { status: 404 });
     const vr = reqs[0];
+
+    // Conflict of interest: staff cannot review their own verification or that
+    // of a member they have a connection, conversation, or declared conflict with.
+    const coi = await checkConflictOfInterest(base44, user.id, vr.native_user_id);
+    if (coi.conflict) {
+      await writeStaffAuditLog(base44, {
+        actor_native_user_id: user.id,
+        actor_role: session.active_role,
+        operating_context: 'admin',
+        privileged_session_id: session.privileged_session_id,
+        action_type: 'verification.action_denied',
+        target_entity_type: 'VerificationRequest',
+        target_entity_id: request_id,
+        reason_code: 'conflict_of_interest',
+        result: 'denied',
+      });
+      return Response.json({ error: coi.reason, code: 'conflict_of_interest' }, { status: 403 });
+    }
 
     const now = new Date().toISOString();
     const newStatus = decision === 'approve' ? 'approved' : 'rejected';
@@ -60,14 +79,17 @@ Deno.serve(async (req) => {
       }
     }
 
-    await writeAuditLog(base44, {
-      actor_admin_id: user.id,
-      actor_role: user.role,
-      action: `verification.${decision}`,
-      target_type: 'VerificationRequest',
-      target_id: request_id,
-      reason: reason.trim(),
-      changes: { prior: priorState, next: updateData, profile_effect: profileEffect, verification_type: vr.verification_type, subject_user_id: vr.native_user_id },
+    await writeStaffAuditLog(base44, {
+      actor_native_user_id: user.id,
+      actor_role: session.active_role,
+      operating_context: 'admin',
+      privileged_session_id: session.privileged_session_id,
+      action_type: `verification.${decision}`,
+      target_entity_type: 'VerificationRequest',
+      target_entity_id: request_id,
+      reason_code: reason.trim(),
+      previous_state: priorState,
+      new_state: { next: updateData, profile_effect: profileEffect, verification_type: vr.verification_type, subject_user_id: vr.native_user_id },
     });
 
     return Response.json({ success: true, verification_request: updated, profile_effect: profileEffect });

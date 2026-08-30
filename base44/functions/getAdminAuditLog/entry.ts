@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.36';
-import { isAdminRole } from '../../shared/adminAudit.ts';
+import { requirePrivilegedContext } from '../../shared/staffAuth.ts';
 
 // Read the append-only AdminAuditLog. Admin or super_admin.
 // (The platform does not allow promoting the app owner to super_admin, so
@@ -11,9 +11,9 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
-    if (!user || !isAdminRole(user.role)) {
-      return Response.json({ error: 'Admin access required' }, { status: 403 });
-    }
+    if (!user) return Response.json({ error: 'Authentication required' }, { status: 401 });
+    const guard = await requirePrivilegedContext(base44, user, 'admin');
+    if (guard.errorResponse) return guard.errorResponse;
 
     const url = new URL(req.url);
     const body = await req.json().catch(() => ({}));
