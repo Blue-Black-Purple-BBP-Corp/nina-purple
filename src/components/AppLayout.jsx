@@ -56,6 +56,21 @@ export default function AppLayout() {
     checkGate();
   }, []);
 
+  // Resume a pending profile-change SSO step-up after provider redirect-back.
+  // The RequestChangeModal stores the pending payload in sessionStorage before
+  // redirecting to the SSO provider; on return, this completes the request.
+  useEffect(() => {
+    const pending = sessionStorage.getItem('pending_profile_change');
+    if (!pending) return;
+    try {
+      const { field_name, requested_value, auth_method } = JSON.parse(pending);
+      sessionStorage.removeItem('pending_profile_change');
+      base44.functions.invoke('requestProfileChange', { field_name, requested_value, auth_method, sso_reauth: true })
+        .then(() => console.info('Profile change request submitted after SSO re-auth'))
+        .catch(e => console.warn('Pending profile change resume failed:', e.message));
+    } catch { sessionStorage.removeItem('pending_profile_change'); }
+  }, []);
+
   const navItems = [
     { path: '/home', icon: Home, label: t('nav.home') },
     { path: '/connections', icon: Users, label: t('nav.connections') },

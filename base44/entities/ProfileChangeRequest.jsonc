@@ -1,0 +1,147 @@
+{
+  "name": "ProfileChangeRequest",
+  "type": "object",
+  "properties": {
+    "request_id": {
+      "type": "string",
+      "description": "Stable request identifier (ULID)."
+    },
+    "native_user_id": {
+      "type": "string",
+      "description": "Platform user ID of the member requesting the change (RLS key)."
+    },
+    "field_name": {
+      "type": "string",
+      "enum": [
+        "email",
+        "full_name",
+        "phone",
+        "birthdate"
+      ],
+      "description": "The profile field being changed. email/full_name/birthdate are staff-reviewed; phone is held pending OTP verification."
+    },
+    "current_value": {
+      "type": "string",
+      "description": "The active value at request time. For email/phone this is sensitive and masked in staff audit views."
+    },
+    "requested_value": {
+      "type": "string",
+      "description": "The new value requested by the member."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending_review",
+        "pending_verification_unavailable",
+        "under_review",
+        "approved",
+        "completed",
+        "rejected",
+        "cancelled"
+      ],
+      "default": "pending_review",
+      "description": "pending_review = awaiting staff review (email/full_name/birthdate); pending_verification_unavailable = phone request held until an SMS/OTP provider is wired; under_review = staff is reviewing; approved = staff approved (email awaits platform-support completion); completed = change applied to active value; rejected = staff denied; cancelled = member cancelled while pending."
+    },
+    "step_up_method": {
+      "type": "string",
+      "enum": [
+        "password",
+        "google",
+        "microsoft",
+        "apple"
+      ],
+      "description": "Step-up method used to authorize the request."
+    },
+    "step_up_verified_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When fresh step-up was completed for this request."
+    },
+    "step_up_assurance": {
+      "type": "string",
+      "enum": [
+        "password_reauth",
+        "platform_sso_reauth"
+      ],
+      "description": "Assurance level of the step-up. password_reauth = local credential verified server-side; platform_sso_reauth = platform-mediated provider re-auth (app does not validate the token)."
+    },
+    "requested_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reviewed_by_admin_id": {
+      "type": "string"
+    },
+    "reviewed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "review_decision": {
+      "type": "string",
+      "enum": [
+        "approved",
+        "rejected"
+      ]
+    },
+    "review_reason": {
+      "type": "string",
+      "description": "Staff reason for the decision."
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completion_notes": {
+      "type": "string",
+      "description": "e.g. 'Platform-support updated auth email on YYYY-MM-DD'."
+    },
+    "cancelled_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "correlation_id": {
+      "type": "string",
+      "description": "Correlates request/review/completion audit events."
+    }
+  },
+  "required": [
+    "request_id",
+    "native_user_id",
+    "field_name",
+    "current_value",
+    "requested_value",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "data.native_user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.native_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

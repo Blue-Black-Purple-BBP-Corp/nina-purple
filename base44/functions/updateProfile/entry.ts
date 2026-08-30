@@ -9,7 +9,9 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.36';
 // to bypass private storage. photos_private is retired (paid-reveal is a
 // server-side invariant).
 const ALLOWED_FIELDS = new Set([
-  'full_name', 'display_name', 'birthdate', 'city', 'country', 'phone',
+  // full_name, birthdate, phone are request-only (ProfileChangeRequest) —
+  // they require step-up auth + staff review and are never direct-edited here.
+  'display_name', 'city', 'country',
   'sexual_orientation', 'gender_pronoun', 'relationship_status',
   'dating_archetype', 'bio',
   'show_in_listings', 'allow_messages_all', 'profile_completeness',

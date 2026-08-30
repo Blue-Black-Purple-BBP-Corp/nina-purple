@@ -3,6 +3,7 @@ import { X, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { QUESTIONS_21 } from '@/pages/Onboarding';
 import LocationAutocomplete from '@/components/LocationAutocomplete';
+import RequestChangeModal from './RequestChangeModal';
 
 export default function EditProfileModal({ isOpen, onClose, userProfile, matchingAnswers, onUpdate, onAnswersUpdate, lang }) {
   const [tab, setTab] = useState('profile');
@@ -11,6 +12,8 @@ export default function EditProfileModal({ isOpen, onClose, userProfile, matchin
   const [answers, setAnswers] = useState({});
   const [currentQ, setCurrentQ] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [email, setEmail] = useState('');
+  const [changeField, setChangeField] = useState(null);
 
   useEffect(() => {
     if (isOpen && userProfile) {
@@ -28,6 +31,7 @@ export default function EditProfileModal({ isOpen, onClose, userProfile, matchin
       setAnswers(matchingAnswers || {});
       setTab('profile');
       setCurrentQ(0);
+      base44.auth.me().then(u => setEmail(u?.email || '')).catch(() => {});
     }
   }, [isOpen, userProfile, matchingAnswers]);
 
@@ -119,22 +123,39 @@ export default function EditProfileModal({ isOpen, onClose, userProfile, matchin
           {tab === 'profile' && (
             <div className="space-y-3">
               <div>
-                <label className={labelClass}>{lang === 'fr' ? 'Nom' : 'Name'}</label>
-                <input value={profile.full_name} onChange={e => set('full_name', e.target.value)} className={inputClass} />
+                <div className="flex items-center justify-between">
+                  <label className={labelClass}>{lang === 'fr' ? 'Nom' : 'Name'}</label>
+                  <button onClick={() => setChangeField('full_name')} className="text-[#F5A800] text-xs hover:underline">
+                    {lang === 'fr' ? 'Demander un changement' : 'Request change'}
+                  </button>
+                </div>
+                <input value={profile.full_name} readOnly className={`${inputClass} opacity-60`} />
+              </div>
+              <div>
+                <div className="flex items-center justify-between">
+                  <label className={labelClass}>{lang === 'fr' ? 'Courriel' : 'Email'}</label>
+                  <button onClick={() => setChangeField('email')} className="text-[#F5A800] text-xs hover:underline">
+                    {lang === 'fr' ? 'Demander un changement' : 'Request change'}
+                  </button>
+                </div>
+                <input value={email} readOnly className={`${inputClass} opacity-60`} />
               </div>
               <div>
                 <label className={labelClass}>{lang === 'fr' ? 'Nom affiché' : 'Display name'}</label>
                 <input value={profile.display_name} onChange={e => set('display_name', e.target.value)} className={inputClass} />
               </div>
               <div>
-                <label className={labelClass}>{lang === 'fr' ? 'Téléphone' : 'Phone number'}</label>
-                <input type="tel" value={profile.phone} onChange={e => set('phone', e.target.value)}
-                  className={inputClass}
-                  placeholder="+1 514 555 0123" />
-                <p className="text-[#F0E6FF]/20 text-xs mt-1">
+                <div className="flex items-center justify-between">
+                  <label className={labelClass}>{lang === 'fr' ? 'Téléphone' : 'Phone number'}</label>
+                  <button onClick={() => setChangeField('phone')} className="text-[#F5A800] text-xs hover:underline">
+                    {lang === 'fr' ? 'Demander un changement' : 'Request change'}
+                  </button>
+                </div>
+                <input value={profile.phone || (lang === 'fr' ? 'Non défini' : 'Not set')} readOnly className={`${inputClass} opacity-60`} />
+                <p className="text-[#F0E6FF]/30 text-xs mt-1">
                   {lang === 'fr'
-                    ? 'Nina Purple se réserve le droit de vérifier tous les individus par téléphone.'
-                    : 'Nina Purple reserves the right to verify all individuals by phone.'}
+                    ? 'Les changements de numéro nécessitent une vérification par SMS (bientôt disponible).'
+                    : 'Phone changes require SMS verification (coming soon).'}
                 </p>
               </div>
               <div>
@@ -143,8 +164,13 @@ export default function EditProfileModal({ isOpen, onClose, userProfile, matchin
                   placeholder={lang === 'fr' ? 'Rechercher une ville…' : 'Search a city…'} />
               </div>
               <div>
-                <label className={labelClass}>{lang === 'fr' ? 'Date de naissance' : 'Birthdate'}</label>
-                <input type="date" value={profile.birthdate} onChange={e => set('birthdate', e.target.value)} className={inputClass} />
+                <div className="flex items-center justify-between">
+                  <label className={labelClass}>{lang === 'fr' ? 'Date de naissance' : 'Birthdate'}</label>
+                  <button onClick={() => setChangeField('birthdate')} className="text-[#F5A800] text-xs hover:underline">
+                    {lang === 'fr' ? 'Demander un changement' : 'Request change'}
+                  </button>
+                </div>
+                <input type="date" value={profile.birthdate} readOnly className={`${inputClass} opacity-60`} />
               </div>
               {[
                 { key: 'sexual_orientation', label: lang === 'fr' ? 'Orientation' : 'Orientation', opts: lang === 'fr' ? ['Hétérosexuel(le)', 'Gay', 'Lesbienne', 'Bisexuel(le)', 'Asexuel(le)', 'Pansexuel(le)', 'Queer', 'Autre'] : ['Straight', 'Gay', 'Lesbian', 'Bisexual', 'Asexual', 'Pansexual', 'Queer', 'Other'] },
@@ -238,6 +264,17 @@ export default function EditProfileModal({ isOpen, onClose, userProfile, matchin
           </button>
         </div>
       </div>
+
+      {changeField && (
+        <RequestChangeModal
+          isOpen={!!changeField}
+          field={changeField}
+          currentValue={changeField === 'email' ? email : profile[changeField] || ''}
+          lang={lang}
+          onClose={() => setChangeField(null)}
+          onSubmitted={() => setChangeField(null)}
+        />
+      )}
     </>
   );
 }

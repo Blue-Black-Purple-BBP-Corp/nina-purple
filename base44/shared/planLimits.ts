@@ -1,8 +1,13 @@
 // Shared plan-limit configuration and pricing helpers used by backend functions.
 // Kept here to avoid duplicating billing-critical logic across functions.
 
-// ── Legacy tiers (kept for backward compat with existing subscribers until
-//    they renew onto the single nina_membership plan) ──
+// ── Legacy tiers (DEPRECATED — kept for backward compat with existing
+//    subscribers only). Do NOT create new subscriptions with these plan IDs.
+//    Preserve active legacy price-ID mappings, webhook handling, renewals,
+//    cancellations, refunds, and entitlement calculation for existing
+//    subscribers until a separate audited migration plan is executed. See
+//    LEGACY_BILLING_DEPRECATION.md for the migration/deprecation report. ──
+export const LEGACY_TIERS = ['solar', 'lunar', 'stellar', 'galactic'] as const;
 export const PLAN_LIMITS = {
   solar:   { unlocks_per_month: 0,    messages_per_month: 5,        gallery_unlock_free: false, priority_search: false, see_viewers: false, free_profile_unlocks: 0,  free_messages: 0  },
   lunar:   { unlocks_per_month: 1,    messages_per_month: 30,       gallery_unlock_free: false, priority_search: false, see_viewers: true,  free_profile_unlocks: 1,  free_messages: 30 },
