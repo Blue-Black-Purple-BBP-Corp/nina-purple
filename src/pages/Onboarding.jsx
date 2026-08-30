@@ -76,6 +76,7 @@ export default function Onboarding() {
   const [partnerEmail, setPartnerEmail] = useState('');
   const [partnerLinkSent, setPartnerLinkSent] = useState(false);
   const [orientationAccepted, setOrientationAccepted] = useState(false);
+  const [isAuthed, setIsAuthed] = useState(false);
 
   // Registration state
   const [regEmail, setRegEmail] = useState('');
@@ -92,6 +93,7 @@ export default function Onboarding() {
       try {
         const me = await base44.auth.me();
         if (!me) return;
+        setIsAuthed(true);
         const existing = await base44.entities.UserProfile.filter({ user_id: me.id });
         if (!existing.length) return;
         const p = existing[0];
@@ -225,6 +227,8 @@ export default function Onboarding() {
   // Called after OTP verification (user is now authenticated)
   const handleComplete = async () => {
     setLoading(true);
+    setFormError('');
+    try {
     const user = await base44.auth.me();
 
     // Calculate accurate completeness from onboarding data
@@ -334,6 +338,13 @@ export default function Onboarding() {
 
     setLoading(false);
     goNext(); // → complete
+    } catch (err) {
+      console.error('Onboarding completion failed:', err);
+      setFormError(lang === 'fr'
+        ? `Erreur lors de la sauvegarde de votre profil: ${err.message}`
+        : `Error saving your profile: ${err.message}`);
+      setLoading(false);
+    }
   };
 
   const archetypes = [
@@ -609,6 +620,11 @@ export default function Onboarding() {
                     : <>I expressly consent (GDPR Art. 9 / Quebec Law 25) to Nina Purple processing my sensitive data — sexual orientation and relationship preferences — solely for compatibility matching. I may withdraw this consent at any time by deleting my account. See the <a href="/privacy" className="text-[#F5A800] underline">Privacy Policy</a>.</>}
                 </span>
               </label>
+              {!consentAccepted && (
+                <p className="text-[#F5A800]/60 text-xs text-center">
+                  {lang === 'fr' ? 'Cochez la case ci-dessus pour continuer' : 'Check the box above to continue'}
+                </p>
+              )}
               <button onClick={goNext} disabled={!consentAccepted}
                 className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
                 {t('onboarding.accept_guidelines')}
@@ -719,12 +735,30 @@ export default function Onboarding() {
               ))}
 
               {(() => {
-                const ok = profile.first_name.trim() && profile.last_name.trim() && profile.display_name.trim() && profile.city.trim() && locationValid && profile.birthdate && isOver18(profile.birthdate) && !ageError && profile.sexual_orientation && profile.gender_pronoun && profile.relationship_status && phoneValid;
+                const missing = [];
+                if (!profile.first_name.trim()) missing.push(lang === 'fr' ? 'prénom' : 'first name');
+                if (!profile.last_name.trim()) missing.push(lang === 'fr' ? 'nom' : 'last name');
+                if (!profile.display_name.trim()) missing.push(lang === 'fr' ? 'nom affiché' : 'display name');
+                if (!profile.city.trim() || !locationValid) missing.push(lang === 'fr' ? 'ville (sélectionnée dans la liste)' : 'city (selected from dropdown)');
+                if (!profile.birthdate || !isOver18(profile.birthdate)) missing.push(lang === 'fr' ? 'date de naissance (18+)' : 'birthdate (18+)');
+                if (!profile.sexual_orientation) missing.push(lang === 'fr' ? 'orientation' : 'orientation');
+                if (!profile.gender_pronoun) missing.push(lang === 'fr' ? 'pronom' : 'pronoun');
+                if (!profile.relationship_status) missing.push(lang === 'fr' ? 'statut' : 'status');
+                if (!phoneValid) missing.push(lang === 'fr' ? 'téléphone valide' : 'valid phone');
+                const ok = missing.length === 0;
                 return (
-                  <button onClick={() => ok && goNext()} disabled={!ok}
-                    className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
-                    {t('onboarding.continue')}
-                  </button>
+                  <>
+                    {!ok && (
+                      <div className="px-4 py-3 rounded-xl bg-[rgba(245,168,0,0.08)] border border-[rgba(245,168,0,0.2)] text-[#F5A800]/80 text-xs leading-relaxed">
+                        <span className="font-semibold">{lang === 'fr' ? 'À compléter pour continuer : ' : 'Still needed to continue: '}</span>
+                        {missing.join(', ')}
+                      </div>
+                    )}
+                    <button onClick={() => ok && goNext()} disabled={!ok}
+                      className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+                      {t('onboarding.continue')}
+                    </button>
+                  </>
                 );
               })()}
             </motion.div>
@@ -764,6 +798,11 @@ export default function Onboarding() {
                   </button>
                 );
               })}
+              {!archetype && (
+                <p className="text-[#F5A800]/60 text-xs text-center">
+                  {lang === 'fr' ? 'Sélectionnez un archétype pour continuer' : 'Select an archetype to continue'}
+                </p>
+              )}
               <button onClick={goNext} disabled={!archetype}
                 className={`w-full py-4 rounded-full font-bold uppercase tracking-widest transition-all ${archetype ? 'bg-[#F5A800] text-[#0B0510] hover:bg-yellow-400' : 'bg-muted text-muted-foreground/30 cursor-not-allowed'}`}>
                 {t('onboarding.continue')}
@@ -811,6 +850,13 @@ export default function Onboarding() {
                 </div>
               )}
               <p className="text-foreground/40 text-sm text-center">{t('onboarding.photos_required')}</p>
+              {!mandatoryPhotosUploaded && (
+                <div className="px-4 py-3 rounded-xl bg-[rgba(245,168,0,0.08)] border border-[rgba(245,168,0,0.2)] text-[#F5A800]/80 text-xs leading-relaxed text-center">
+                  {lang === 'fr'
+                    ? `Téléversez au moins 3 photos (${photos.filter(Boolean).length}/3)`
+                    : `Upload at least 3 photos (${photos.filter(Boolean).length}/3)`}
+                </div>
+              )}
               <button onClick={goNext} disabled={!mandatoryPhotosUploaded}
                 className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold hover:bg-yellow-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
                 {t('onboarding.continue')}
@@ -868,10 +914,17 @@ export default function Onboarding() {
                   </button>
                 )}
                 {currentQ === QUESTIONS_21.length - 1 && (
-                  <button onClick={goNext} disabled={!answers[QUESTIONS_21[currentQ].key]}
-                    className="flex-1 py-3 bg-[#F5A800] text-[#0B0510] rounded-full font-bold hover:bg-yellow-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
-                    {t('onboarding.continue')}
-                  </button>
+                  <>
+                    {!answers[QUESTIONS_21[currentQ].key] && (
+                      <p className="text-[#F5A800]/60 text-xs flex-1 text-center self-center">
+                        {lang === 'fr' ? 'Sélectionnez une réponse pour continuer' : 'Select an answer to continue'}
+                      </p>
+                    )}
+                    <button onClick={goNext} disabled={!answers[QUESTIONS_21[currentQ].key]}
+                      className="flex-1 py-3 bg-[#F5A800] text-[#0B0510] rounded-full font-bold hover:bg-yellow-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+                      {t('onboarding.continue')}
+                    </button>
+                  </>
                 )}
               </div>
             </motion.div>
@@ -913,6 +966,11 @@ export default function Onboarding() {
                     : "I have read and understand the Nina Purple community orientation. I understand that Community Standing is not identity verification or a safety guarantee."}
                 </span>
               </label>
+              {!orientationAccepted && (
+                <p className="text-[#F5A800]/60 text-xs text-center">
+                  {lang === 'fr' ? 'Cochez la case ci-dessus pour continuer' : 'Check the box above to continue'}
+                </p>
+              )}
               <button onClick={goNext} disabled={!orientationAccepted}
                 className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
                 {t('onboarding.accept_guidelines')}
@@ -924,6 +982,11 @@ export default function Onboarding() {
           {currentStep === 'subscription' && (
             <motion.div key="subscription" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.6 }}
               className="w-full space-y-3">
+              {formError && (
+                <div className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+                  {formError}
+                </div>
+              )}
               <NinaSpeech message={t('onboarding.subscription_intro')} />
               <h2 className="font-serif text-3xl text-foreground">{t('onboarding.subscription_title')}</h2>
               <p className="text-foreground/50 text-sm">{lang === 'fr' ? 'Vous pouvez changer de plan à tout moment.' : 'You can change your plan anytime.'}</p>
@@ -990,9 +1053,9 @@ export default function Onboarding() {
                 );
               })}
 
-              <button onClick={goNext}
-                className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all mt-2 shadow-[0_0_30px_rgba(245,168,0,0.25)]">
-                {t('onboarding.continue')}
+              <button onClick={() => isAuthed ? handleComplete() : goNext()} disabled={loading}
+                className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all mt-2 shadow-[0_0_30px_rgba(245,168,0,0.25)] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> {lang === 'fr' ? 'Sauvegarde...' : 'Saving...'}</> : t('onboarding.continue')}
               </button>
             </motion.div>
           )}
