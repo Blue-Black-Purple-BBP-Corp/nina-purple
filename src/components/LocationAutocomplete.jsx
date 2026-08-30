@@ -1,30 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MapPin, Loader2, AlertCircle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
-
-// Singleton promise for Google Maps JS API script loading
-let gmapsPromise = null;
-
-async function loadGoogleMaps(apiKey) {
-  if (window.google?.maps?.places) return window.google.maps;
-  if (gmapsPromise) return gmapsPromise;
-
-  gmapsPromise = new Promise((resolve, reject) => {
-    const cb = '__gmaps_cb_' + Date.now();
-    window[cb] = () => { delete window[cb]; resolve(window.google.maps); };
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&libraries=places&callback=${cb}`;
-    script.onerror = () => { delete window[cb]; reject(new Error('Failed to load Google Maps')); };
-    document.head.appendChild(script);
-  });
-  return gmapsPromise;
-}
-
-function getAddressComponent(components, type, field = 'long_name') {
-  if (!components) return null;
-  const c = components.find(comp => comp.types.includes(type));
-  return c ? c[field] : null;
-}
+import { useLang } from '@/lib/LanguageContext';
 
 export default function LocationAutocomplete({
   value,
@@ -33,6 +10,7 @@ export default function LocationAutocomplete({
   placeholder = 'Search city...',
   className = '',
 }) {
+  const { lang } = useLang();
   const [query, setQuery] = useState(value || '');
   const [predictions, setPredictions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -40,26 +18,6 @@ export default function LocationAutocomplete({
   const [apiError, setApiError] = useState(false);
   const debounceRef = useRef(null);
   const containerRef = useRef(null);
-  const autocompleteRef = useRef(null);
-  const placesRef = useRef(null);
-
-  // Load Google Maps API on mount
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await base44.functions.invoke('getPublicConfig', {});
-        const apiKey = res.data?.googleMapsApiKey;
-        if (!apiKey) { setApiError(true); return; }
-        const gmaps = await loadGoogleMaps(apiKey);
-        autocompleteRef.current = new gmaps.places.AutocompleteService();
-        // PlacesService requires a map or a div; a detached div works for getDetails
-        placesRef.current = new gmaps.places.PlacesService(document.createElement('div'));
-      } catch (e) {
-        console.error('Google Maps load failed:', e);
-        setApiError(true);
-      }
-    })();
-  }, []);
 
   // Sync external value changes
   useEffect(() => { setQuery(value || ''); }, [value]);
@@ -84,65 +42,54 @@ export default function LocationAutocomplete({
     if (val.length < 2) { setPredictions([]); setOpen(false); return; }
 
     debounceRef.current = setTimeout(async () => {
-      if (!autocompleteRef.current) return;
       setLoading(true);
       try {
-        // Race against a timeout — Google Maps API can hang silently on
-        // ApiNotActivatedMapError without ever resolving or rejecting.
-        const results = await Promise.race([
-          autocompleteRef.current.getPlacePredictions({
-            input: val,
-            types: ['(cities)'],
-          }),
-          new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('timeout')), 5000)
-          ),
-        ]);
-        setPredictions(results.predictions || []);
-        setOpen(true);
-        setApiError(false);
+        const res = await base44.functions.invoke('placesAutocomplete', { input: val });
+        const data = res?.data || res;
+        if (data?.predictions?.length > 0) {
+          setPredictions(data.predictions);
+          setOpen(true);
+          setApiError(false);
+        } else {
+          // API returned no predictions or an error — switch to manual mode
+          setPredictions([]);
+          setOpen(false);
+          setApiError(true);
+          // In manual mode, accept text with 2+ chars as valid
+          if (val.length >= 2) {
+            onValidityChange?.(true, { displayName: val, city: val, country: '' });
+          }
+        }
       } catch (err) {
-        console.error('Autocomplete error:', err);
         setPredictions([]);
         setOpen(false);
         setApiError(true);
+        // Manual fallback — accept typed text as valid
+        if (val.length >= 2) {
+          onValidityChange?.(true, { displayName: val, city: val, country: '' });
+        }
       } finally {
         setLoading(false);
       }
     }, 300);
   };
 
+  // Parse a Google Places description like "Montreal, QC, Canada" into city + country
+  const parseDescription = (description) => {
+    const parts = description.split(',').map(p => p.trim()).filter(Boolean);
+    const city = parts[0] || description;
+    const country = parts.length > 1 ? parts[parts.length - 1] : '';
+    return { city, country };
+  };
+
   const select = (pred) => {
-    setQuery(pred.description);
-    onChange(pred.description);
+    const desc = pred.description || pred;
+    setQuery(desc);
+    onChange(desc);
     setPredictions([]);
     setOpen(false);
-
-    // Fetch structured data (city, region, country, lat/lng) via PlacesService
-    if (placesRef.current) {
-      placesRef.current.getDetails(
-        { placeId: pred.place_id, fields: ['address_components', 'geometry'] },
-        (place, status) => {
-          if (status === 'OK' && place) {
-            const data = {
-              displayName: pred.description,
-              city: getAddressComponent(place.address_components, 'locality') ||
-                    getAddressComponent(place.address_components, 'administrative_area_level_3'),
-              region: getAddressComponent(place.address_components, 'administrative_area_level_1'),
-              country: getAddressComponent(place.address_components, 'country'),
-              countryCode: getAddressComponent(place.address_components, 'country', 'short_name'),
-              latitude: place.geometry?.location?.lat(),
-              longitude: place.geometry?.location?.lng(),
-            };
-            onValidityChange?.(true, data);
-          } else {
-            onValidityChange?.(true, { displayName: pred.description });
-          }
-        }
-      );
-    } else {
-      onValidityChange?.(true, { displayName: pred.description });
-    }
+    const { city, country } = parseDescription(desc);
+    onValidityChange?.(true, { displayName: desc, city, country });
   };
 
   return (
@@ -163,16 +110,18 @@ export default function LocationAutocomplete({
       </div>
 
       {apiError && (
-        <p className="text-red-400 text-xs mt-1 flex items-center gap-1">
-          <AlertCircle className="w-3 h-3" />
-          Location service unavailable. Please try again later.
+        <p className="text-foreground/40 text-xs mt-1 flex items-center gap-1">
+          <AlertCircle className="w-3 h-3 shrink-0" />
+          {lang === 'fr'
+            ? "Saisissez votre ville manuellement pour continuer."
+            : "Type your city manually to continue."}
         </p>
       )}
 
       {open && predictions.length > 0 && (
         <ul className="absolute z-50 mt-1 w-full rounded-xl overflow-hidden border border-[rgba(245,168,0,0.2)] bg-card shadow-xl max-h-60 overflow-y-auto">
           {predictions.map((p) => (
-            <li key={p.place_id}>
+            <li key={p.place_id || p.description}>
               <button
                 onMouseDown={(e) => { e.preventDefault(); select(p); }}
                 className="w-full text-left px-4 py-3 text-sm text-foreground/80 hover:bg-[rgba(245,168,0,0.08)] hover:text-[#F5A800] transition-colors flex items-center gap-2"
