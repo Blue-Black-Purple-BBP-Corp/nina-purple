@@ -29,8 +29,12 @@ export const SESSION_MAX_LIFETIME_MINUTES = 30;
 export const SESSION_INACTIVITY_MINUTES = 20;
 
 // Role -> operating contexts granted by that role.
+// `admin` is the top clearance: it grants every operating context, identical to
+// `super_admin`. (The platform does not allow promoting the app owner to
+// super_admin, so admin must carry the same authority.) super_admin remains as
+// an equivalent alias.
 const ROLE_CONTEXTS: Record<string, string[]> = {
-  admin: ["admin"],
+  admin: ["admin", "trust_safety", "rewards_finance", "engineering_operations"],
   trust_safety: ["trust_safety"],
   rewards_finance: ["rewards_finance"],
   engineering_operations: ["engineering_operations"],
