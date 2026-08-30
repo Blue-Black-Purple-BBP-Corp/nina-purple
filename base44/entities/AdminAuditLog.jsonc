@@ -7,30 +7,82 @@
     },
     "actor_admin_id": {
       "type": "string",
-      "description": "Platform user ID of the staff member who performed the action."
+      "description": "Platform user ID of the staff member who performed the action. Legacy field name; alias of actor_native_user_id."
+    },
+    "actor_bbp_member_id": {
+      "type": "string",
+      "description": "BBP member ID of the actor, when available."
     },
     "actor_role": {
       "type": "string",
-      "description": "Role captured at time of action (not looked up later). e.g. admin, super_admin."
+      "description": "Role captured at time of action (admin, trust_safety, rewards_finance, engineering_operations, super_admin)."
+    },
+    "operating_context": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "trust_safety",
+        "rewards_finance",
+        "engineering_operations"
+      ],
+      "description": "Privileged context the action was performed under."
+    },
+    "privileged_session_id": {
+      "type": "string",
+      "description": "The PrivilegedSession under which the action was performed."
     },
     "action": {
       "type": "string",
-      "description": "Stable machine-readable action name, e.g. 'verification.approve', 'moderation.suspend', 'coupon.generate', 'founding_member.grant'."
+      "description": "Stable machine-readable action name. Legacy field; alias of action_type."
+    },
+    "action_type": {
+      "type": "string",
+      "description": "Stable machine-readable action type, e.g. 'privileged_session.activated', 'moderation.suspend', 'role_assignment.granted'."
     },
     "target_type": {
       "type": "string",
-      "description": "Entity type of the target, e.g. User, VerificationRequest, ModerationItem, SpecialCode."
+      "description": "Legacy field; alias of target_entity_type."
+    },
+    "target_entity_type": {
+      "type": "string",
+      "description": "Entity type of the target."
     },
     "target_id": {
       "type": "string"
     },
+    "target_entity_id": {
+      "type": "string"
+    },
     "reason": {
       "type": "string",
-      "description": "Free-text justification. Required for any action that affects another user."
+      "description": "Legacy field; alias of reason_code."
+    },
+    "reason_code": {
+      "type": "string",
+      "description": "Stable reason code or free-text justification."
     },
     "changes": {
       "type": "string",
-      "description": "JSON snapshot of before/after state."
+      "description": "Legacy JSON snapshot of before/after. Kept for backward compat."
+    },
+    "previous_state": {
+      "type": "string",
+      "description": "JSON-encoded snapshot of the record before the change."
+    },
+    "new_state": {
+      "type": "string",
+      "description": "JSON-encoded snapshot of the record after the change."
+    },
+    "case_or_ticket_reference": {
+      "type": "string"
+    },
+    "result": {
+      "type": "string",
+      "description": "success | denied | failed"
+    },
+    "correlation_id": {
+      "type": "string",
+      "description": "Correlates related actions in a single workflow."
     }
   },
   "required": [
@@ -41,9 +93,18 @@
   ],
   "rls": {
     "create": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
     },
     "read": {
       "$or": [
