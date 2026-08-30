@@ -82,9 +82,45 @@
         "solar",
         "lunar",
         "stellar",
-        "galactic"
+        "galactic",
+        "nina_membership"
       ],
       "default": "solar"
+    },
+    "subscription_status": {
+      "type": "string",
+      "enum": [
+        "none",
+        "active",
+        "billing_exempt",
+        "lapsed"
+      ],
+      "default": "none",
+      "description": "Authoritative membership state. active = paying $20/mo, billing_exempt = special code reward active, lapsed = cancelled/expired, none = never subscribed."
+    },
+    "subscription_renewal_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Individual billing renewal date. Usage counters reset on this date, not calendar month start."
+    },
+    "billing_exempt_until": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Until this date, the $20/mo charge is skipped but all entitlements remain active. Set by special code redemption."
+    },
+    "free_profile_unlocks_used": {
+      "type": "number",
+      "default": 0,
+      "description": "Counter for free profile unlocks used in the current billing cycle. Resets to 0 on subscription_renewal_date."
+    },
+    "free_messages_used": {
+      "type": "number",
+      "default": 0,
+      "description": "Counter for free messages used in the current billing cycle. Resets to 0 on subscription_renewal_date. Excludes messages in the user's own rooms."
+    },
+    "signup_sequence_number": {
+      "type": "number",
+      "description": "Global signup order. First 200 users who complete signup after the Special Code feature ships are eligible for a code."
     },
     "credit_balance": {
       "type": "number",

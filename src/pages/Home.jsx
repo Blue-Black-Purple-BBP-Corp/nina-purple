@@ -15,7 +15,7 @@ import { base44 } from '@/api/base44Client';
 
 const ARCHETYPE_COLORS = { blue: '#60A5FA', black: '#9CA3AF', purple: '#A855F7' };
 
-const TIER_COLORS = { solar: '#F0E6FF', lunar: '#7B2FBE', stellar: '#A855F7', galactic: '#F5A800' };
+const TIER_COLORS = { solar: '#F0E6FF', lunar: '#7B2FBE', stellar: '#A855F7', galactic: '#F5A800', nina_membership: '#F5A800' };
 
 function CompatibilityOrb({ score }) {
   const color = score >= 90 ? '#F5A800' : score >= 75 ? '#A855F7' : score >= 60 ? '#7B2FBE' : '#6B7280';
@@ -103,7 +103,7 @@ export default function Home() {
   const credits = userProfile?.credit_balance ?? 0;
   const completeness = userProfile?.profile_completeness ?? 0;
   const tierColor = TIER_COLORS[tier] || '#F0E6FF';
-  const tierLabel = { solar: t('plans.solar'), lunar: t('plans.lunar'), stellar: t('plans.stellar'), galactic: t('plans.galactic') }[tier];
+  const tierLabel = { solar: t('plans.solar'), lunar: t('plans.lunar'), stellar: t('plans.stellar'), galactic: t('plans.galactic'), nina_membership: (lang === 'fr' ? 'Adhésion' : 'Membership') }[tier] || (lang === 'fr' ? 'Adhésion' : 'Membership');
 
   return (
     <div className="px-4 py-6 max-w-lg mx-auto space-y-6">

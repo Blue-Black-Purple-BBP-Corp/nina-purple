@@ -54,6 +54,8 @@ const PRICE_MAP = {
   galactic_couple_life: priceFromEnv('galactic_couple_life', 'price_1Tqk98JyNPXqDP7PTXIgt1cE'),
   // Therapy Add-On (weekly recurring — available to all members)
   therapy_weekly:  priceFromEnv('therapy_weekly', 'price_1Tqk98JyNPXqDP7PeNHVSmmW'),
+  // Nina Purple Membership — single $20/month plan
+  nina_membership_1m: priceFromEnv('nina_membership_1m', 'price_1UACzrJyNPXqDP7PTGpZfkVe'),
 };
 
 // Allowlisted origins for success/cancel URLs
@@ -127,7 +129,7 @@ Deno.serve(async (req) => {
     const safeSuccessUrl = isAllowedUrl(success_url) ? success_url : 'https://ninapurple.love/home?payment=success';
     const safeCancelUrl = isAllowedUrl(cancel_url) ? cancel_url : 'https://ninapurple.love/home?payment=cancelled';
 
-    const isSubscription = ['lunar_1m', 'stellar_1m', 'galactic_1m', 'lunar_couple_1m', 'stellar_couple_1m', 'galactic_couple_1m', 'therapy_weekly'].includes(price_key);
+    const isSubscription = ['lunar_1m', 'stellar_1m', 'galactic_1m', 'lunar_couple_1m', 'stellar_couple_1m', 'galactic_couple_1m', 'therapy_weekly', 'nina_membership_1m'].includes(price_key);
 
     const session = await stripe.checkout.sessions.create({
       mode: isSubscription ? 'subscription' : 'payment',

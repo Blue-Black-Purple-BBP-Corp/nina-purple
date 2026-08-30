@@ -59,7 +59,13 @@ Deno.serve(async (req) => {
           const tier = price_key ? price_key.split('_')[0] : '';
           const validTiers = ['lunar', 'stellar', 'galactic'];
 
-          if (validTiers.includes(tier)) {
+          if (price_key === 'nina_membership_1m') {
+            await base44.asServiceRole.entities.UserProfile.update(profile.id, {
+              subscription_tier: 'nina_membership',
+              subscription_status: 'active',
+            });
+            console.info('[stripeWebhook] Activated Nina Purple Membership for user:', user_id);
+          } else if (validTiers.includes(tier)) {
             await base44.asServiceRole.entities.UserProfile.update(profile.id, { subscription_tier: tier });
             console.info('[stripeWebhook] Updated subscription to', tier, 'for user:', user_id);
           } else if (CREDIT_AMOUNTS[price_key]) {
@@ -79,11 +85,44 @@ Deno.serve(async (req) => {
       if (subUserId) {
         const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_id: subUserId });
         if (profiles.length) {
-          await base44.asServiceRole.entities.UserProfile.update(profiles[0].id, { subscription_tier: 'solar' });
-          console.info('[stripeWebhook] Downgraded user to solar tier:', subUserId);
+          const p = profiles[0];
+          if (p.subscription_tier === 'nina_membership') {
+            await base44.asServiceRole.entities.UserProfile.update(p.id, { subscription_status: 'lapsed' });
+            console.info('[stripeWebhook] Membership lapsed for user:', subUserId);
+          } else {
+            await base44.asServiceRole.entities.UserProfile.update(p.id, { subscription_tier: 'solar' });
+            console.info('[stripeWebhook] Downgraded user to solar tier:', subUserId);
+          }
         }
       } else {
         console.warn('[stripeWebhook] subscription.deleted: no user_id in metadata:', subscription.id);
+      }
+    }
+
+    // ── Renewal: reset usage counters and update renewal date ──
+    if (event.type === 'invoice.paid') {
+      const invoice = event.data.object;
+      const subId = invoice.subscription;
+      if (subId) {
+        try {
+          const sub = await stripe.subscriptions.retrieve(subId);
+          const subUserId = sub.metadata?.user_id;
+          if (subUserId) {
+            const renewalDate = new Date(sub.current_period_end * 1000).toISOString();
+            const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_id: subUserId });
+            if (profiles.length) {
+              await base44.asServiceRole.entities.UserProfile.update(profiles[0].id, {
+                subscription_renewal_date: renewalDate,
+                free_profile_unlocks_used: 0,
+                free_messages_used: 0,
+                subscription_status: 'active',
+              });
+              console.info('[stripeWebhook] Renewal — reset counters for user:', subUserId, 'next renewal:', renewalDate);
+            }
+          }
+        } catch (e) {
+          console.error('[stripeWebhook] invoice.paid handler error:', e.message);
+        }
       }
     }
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import MigrationForm from '@/components/admin/MigrationForm';
+import SpecialCodeAdminTable from '@/components/admin/SpecialCodeAdminTable';
 import StaffRewardsConsole from '@/components/bbp/StaffRewardsConsole';
 // TEMP: import AmbassadorManager from '@/components/admin/AmbassadorManager';
 import { Loader2, Search, Phone, Shield, UserCheck, UserX, Ban, CheckCircle, XCircle, Mail, MapPin, Crown, Filter, ChevronDown, MessageSquare, Bell, BellOff, Copy, Award } from 'lucide-react';
@@ -11,6 +12,7 @@ const TIER_META = {
   lunar:   { color: '#7B2FBE', label: 'Lunar',    icon: '🌙' },
   stellar: { color: '#A855F7', label: 'Stellar',  icon: '⭐' },
   galactic:{ color: '#F5A800', label: 'Galactic', icon: '🌌' },
+  nina_membership: { color: '#F5A800', label: 'Membership', icon: '💜' },
 };
 
 export default function Admin() {
@@ -163,6 +165,7 @@ export default function Admin() {
           { id: 'migration', label: 'Migration' },
           { id: 'phone', label: 'Phone Verification' },
           { id: 'rewards', label: 'Rewards' },
+          { id: 'special_codes', label: 'Special Codes' },
           { id: 'notifications', label: `Notifications${notifications.filter(n => !n.is_read).length ? ` (${notifications.filter(n => !n.is_read).length})` : ''}` },
         ].map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
@@ -380,6 +383,11 @@ export default function Admin() {
       {/* Rewards Tab */}
       {tab === 'rewards' && (
         <StaffRewardsConsole />
+      )}
+
+      {/* Special Codes Tab */}
+      {tab === 'special_codes' && (
+        <SpecialCodeAdminTable />
       )}
 
       {/* Ambassadors Tab — temporarily disabled for debugging */}

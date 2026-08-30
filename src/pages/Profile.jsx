@@ -12,6 +12,7 @@ import ReferralModal from '@/components/profile/ReferralModal';
 import UpgradeModal from '@/components/profile/UpgradeModal';
 import EditProfileModal from '@/components/profile/EditProfileModal';
 import CommunityStandingCard from '@/components/bbp/CommunityStandingCard';
+import UsageIndicator from '@/components/dashboard/UsageIndicator';
 // TEMP: import AmbassadorBadge from '@/components/dashboard/AmbassadorBadge';
 import { base44 } from '@/api/base44Client';
 
@@ -20,6 +21,7 @@ const TIER_META = {
   lunar:   { color: '#7B2FBE', label_en: 'Lunar',    label_fr: 'Lunaire',    icon: '🌙' },
   stellar: { color: '#A855F7', label_en: 'Stellar',  label_fr: 'Stellaire',  icon: '⭐' },
   galactic:{ color: '#F5A800', label_en: 'Galactic', label_fr: 'Galactique', icon: '🌌' },
+  nina_membership: { color: '#F5A800', label_en: 'Membership', label_fr: 'Adhésion', icon: '💜' },
 };
 
 export default function Profile() {
@@ -254,6 +256,9 @@ export default function Profile() {
 
       {/* Community Standing card — private, shows engagement state + wallet link */}
       <CommunityStandingCard lang={lang} />
+
+      {/* Usage indicator — free unlocks & messages remaining this cycle */}
+      <UsageIndicator lang={lang} />
 
       {/* Nina quote */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }}

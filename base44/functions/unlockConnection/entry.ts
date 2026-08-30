@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.36';
-import { PLAN_LIMITS, getPricingForCompatibility, getMonthStart } from '../../shared/planLimits.ts';
+import { PLAN_LIMITS, getPricingForCompatibility, getMonthStart, hasActiveMembership } from '../../shared/planLimits.ts';
 
 // Authoritative server-side handler for connection unlocks.
 // The client must NEVER write is_unlocked / unlock_cost_paid / gallery_unlocked
@@ -45,24 +45,43 @@ Deno.serve(async (req) => {
         return Response.json({ success: true, already_unlocked: true, unlock_cost_paid: conn.unlock_cost_paid || 0 });
       }
 
-      // Enforce the tier's monthly unlock quota server-side (authoritative).
-      const monthStart = getMonthStart();
-      const myConns = await base44.asServiceRole.entities.Connection.filter({ from_user_id: user.id });
-      const unlocksUsed = myConns.filter(
-        (c) => c.is_unlocked && c.unlock_cost_paid > 0 && new Date(c.updated_date || c.created_date) >= monthStart
-      ).length;
-      const unlocksRemaining = Math.max(0, limits.unlocks_per_month - unlocksUsed);
-      if (unlocksRemaining <= 0) {
-        return Response.json({
-          success: false,
-          reason: 'You have reached your monthly profile unlock limit. Upgrade your plan for more unlocks.',
-        });
-      }
-
-      // Calculate the unlock cost server-side from the stored compatibility score — never trust the client.
       const score = conn.compatibility_score || 0;
       const pricing = getPricingForCompatibility(score);
+      const membershipActive = hasActiveMembership(profile);
 
+      // ── Nina Membership: check free unlock allowance first ──
+      if (tier === 'nina_membership' && membershipActive && limits.free_profile_unlocks > 0) {
+        const freeUsed = profile.free_profile_unlocks_used || 0;
+        if (freeUsed < limits.free_profile_unlocks) {
+          await base44.asServiceRole.entities.Connection.update(conn.id, {
+            is_unlocked: true,
+            unlock_cost_paid: 0,
+          });
+          await base44.asServiceRole.entities.UserProfile.update(profile.id, {
+            free_profile_unlocks_used: freeUsed + 1,
+          });
+          return Response.json({ success: true, unlock_cost_paid: 0, free_unlock: true });
+        }
+        // Free allowance exhausted — fall through to paid pricing below
+      }
+
+      // ── Legacy tier monthly unlock quota (hard cap) ──
+      if (tier !== 'nina_membership') {
+        const monthStart = getMonthStart();
+        const myConns = await base44.asServiceRole.entities.Connection.filter({ from_user_id: user.id });
+        const unlocksUsed = myConns.filter(
+          (c) => c.is_unlocked && c.unlock_cost_paid > 0 && new Date(c.updated_date || c.created_date) >= monthStart
+        ).length;
+        const unlocksRemaining = Math.max(0, limits.unlocks_per_month - unlocksUsed);
+        if (unlocksRemaining <= 0) {
+          return Response.json({
+            success: false,
+            reason: 'You have reached your monthly profile unlock limit. Upgrade your plan for more unlocks.',
+          });
+        }
+      }
+
+      // Paid unlock — cost from the interaction-pricing table (unchanged)
       await base44.asServiceRole.entities.Connection.update(conn.id, {
         is_unlocked: true,
         unlock_cost_paid: pricing.unlock,

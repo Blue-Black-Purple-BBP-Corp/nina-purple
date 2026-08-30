@@ -1,0 +1,95 @@
+{
+  "name": "SpecialCode",
+  "type": "object",
+  "properties": {
+    "code": {
+      "type": "string",
+      "description": "Unique 8-character alphanumeric code, auto-generated."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "issued",
+        "redeemed",
+        "expired"
+      ],
+      "default": "issued"
+    },
+    "issued_to_user_id": {
+      "type": "string",
+      "description": "Platform user ID of the recipient."
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "redeemed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when the user redeemed the code. Null until redeemed."
+    },
+    "reward_months": {
+      "type": "number",
+      "description": "Number of billing-exempt months granted (1-3). Set by admin after reviewing feedback."
+    },
+    "feedback_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "submitted",
+        "verified"
+      ],
+      "default": "pending"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Code expiry timestamp, default 14 days after issuance."
+    },
+    "feedback_form_url": {
+      "type": "string",
+      "description": "URL of the external feedback form for the user to complete."
+    }
+  },
+  "required": [
+    "code",
+    "issued_to_user_id",
+    "expires_at"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.issued_to_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.issued_to_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -87,6 +87,36 @@ Deno.serve(async (req) => {
 
     const created = await base44.asServiceRole.entities.UserProfile.create(profileData);
 
+    // ── Assign signup sequence number and issue Special Code if eligible ──
+    try {
+      const allProfiles = await base44.asServiceRole.entities.UserProfile.list();
+      const seqNum = allProfiles.length;
+      await base44.asServiceRole.entities.UserProfile.update(created.id, { signup_sequence_number: seqNum });
+
+      // Issue Special Code to first 200 users (fraud control: one per user)
+      if (seqNum <= 200) {
+        const existingCodes = await base44.asServiceRole.entities.SpecialCode.filter({ issued_to_user_id: user.id });
+        if (existingCodes.length === 0) {
+          const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+          let code = '';
+          for (let i = 0; i < 8; i++) code += chars[Math.floor(Math.random() * chars.length)];
+          const now = new Date();
+          const expiresAt = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+          await base44.asServiceRole.entities.SpecialCode.create({
+            code,
+            status: 'issued',
+            issued_to_user_id: user.id,
+            issued_at: now.toISOString(),
+            expires_at: expiresAt.toISOString(),
+            feedback_status: 'pending',
+          });
+          console.info('[createProfile] Special code issued:', code, 'seq:', seqNum);
+        }
+      }
+    } catch (codeErr) {
+      console.error('[createProfile] Special code issuance failed:', codeErr.message);
+    }
+
     // ── Notify admins of the new registration ──
     // Fires only on a brand-new profile (not on updates of admin-migrated accounts).
     try {

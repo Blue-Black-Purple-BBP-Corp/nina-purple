@@ -8,7 +8,7 @@ import { base44 } from '@/api/base44Client';
 const PLANS = ALL_PLANS.filter(p => p.key !== 'solar');
 
 export default function UpgradeModal({ isOpen, onClose, lang, currentTier }) {
-  const [selectedPlan, setSelectedPlan] = useState('galactic');
+  const [selectedPlan, setSelectedPlan] = useState('nina_membership');
   const [selectedDuration, setSelectedDuration] = useState('1m');
   const [userId, setUserId] = useState('');
   const [profileType, setProfileType] = useState('individual');
@@ -21,7 +21,6 @@ export default function UpgradeModal({ isOpen, onClose, lang, currentTier }) {
           base44.entities.UserProfile.filter({ user_id: u.id }).then(res => {
             if (res[0]?.profile_type === 'couple') {
               setProfileType('couple');
-              setSelectedPlan('galactic_couple');
             }
           }).catch(() => {});
         }

@@ -13,209 +13,47 @@ export const THERAPY_ADDON = {
   price_key: 'therapy_weekly',
 };
 
-export const ALL_PLANS = [
-  // ═══ Individual Plans ═══
-  {
-    key: 'solar', profile_type: 'individual', color: '#A78BFA', icon: '☀️',
-    label_en: 'Solar', label_fr: 'Solaire',
-    desc_en: 'Free forever', desc_fr: 'Gratuit pour toujours',
-    price_en: 'Free', price_fr: 'Gratuit',
-    perks_en: [
-      'Browse compatible profiles',
-      'Answer 21 matching questions',
-      'Join community rooms',
-      '5 free messages / month (includes community rooms, except your own)',
-      'Access to Nina Purple Experiences',
-    ],
-    perks_fr: [
-      'Parcourir les profils compatibles',
-      'Répondre aux 21 questions',
-      'Rejoindre les salons communautaires',
-      '5 messages gratuits / mois (inclut les salons communautaires, sauf les vôtres)',
-      'Accès aux Expériences Nina Purple',
-    ],
-    durations: [],
-  },
-  {
-    key: 'lunar', profile_type: 'individual', color: '#7B2FBE', icon: '🌙',
-    label_en: 'Lunar', label_fr: 'Lunaire',
-    desc_en: 'Deepen your search', desc_fr: 'Approfondissez votre recherche',
-    price_en: 'From $5 / 14 days', price_fr: 'À partir de $5 / 14 jours',
-    perks_en: [
-      'Everything in Solar',
-      'Unlock 1 profile per month',
-      '30 messages / month (includes community rooms, except your own)',
-      'See who viewed your profile',
-      'Access to Nina Purple Experiences',
-    ],
-    perks_fr: [
-      'Tout ce qui est dans Solaire',
-      'Débloquer 1 profil par mois',
-      '30 messages / mois (inclut les salons communautaires, sauf les vôtres)',
-      'Voir qui a consulté votre profil',
-      'Accès aux Expériences Nina Purple',
-    ],
-    durations: [
-      { key: 'lunar_14d', label_en: '14 days', label_fr: '14 jours', price: '$5' },
-      { key: 'lunar_1m',  label_en: '1 month',  label_fr: '1 mois',  price: '$10' },
-      { key: 'lunar_3m',  label_en: '3 months', label_fr: '3 mois', price: '$27.50' },
-      { key: 'lunar_6m',  label_en: '6 months', label_fr: '6 mois', price: '$55' },
-      { key: 'lunar_1y',  label_en: '1 year',   label_fr: '1 an',    price: '$110' },
-    ],
-  },
-  {
-    key: 'stellar', profile_type: 'individual', color: '#A855F7', icon: '⭐',
-    label_en: 'Stellar', label_fr: 'Stellaire',
-    desc_en: 'Expand your horizons', desc_fr: 'Élargissez vos horizons',
-    price_en: 'From $10 / 14 days', price_fr: 'À partir de $10 / 14 jours',
-    perks_en: [
-      'Everything in Lunar',
-      'Unlock up to 2 profiles per month',
-      '100 messages / month (includes community rooms, except your own)',
-      'Priority in search results',
-      'Access to Nina Purple Experiences',
-    ],
-    perks_fr: [
-      'Tout ce qui est dans Lunaire',
-      "Débloquer jusqu'à 2 profils par mois",
-      '100 messages / mois (inclut les salons communautaires, sauf les vôtres)',
-      'Priorité dans les résultats de recherche',
-      'Accès aux Expériences Nina Purple',
-    ],
-    durations: [
-      { key: 'stellar_14d', label_en: '14 days', label_fr: '14 jours', price: '$10' },
-      { key: 'stellar_1m',  label_en: '1 month',  label_fr: '1 mois',  price: '$15' },
-      { key: 'stellar_3m',  label_en: '3 months', label_fr: '3 mois', price: '$41.25' },
-      { key: 'stellar_6m',  label_en: '6 months', label_fr: '6 mois', price: '$82.50' },
-      { key: 'stellar_1y',  label_en: '1 year',   label_fr: '1 an',    price: '$165' },
-    ],
-  },
-  {
-    key: 'galactic', profile_type: 'individual', color: '#F5A800', icon: '🌌',
-    label_en: 'Galactic', label_fr: 'Galactique',
-    desc_en: 'Full access', desc_fr: 'Accès complet',
-    price_en: 'From $7 / 7 days', price_fr: 'À partir de $7 / 7 jours',
-    perks_en: [
-      'Everything in Stellar',
-      'Unlock up to 3 profiles per month',
-      'Unlimited messages (includes community rooms, except your own)',
-      'Gallery unlock included',
-      'Lifetime option available',
-      'Access to Nina Purple Experiences',
-    ],
-    perks_fr: [
-      'Tout ce qui est dans Stellaire',
-      "Débloquer jusqu'à 3 profils par mois",
-      'Messages illimités (inclut les salons communautaires, sauf les vôtres)',
-      'Déverrouillage de galerie inclus',
-      'Option à vie disponible',
-      'Accès aux Expériences Nina Purple',
-    ],
-    durations: [
-      { key: 'galactic_7d',   label_en: '7 days',   label_fr: '7 jours',  price: '$7' },
-      { key: 'galactic_14d',  label_en: '14 days',  label_fr: '14 jours', price: '$14' },
-      { key: 'galactic_1m',   label_en: '1 month',  label_fr: '1 mois',   price: '$20' },
-      { key: 'galactic_3m',   label_en: '3 months', label_fr: '3 mois',   price: '$55' },
-      { key: 'galactic_6m',   label_en: '6 months', label_fr: '6 mois',   price: '$110' },
-      { key: 'galactic_1y',   label_en: '1 year',   label_fr: '1 an',     price: '$220' },
-      { key: 'galactic_life', label_en: 'Lifetime', label_fr: 'À vie',    price: '$400' },
-    ],
-  },
+// ═══ Single Membership Plan ═══
+// Replaces the former Solar/Lunar/Stellar/Galactic tiers.
+// $20/month, recurring, cancel anytime.
+// Entitlements: profile browsing, 1 free profile unlock/month, 30 free
+// messages/month, community rooms, Experiences access. Beyond the free
+// allowance, interactions route through the existing interaction-pricing
+// table (unchanged).
+export const NINA_MEMBERSHIP = {
+  key: 'nina_membership',
+  profile_type: 'individual',
+  color: '#F5A800',
+  icon: '💜',
+  label_en: 'Nina Purple Membership',
+  label_fr: 'Adhésion Nina Purple',
+  desc_en: 'Full access — cancel anytime',
+  desc_fr: 'Accès complet — annulez à tout moment',
+  price_en: '$20 / month',
+  price_fr: '$20 / mois',
+  perks_en: [
+    'Browse all compatible profiles',
+    '1 free profile unlock per month',
+    '30 free messages per month (community + 1:1, excluding your own rooms)',
+    'Full community rooms access',
+    'Access to Nina Purple Experiences',
+  ],
+  perks_fr: [
+    'Parcourir tous les profils compatibles',
+    '1 déverrouillage de profil gratuit par mois',
+    '30 messages gratuits par mois (communauté + 1:1, hors vos propres salons)',
+    'Accès complet aux salons communautaires',
+    'Accès aux Expériences Nina Purple',
+  ],
+  durations: [
+    { key: 'nina_membership_1m', label_en: '1 month', label_fr: '1 mois', price: '$20' },
+  ],
+};
 
-  // ═══ Couple Plans ═══
-  {
-    key: 'solar_couple', profile_type: 'couple', color: '#A78BFA', icon: '☀️',
-    label_en: 'Solar Couple', label_fr: 'Solaire Couple',
-    desc_en: 'Free forever — for two', desc_fr: 'Gratuit pour toujours — pour deux',
-    price_en: 'Free', price_fr: 'Gratuit',
-    perks_en: [
-      'Shared couple profile',
-      'Side-by-side compatibility view',
-      'Join community rooms',
-      '5 free messages / month (includes community rooms, except your own)',
-      'Access to Nina Purple Experiences',
-    ],
-    perks_fr: [
-      'Profil de couple partagé',
-      'Vue de compatibilité côte à côte',
-      'Rejoindre les salons communautaires',
-      '5 messages gratuits / mois (inclut les salons communautaires, sauf les vôtres)',
-      'Accès aux Expériences Nina Purple',
-    ],
-    durations: [],
-  },
-  {
-    key: 'lunar_couple', profile_type: 'couple', color: '#7B2FBE', icon: '🌙',
-    label_en: 'Lunar Couple', label_fr: 'Lunaire Couple',
-    desc_en: 'Deepen your bond', desc_fr: 'Approfondissez votre lien',
-    price_en: '$10 / month / person', price_fr: '$10 / mois / personne',
-    perks_en: [
-      'Everything in Solar Couple',
-      'Full couple compatibility deep-dive',
-      '30 messages / month (includes community rooms, except your own)',
-      'Couples-only community rooms',
-      'Eligibility for experience exchange program',
-      'Access to Nina Purple Experiences',
-    ],
-    perks_fr: [
-      'Tout ce qui est dans Solaire Couple',
-      'Analyse approfondie de compatibilité de couple',
-      '30 messages / mois (inclut les salons communautaires, sauf les vôtres)',
-      'Salons communautaires réservés aux couples',
-      "Éligibilité au programme d'échange d'expériences",
-      'Accès aux Expériences Nina Purple',
-    ],
-    durations: [
-      { key: 'lunar_couple_1m',  label_en: '1 month',  label_fr: '1 mois',  price: '$10' },
-    ],
-  },
-  {
-    key: 'stellar_couple', profile_type: 'couple', color: '#A855F7', icon: '⭐',
-    label_en: 'Stellar Couple', label_fr: 'Stellaire Couple',
-    desc_en: 'Grow together', desc_fr: 'Grandir ensemble',
-    price_en: '$15 / month / person', price_fr: '$15 / mois / personne',
-    perks_en: [
-      'Everything in Lunar Couple',
-      '100 messages / month (includes community rooms, except your own)',
-      'Relationship growth prompts & exercises',
-      'Access to Nina Purple Experiences',
-    ],
-    perks_fr: [
-      'Tout ce qui est dans Lunaire Couple',
-      '100 messages / mois (inclut les salons communautaires, sauf les vôtres)',
-      'Exercices et pistes de croissance relationnelle',
-      'Accès aux Expériences Nina Purple',
-    ],
-    durations: [
-      { key: 'stellar_couple_1m',  label_en: '1 month',  label_fr: '1 mois',  price: '$15' },
-    ],
-  },
-  {
-    key: 'galactic_couple', profile_type: 'couple', color: '#F5A800', icon: '🌌',
-    label_en: 'Galactic Couple', label_fr: 'Galactique Couple',
-    desc_en: 'Full access — for two', desc_fr: 'Accès complet — pour deux',
-    price_en: '$20 / month / person', price_fr: '$20 / mois / personne',
-    perks_en: [
-      'Everything in Stellar Couple',
-      'Unlimited messages (includes community rooms, except your own)',
-      'Experience price reduction',
-      'Access to Nina Purple Experiences',
-    ],
-    perks_fr: [
-      'Tout ce qui est dans Stellaire Couple',
-      'Messages illimités (inclut les salons communautaires, sauf les vôtres)',
-      'Réduction sur le prix des Expériences',
-      'Accès aux Expériences Nina Purple',
-    ],
-    durations: [
-      { key: 'galactic_couple_1m',   label_en: '1 month',  label_fr: '1 mois',   price: '$20' },
-    ],
-  },
-];
-
-export const INDIVIDUAL_PLANS = ALL_PLANS.filter(p => p.profile_type === 'individual');
-export const COUPLE_PLANS = ALL_PLANS.filter(p => p.profile_type === 'couple');
+export const ALL_PLANS = [NINA_MEMBERSHIP];
+export const INDIVIDUAL_PLANS = [NINA_MEMBERSHIP];
+export const COUPLE_PLANS = [NINA_MEMBERSHIP];
 
 export function getPlansByType(type) {
-  return ALL_PLANS.filter(p => p.profile_type === type);
+  return [NINA_MEMBERSHIP];
 }

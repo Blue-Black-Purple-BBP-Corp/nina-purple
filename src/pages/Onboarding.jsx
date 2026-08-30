@@ -58,7 +58,7 @@ export default function Onboarding() {
   const [answers, setAnswers] = useState({});
   const [profile, setProfile] = useState({ first_name: '', middle_name: '', last_name: '', display_name: '', city: '', country: '', birthdate: '', sexual_orientation: '', gender_pronoun: '', relationship_status: '' });
   const [archetype, setArchetype] = useState('');
-  const [selectedPlan, setSelectedPlan] = useState('solar');
+  const [selectedPlan, setSelectedPlan] = useState('nina_membership');
   const [selectedDuration, setSelectedDuration] = useState('1m');
   const [currentQ, setCurrentQ] = useState(0);
   const [loading, setLoading] = useState(false);
