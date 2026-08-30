@@ -12,14 +12,23 @@
       "type": "string",
       "description": "Platform user ID for RLS."
     },
+    "benefit_id": {
+      "type": "string",
+      "description": "The RedemptionCatalog benefit_id used for this redemption."
+    },
     "benefit_type": {
       "type": "string",
       "enum": [
         "connection_discount",
         "event_ticket_discount",
         "experience_waitlist_priority",
-        "subscription_perk"
+        "subscription_perk",
+        "experience_booking_discount"
       ]
+    },
+    "catalog_version": {
+      "type": "string",
+      "description": "Version of the RedemptionCatalog entry at time of redemption."
     },
     "points_cost": {
       "type": "number"

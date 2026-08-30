@@ -29,21 +29,74 @@
       "type": "number",
       "default": 0
     },
-    "status": {
+    "reward_value_usd": {
+      "type": "number",
+      "default": 0,
+      "description": "Always equals points_amount because 1 BBP = $1."
+    },
+    "qualification_definition": {
       "type": "string",
-      "enum": [
-        "active",
-        "inactive"
-      ],
-      "default": "active"
+      "description": "Human-readable definition of what qualifies for this reward."
     },
     "pending_hours": {
       "type": "number",
       "default": 0
     },
-    "cap_config": {
+    "per_member_cap": {
+      "type": "number",
+      "description": "Maximum lifetime awards of this rule per member. Null = unlimited."
+    },
+    "per_pair_cap": {
+      "type": "number",
+      "description": "Maximum awards per member pair (e.g. meetup confirmations). Null = N/A."
+    },
+    "per_campaign_cap": {
+      "type": "number",
+      "description": "Maximum total awards under a campaign. Null = unlimited."
+    },
+    "rolling_period_days": {
+      "type": "number",
+      "description": "Rolling window in days for cap enforcement (e.g. 365 for 12 months)."
+    },
+    "monthly_budget_usd": {
+      "type": "number",
+      "default": 0,
+      "description": "Hard monthly budget for this rule in USD (= BBP). 0 = unlimited."
+    },
+    "monthly_issued_usd": {
+      "type": "number",
+      "default": 0,
+      "description": "Running total of USD/BBP issued this month. Reset by scheduled job."
+    },
+    "minimum_paid_transaction_usd": {
+      "type": "number",
+      "description": "Minimum net paid transaction required to qualify (for referral rules)."
+    },
+    "maximum_reward_share_of_net_contribution_margin": {
+      "type": "number",
+      "description": "Maximum share of net contribution margin that may be awarded (e.g. 0.10 for 10%)."
+    },
+    "requires_attendance": {
+      "type": "boolean",
+      "default": false
+    },
+    "requires_paid_transaction": {
+      "type": "boolean",
+      "default": false
+    },
+    "refund_chargeback_hold_days": {
+      "type": "number",
+      "description": "Days to hold pending after a paid transaction before release (e.g. 30 for referrals)."
+    },
+    "status": {
       "type": "string",
-      "description": "JSON-encoded cap config: { one_time: bool, monthly: number, per_pair_cooldown_days: number }."
+      "enum": [
+        "draft",
+        "active",
+        "paused",
+        "retired"
+      ],
+      "default": "draft"
     },
     "effective_from": {
       "type": "string",
@@ -53,9 +106,13 @@
       "type": "string",
       "format": "date-time"
     },
+    "cap_config": {
+      "type": "string",
+      "description": "Legacy JSON-encoded cap config. Migrated to explicit fields above but kept for backward compat."
+    },
     "eligibility_config": {
       "type": "string",
-      "description": "JSON-encoded eligibility constraints."
+      "description": "Legacy JSON-encoded eligibility constraints. Kept for backward compat."
     }
   },
   "required": [

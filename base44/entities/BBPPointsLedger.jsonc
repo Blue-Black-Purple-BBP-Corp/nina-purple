@@ -19,12 +19,13 @@
         "award",
         "reversal",
         "redemption",
-        "adjustment"
+        "adjustment",
+        "expiry"
       ]
     },
     "points_delta": {
       "type": "number",
-      "description": "Positive for awards, negative for reversals/redemptions."
+      "description": "Positive for awards, negative for reversals/redemptions/expiry."
     },
     "status": {
       "type": "string",
@@ -53,12 +54,17 @@
         "community_contribution",
         "social_proof",
         "redemption",
-        "staff_adjustment"
+        "staff_adjustment",
+        "expiry"
       ]
     },
     "source_event_id": {
       "type": "string",
       "description": "Unique event reference for idempotency."
+    },
+    "rule_id": {
+      "type": "string",
+      "description": "The RewardRule rule_id that governed this award."
     },
     "rule_version": {
       "type": "string"
@@ -71,9 +77,22 @@
       "format": "date-time",
       "description": "When pending points become available."
     },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When available points expire (12 months after available_at)."
+    },
     "reversal_of_ledger_id": {
       "type": "string",
       "description": "Links a reversal entry to the original award entry."
+    },
+    "staff_reason": {
+      "type": "string",
+      "description": "Reason recorded by staff for adjustments, holds, or reversals."
+    },
+    "member_safe_description": {
+      "type": "string",
+      "description": "Neutral, non-accusatory description shown to the member for pending/denied status."
     },
     "internal_notes": {
       "type": "string"

@@ -1,0 +1,116 @@
+{
+  "name": "RedemptionCatalog",
+  "type": "object",
+  "properties": {
+    "benefit_id": {
+      "type": "string",
+      "description": "Stable benefit identifier, e.g. CONNECTION_CREDIT."
+    },
+    "benefit_type": {
+      "type": "string",
+      "enum": [
+        "connection_discount",
+        "event_ticket_discount",
+        "experience_waitlist_priority",
+        "subscription_perk",
+        "experience_booking_discount"
+      ]
+    },
+    "name_en": {
+      "type": "string"
+    },
+    "name_fr": {
+      "type": "string"
+    },
+    "description_en": {
+      "type": "string"
+    },
+    "description_fr": {
+      "type": "string"
+    },
+    "member_value_usd_per_bbp": {
+      "type": "number",
+      "default": 1.0,
+      "description": "Fixed at 1.00 because 1 BBP = $1."
+    },
+    "minimum_bbp": {
+      "type": "number",
+      "default": 5
+    },
+    "maximum_bbp_per_transaction": {
+      "type": "number"
+    },
+    "maximum_discount_percent": {
+      "type": "number",
+      "description": "Maximum percentage of transaction value that BBP can offset."
+    },
+    "minimum_payable_usd": {
+      "type": "number",
+      "default": 5,
+      "description": "Minimum USD that must remain payable after BBP discount."
+    },
+    "stacking_allowed": {
+      "type": "boolean",
+      "default": false
+    },
+    "eligible_product_types": {
+      "type": "string",
+      "description": "JSON-encoded array of eligible product types (e.g. subscription, event, experience)."
+    },
+    "inventory_limit": {
+      "type": "number",
+      "description": "Maximum redemptions available. Null = unlimited."
+    },
+    "contribution_margin_floor_percent": {
+      "type": "number",
+      "description": "Minimum contribution margin that must remain after BBP discount."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "active",
+        "paused",
+        "retired"
+      ],
+      "default": "draft"
+    },
+    "start_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "end_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "terms_version": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "benefit_id",
+    "benefit_type"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

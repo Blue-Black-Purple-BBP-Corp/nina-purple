@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import MigrationForm from '@/components/admin/MigrationForm';
+import StaffRewardsConsole from '@/components/bbp/StaffRewardsConsole';
 // TEMP: import AmbassadorManager from '@/components/admin/AmbassadorManager';
 import { Loader2, Search, Phone, Shield, UserCheck, UserX, Ban, CheckCircle, XCircle, Mail, MapPin, Crown, Filter, ChevronDown, MessageSquare, Bell, BellOff, Copy, Award } from 'lucide-react';
 
@@ -161,6 +162,7 @@ export default function Admin() {
           { id: 'ambassadors', label: 'Ambassadors' },
           { id: 'migration', label: 'Migration' },
           { id: 'phone', label: 'Phone Verification' },
+          { id: 'rewards', label: 'Rewards' },
           { id: 'notifications', label: `Notifications${notifications.filter(n => !n.is_read).length ? ` (${notifications.filter(n => !n.is_read).length})` : ''}` },
         ].map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
@@ -373,6 +375,11 @@ export default function Admin() {
             </div>
           )}
         </div>
+      )}
+
+      {/* Rewards Tab */}
+      {tab === 'rewards' && (
+        <StaffRewardsConsole />
       )}
 
       {/* Ambassadors Tab — temporarily disabled for debugging */}

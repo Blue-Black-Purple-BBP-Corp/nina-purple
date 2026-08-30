@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Wallet, ArrowLeft, Award, Clock, TrendingUp, Info, Loader2, Gift } from 'lucide-react';
+import { Wallet, ArrowLeft, Award, Clock, TrendingUp, Info, Loader2, Gift, DollarSign } from 'lucide-react';
 import { useLang } from '@/lib/LanguageContext';
 import { base44 } from '@/api/base44Client';
+import RedemptionCatalogCard from '@/components/bbp/RedemptionCatalogCard';
 
 const SOURCE_LABELS = {
   profile_complete: { en: 'Profile Completion', fr: 'Complétion du Profil' },
@@ -73,6 +74,8 @@ export default function BBPWallet() {
   const pending = wallet?.pending_points || 0;
   const lifetimeEarned = wallet?.lifetime_earned || 0;
   const lifetimeRedeemed = wallet?.lifetime_redeemed || 0;
+  const lifetimeReversed = wallet?.lifetime_reversed || 0;
+  const expired = wallet?.expired_points || 0;
 
   return (
     <div className="px-4 py-6 max-w-lg mx-auto space-y-6">
@@ -116,13 +119,41 @@ export default function BBPWallet() {
         </div>
       </div>
 
-      {/* Non-transferable notice */}
+      {/* Exact legal summary — required text */}
+      <div className="glass-card-gold rounded-2xl p-4 flex items-start gap-3">
+        <DollarSign className="w-4 h-4 text-[#F5A800] shrink-0 mt-0.5" />
+        <p className="text-[#F0E6FF]/70 text-xs leading-relaxed font-medium">
+          {isFr
+            ? '1 BBP Point = USD $1.00 toward eligible Nina Purple benefits. BBP Points are not cash, cannot be transferred, and are subject to BBP Points Rules.'
+            : '1 BBP Point = USD $1.00 toward eligible Nina Purple benefits. BBP Points are not cash, cannot be transferred, and are subject to BBP Points Rules.'}
+        </p>
+      </div>
+
+      {/* Face value USD + expiry info */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="glass-card rounded-2xl p-4">
+          <div className="flex items-center gap-1.5 mb-1">
+            <DollarSign className="w-3.5 h-3.5 text-[#F5A800]/60" />
+            <span className="text-[#F0E6FF]/50 text-xs">{isFr ? 'Valeur disponible (USD)' : 'Available Value (USD)'}</span>
+          </div>
+          <p className="text-[#F5A800] font-bold text-lg">${available}</p>
+        </div>
+        <div className="glass-card rounded-2xl p-4">
+          <div className="flex items-center gap-1.5 mb-1">
+            <Clock className="w-3.5 h-3.5 text-[#7B2FBE]/60" />
+            <span className="text-[#F0E6FF]/50 text-xs">{isFr ? 'Expiré (à vie)' : 'Expired (lifetime)'}</span>
+          </div>
+          <p className="text-[#F0E6FF] font-bold text-lg">{expired}</p>
+        </div>
+      </div>
+
+      {/* Expiry notice */}
       <div className="glass-card rounded-2xl p-4 flex items-start gap-3">
         <Info className="w-4 h-4 text-[#F0E6FF]/40 shrink-0 mt-0.5" />
         <p className="text-[#F0E6FF]/50 text-xs leading-relaxed">
           {isFr
-            ? "Les points BBP ne sont pas de l'argent, ne sont pas transférables et sont soumis aux règles du programme. Aucune valeur monétaire n'est garantie."
-            : 'BBP Points are not cash, are not transferable, and are subject to program rules. No cash value is guaranteed.'}
+            ? 'Les points disponibles expirent 12 mois après leur date de disponibilité. Les points en attente n\'expirent pas tant qu\'ils sont en attente.'
+            : 'Available points expire 12 months after their available date. Pending points do not expire while pending.'}
         </p>
       </div>
 
@@ -173,6 +204,11 @@ export default function BBPWallet() {
             })}
           </div>
         )}
+      </div>
+
+      {/* Redemption Catalog */}
+      <div>
+        <RedemptionCatalogCard availablePoints={available} onRedeemed={loadWallet} />
       </div>
 
       {/* BBP Points Rules */}
