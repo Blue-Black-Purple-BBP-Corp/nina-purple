@@ -24,6 +24,10 @@ Deno.serve(async (req) => {
     // Check plan limits
     const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_id: user.id });
     const profile = profiles[0];
+    // Account-status guard: suspended members cannot send messages.
+    if (profile?.account_status === 'suspended' || profile?.account_status === 'permanently_removed') {
+      return Response.json({ error: 'Account is not permitted to send messages.' }, { status: 403 });
+    }
     const tier = profile?.subscription_tier || 'solar';
     const limits = PLAN_LIMITS[tier] || PLAN_LIMITS.solar;
     const membershipActive = hasActiveMembership(profile);

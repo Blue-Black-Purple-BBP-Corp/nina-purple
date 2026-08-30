@@ -20,7 +20,7 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const targetUserId = body.user_id || user.id;
     // Only admins may generate matches for another user
-    if (targetUserId !== user.id && user.role !== 'admin') {
+    if (targetUserId !== user.id && user.role !== 'admin' && user.role !== 'super_admin') {
       return Response.json({ error: 'Cannot generate matches for another user' }, { status: 403 });
     }
     const maxMatches = Math.min(body.max_matches || 10, 50);
@@ -28,6 +28,11 @@ Deno.serve(async (req) => {
     const myProfiles = await base44.asServiceRole.entities.UserProfile.filter({ user_id: targetUserId });
     const myProfile = myProfiles[0];
     if (!myProfile) return Response.json({ error: 'Profile not found' }, { status: 404 });
+
+    // Account-status guard: suspended members are removed from discovery.
+    if (myProfile.account_status === 'suspended' || myProfile.account_status === 'permanently_removed') {
+      return Response.json({ error: 'Account is not eligible for matching.' }, { status: 403 });
+    }
 
     // SEGREGATION: couples are not in the singles matching pool
     if (myProfile.profile_type === 'couple') {
@@ -54,6 +59,8 @@ Deno.serve(async (req) => {
       p.user_id !== targetUserId &&
       p.profile_type !== 'couple' &&
       p.onboarding_complete &&
+      p.account_status !== 'suspended' &&
+      p.account_status !== 'permanently_removed' &&
       !existingToIds.has(p.user_id) &&
       // Pre-filter (Question 4): sexual orientation must be an exact match.
       // Only enforced when both users have a orientation set, so missing data

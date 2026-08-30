@@ -37,7 +37,7 @@ export default function Admin() {
     try {
       // BLOCKER 2 FIX: verify admin role server-side before loading any data
       const me = await base44.auth.me();
-      if (!me || me.role !== 'admin') {
+      if (!me || (me.role !== 'admin' && me.role !== 'super_admin')) {
         setDenied(true);
         setLoading(false);
         return;

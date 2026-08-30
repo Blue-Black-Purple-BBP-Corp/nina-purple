@@ -35,6 +35,7 @@ import CompatibilityProfile from '@/pages/CompatibilityProfile';
 import BBPWallet from '@/pages/BBPWallet';
 import Relationship from '@/pages/Relationship';
 import Admin from '@/pages/Admin';
+import AdminDashboard from '@/pages/AdminDashboard';
 import AppLayout from '@/components/AppLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import ScrollToTop from '@/components/ScrollToTop';
@@ -94,7 +95,8 @@ const AuthenticatedApp = () => {
         <Route path="/wallet" element={<BBPWallet />} />
         <Route path="/relationship" element={<Relationship />} />
         <Route element={<ProtectedRoute requireRole="admin" unauthenticatedElement={<Navigate to="/home" replace />} />}>
-          <Route path="/admin" element={<Admin />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/members" element={<Admin />} />
         </Route>
       </Route>
 

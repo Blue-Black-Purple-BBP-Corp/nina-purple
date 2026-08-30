@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.36';
+import { writeAuditLog, isAdminRole } from '../../shared/adminAudit.ts';
 
 // Admin-facing: updates a Special Code's feedback_status and/or reward_months.
 // When feedback_status is set to 'verified' and reward_months is set (1-3),
@@ -8,7 +9,7 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
-    if (!user || user.role !== 'admin') {
+    if (!user || !isAdminRole(user.role)) {
       return Response.json({ error: 'Admin access required' }, { status: 403 });
     }
 
@@ -29,7 +30,18 @@ Deno.serve(async (req) => {
       updateData.reward_months = rm;
     }
 
+    const priorState = { feedback_status: sc.feedback_status, reward_months: sc.reward_months };
     const updated = await base44.asServiceRole.entities.SpecialCode.update(code_id, updateData);
+
+    await writeAuditLog(base44, {
+      actor_admin_id: user.id,
+      actor_role: user.role,
+      action: 'special_code.update',
+      target_type: 'SpecialCode',
+      target_id: code_id,
+      reason: `Special code feedback/reward update`,
+      changes: { prior: priorState, next: updateData, subject_user_id: sc.issued_to_user_id },
+    });
 
     // Apply billing exemption when feedback is verified and reward_months is set
     if (updateData.feedback_status === 'verified' && updated.reward_months > 0) {

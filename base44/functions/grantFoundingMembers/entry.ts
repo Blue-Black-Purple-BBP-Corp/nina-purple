@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.36';
+import { writeAuditLog, isAdminRole } from '../../shared/adminAudit.ts';
 
 // Grants Founding Member status + 3 free months to every user whose
 // signup_sequence_number <= founding_member_cutoff (stored in AppSetting).
@@ -14,7 +15,7 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
-    if (!user || user.role !== 'admin') {
+    if (!user || !isAdminRole(user.role)) {
       return Response.json({ error: 'Admin access required' }, { status: 403 });
     }
 
@@ -68,6 +69,15 @@ Deno.serve(async (req) => {
         title: `Founding Member granted: ${p.display_name || p.user_id}`,
         body: `User ID: ${p.user_id}\nSignup #: ${p.signup_sequence_number}\nGranted: ${now.toISOString()}\nBilling exempt until: ${exemptUntil.toISOString()}`,
         related_user_id: p.user_id,
+      });
+      await writeAuditLog(base44, {
+        actor_admin_id: user.id,
+        actor_role: user.role,
+        action: 'founding_member.grant',
+        target_type: 'UserProfile',
+        target_id: p.id,
+        reason: `Founding Member grant (cutoff ${cutoff}, signup #${p.signup_sequence_number})`,
+        changes: { subject_user_id: p.user_id, billing_exempt_until: exemptUntil.toISOString(), subscription_status: 'billing_exempt' },
       });
       granted++;
     }

@@ -26,7 +26,7 @@ export default async function(req) {
     const base44 = createClientFromRequest(req);
     const admin = await base44.auth.me();
     if (!admin) return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    if (admin.role !== 'admin') return Response.json({ error: 'Forbidden' }, { status: 403 });
+    if (admin.role !== 'admin' && admin.role !== 'super_admin') return Response.json({ error: 'Forbidden' }, { status: 403 });
 
     const body = await req.json().catch(() => ({}));
     const { email, ...profileFields } = body;
