@@ -33,11 +33,19 @@ Deno.serve(async (req) => {
     // Only fetch profiles that have a real connection to the caller
     const authorizedIds = user_ids.filter(id => connectionMap[id] !== undefined);
 
+    // SEGREGATION: load the caller's profile so cross-mode profiles can be excluded
+    const myProfiles = await base44.asServiceRole.entities.UserProfile.filter({ user_id: user.id });
+    const myMode = myProfiles[0]?.profile_type || 'individual';
+
     const profileMap = {};
     await Promise.all(authorizedIds.map(async (uid) => {
       const results = await base44.asServiceRole.entities.UserProfile.filter({ user_id: uid });
       const p = results[0];
       if (!p) return;
+
+      // SEGREGATION: skip profiles whose experience mode differs from the caller's
+      const theirMode = p.profile_type || 'individual';
+      if (theirMode !== myMode) return;
 
       const conn = connectionMap[uid];
       const photosPrivate = p.photos_private !== false; // default true
@@ -59,6 +67,8 @@ Deno.serve(async (req) => {
         zodiac: p.zodiac,
         gender_pronoun: p.gender_pronoun,
         paired_status: p.paired_status,
+        profile_type: p.profile_type,
+        is_founding_member: p.is_founding_member === true,
         photos,
       };
     }));

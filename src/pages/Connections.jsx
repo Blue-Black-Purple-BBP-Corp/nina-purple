@@ -4,6 +4,7 @@ import { Lock, Unlock, Camera, MessageCircle, Loader2, Heart } from 'lucide-reac
 import { useLang } from '@/lib/LanguageContext';
 import { useTranslation, getPricingForCompatibility } from '@/lib/i18n';
 import PricingModal from '@/components/PricingModal';
+import FoundingMemberBadge from '@/components/FoundingMemberBadge';
 import { base44 } from '@/api/base44Client';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
 
@@ -272,6 +273,7 @@ export default function Connections() {
                       {lang === 'fr' ? 'Maintenant en couple' : 'Now coupled'}
                     </span>
                   )}
+                  {profile.is_founding_member && <FoundingMemberBadge />}
                 </div>
 
                 {conn.is_unlocked && profile.bio && (

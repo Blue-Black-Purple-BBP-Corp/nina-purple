@@ -11,6 +11,8 @@ import PrivacySettingsModal from '@/components/profile/PrivacySettingsModal';
 import ReferralModal from '@/components/profile/ReferralModal';
 import UpgradeModal from '@/components/profile/UpgradeModal';
 import EditProfileModal from '@/components/profile/EditProfileModal';
+import FoundingMemberBadge from '@/components/FoundingMemberBadge';
+import ExperienceModeSwitch from '@/components/profile/ExperienceModeSwitch';
 import CommunityStandingCard from '@/components/bbp/CommunityStandingCard';
 import UsageIndicator from '@/components/dashboard/UsageIndicator';
 // TEMP: import AmbassadorBadge from '@/components/dashboard/AmbassadorBadge';
@@ -226,6 +228,10 @@ export default function Profile() {
           </span>
         </div>
 
+        {userProfile?.is_founding_member && (
+          <div className="mt-2"><FoundingMemberBadge variant="full" /></div>
+        )}
+
         {/* Ambassador badge — temporarily disabled for debugging */}
         {userProfile?.is_ambassador && (
           <div className="mt-2 text-[#F5A800] text-xs">★ Ambassador</div>
@@ -295,6 +301,11 @@ export default function Profile() {
           </motion.button>
         ))}
       </motion.div>
+
+      {/* Experience mode switch — Single / Couple */}
+      {userProfile && (
+        <ExperienceModeSwitch userProfile={userProfile} onUpdate={loadProfile} />
+      )}
 
       {/* Pricing + Sign out */}
       <div className="flex flex-col items-center gap-3 pb-4">

@@ -122,6 +122,16 @@
       "type": "number",
       "description": "Global signup order. First 200 users who complete signup after the Special Code feature ships are eligible for a code."
     },
+    "is_founding_member": {
+      "type": "boolean",
+      "default": false,
+      "description": "Granted by the grantFoundingMembers admin function. Permanent once granted; independent of subscription state or cutoff changes."
+    },
+    "founding_member_since": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp the Founding Member grant was applied. Null until granted."
+    },
     "credit_balance": {
       "type": "number",
       "default": 0
@@ -188,7 +198,8 @@
         "individual",
         "couple"
       ],
-      "default": "individual"
+      "default": "individual",
+      "description": "Experience mode. individual = singles matching pool; couple = partner-linked, excluded from singles pool."
     },
     "paired_status": {
       "type": "string",
