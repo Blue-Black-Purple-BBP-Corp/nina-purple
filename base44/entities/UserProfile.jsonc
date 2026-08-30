@@ -268,6 +268,44 @@
         "type": "string"
       },
       "default": []
+    },
+    "account_status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "limited_review",
+        "suspended",
+        "permanently_removed"
+      ],
+      "default": "active",
+      "description": "Server-enforced account-status guard. suspended = removed from discovery/matching, messaging and new bookings blocked, BBP frozen; login permitted so the member can view the notice and appeal. Enforced across profiles, connections, chat, events, experiences, BBP and redemption through a single guard."
+    },
+    "suspended_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "suspension_reason_code": {
+      "type": "string",
+      "description": "Stable code for the suspension reason."
+    },
+    "suspension_expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Time-bound suspension. Null = active-review state pending staff decision."
+    },
+    "review_owner": {
+      "type": "string",
+      "description": "Admin user ID overseeing the case and reinstatement decision."
+    },
+    "appeal_status": {
+      "type": "string",
+      "enum": [
+        "none",
+        "pending",
+        "approved",
+        "denied"
+      ],
+      "default": "none"
     }
   },
   "required": [
@@ -276,9 +314,18 @@
   ],
   "rls": {
     "create": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
     },
     "read": {
       "$or": [
@@ -289,13 +336,27 @@
           "user_condition": {
             "role": "admin"
           }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
         }
       ]
     },
     "update": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
     },
     "delete": {
       "$or": [
@@ -305,6 +366,11 @@
         {
           "user_condition": {
             "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
           }
         }
       ]
