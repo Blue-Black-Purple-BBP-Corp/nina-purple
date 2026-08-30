@@ -159,7 +159,7 @@ export default function BBPRewards() {
                 <h3 className="font-serif text-lg text-[#F0E6FF] mb-1">
                   {isFr ? step.title_fr : step.title_en}
                 </h3>
-                <p className="text-[#F0E6FF]/55 text-sm leading-relaxed">
+                <p className="text-[#F0E6FF]/60 text-sm leading-relaxed">
                   {isFr ? step.desc_fr : step.desc_en}
                 </p>
               </div>
