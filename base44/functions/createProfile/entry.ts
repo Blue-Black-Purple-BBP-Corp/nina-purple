@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.36';
 import { generateBbpMemberId } from '../../shared/bbpRules.ts';
+import { sendAdminEmail } from '../../shared/adminEmail.ts';
 
 // Creates a UserProfile for the authenticated caller.
 // Billing fields (subscription_tier, credit_balance) are forced server-side —
@@ -180,12 +181,12 @@ Deno.serve(async (req) => {
         </div>
       `;
 
-      await base44.asServiceRole.integrations.Core.SendEmail({
-        to: 'contact@NinaPurple.Love',
-        subject: `New Member: ${safeDisplayName}`,
-        body: emailBody,
-      });
-      console.info('Admin notification sent for new member:', displayName);
+      const emailResult = await sendAdminEmail(`New Member: ${safeDisplayName}`, emailBody);
+      if (!emailResult.success) {
+        console.error('Admin email failed:', emailResult.error);
+      } else {
+        console.info('Admin notification sent for new member:', displayName);
+      }
     } catch (notifyErr) {
       console.error('Admin notification failed:', notifyErr.message);
     }

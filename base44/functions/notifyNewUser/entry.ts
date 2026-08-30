@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.36';
+import { sendAdminEmail } from '../../shared/adminEmail.ts';
 
 Deno.serve(async (req) => {
   try {
@@ -84,15 +85,9 @@ Deno.serve(async (req) => {
       </div>
     `;
 
-    try {
-      await base44.asServiceRole.integrations.Core.SendEmail({
-        to: 'contact@NinaPurple.Love',
-        subject: `New Member: ${safeDisplayName}`,
-        body: emailBody,
-      });
-      console.info('Admin email sent to contact@NinaPurple.Love for:', displayName);
-    } catch (emailErr) {
-      console.error('Failed to send admin email:', emailErr.message);
+    const emailResult = await sendAdminEmail(`New Member: ${safeDisplayName}`, emailBody);
+    if (!emailResult.success) {
+      console.error('Failed to send admin email:', emailResult.error);
     }
 
     console.info('Admin notification created for:', displayName);
