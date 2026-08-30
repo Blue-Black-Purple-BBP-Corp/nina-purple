@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, ChevronLeft, Upload, Mail, Lock, Eye, EyeOff, Loader2, X, Shield, Heart, AlertCircle, RefreshCw } from 'lucide-react';
@@ -6,6 +6,7 @@ import NinaSpeech from '@/components/NinaSpeech';
 import LocationAutocomplete from '@/components/LocationAutocomplete';
 import PhoneInput from '@/components/PhoneInput';
 import CoupleSegmentation from '@/components/onboarding/CoupleSegmentation';
+import FoundingMemberOffer from '@/components/onboarding/FoundingMemberOffer';
 import { useLang } from '@/lib/LanguageContext';
 import { useTranslation } from '@/lib/i18n';
 import { useTheme } from '@/lib/ThemeContext';
@@ -20,6 +21,16 @@ import { ninaIcon, ninaCharacter } from '@/lib/images';
 
 // Steps: age → guidelines → segmentation → profile → archetype → photos → questions → subscription → register → complete
 const STEPS = ['age', 'guidelines', 'segmentation', 'profile', 'archetype', 'photos', 'questions', 'orientation', 'subscription', 'complete'];
+
+// Coarse stable step identifiers (survive UI reordering). Persisted as
+// onboarding_current_step so route guards restore the latest incomplete step.
+const COARSE_STEP = {
+  age: 'age_eligibility', guidelines: 'age_eligibility', segmentation: 'age_eligibility',
+  profile: 'profile_basics', archetype: 'profile_basics',
+  photos: 'profile_media',
+  questions: 'compatibility', orientation: 'compatibility',
+  subscription: 'membership', complete: 'completion',
+};
 
 const ORIENTATION_VERSION = '1.0';
 
@@ -55,6 +66,7 @@ export default function Onboarding() {
   const isLight = theme === 'light';
 
   const [step, setStep] = useState(0);
+  const stepRef = useRef(0);
   const [answers, setAnswers] = useState({});
   const [profile, setProfile] = useState({ first_name: '', middle_name: '', last_name: '', display_name: '', city: '', country: '', birthdate: '', sexual_orientation: '', gender_pronoun: '', relationship_status: '' });
   const [archetype, setArchetype] = useState('');
@@ -77,6 +89,7 @@ export default function Onboarding() {
   const [partnerEmail, setPartnerEmail] = useState('');
   const [partnerLinkSent, setPartnerLinkSent] = useState(false);
   const [orientationAccepted, setOrientationAccepted] = useState(false);
+  const [foundingEligibility, setFoundingEligibility] = useState(null);
   const [isAuthed, setIsAuthed] = useState(true);
   const [guardState, setGuardState] = useState('loading'); // 'loading' | 'show' | 'error'
 
@@ -158,11 +171,24 @@ export default function Onboarding() {
             setAnswers(prev => ({ ...prev, ...existingAnswers[0] }));
           }
 
-          // Restore step
-          if (p.onboarding_step) {
+          // Restore step — never re-ask age once confirmed for this onboarding version.
+          if (p.age_confirmation_status === 'confirmed') {
+            const stepIndex = p.onboarding_step ? STEPS.indexOf(p.onboarding_step) : -1;
+            if (stepIndex > 0) setStep(stepIndex);
+            else setStep(1); // age confirmed but no later step → guidelines
+          } else if (p.onboarding_step) {
             const stepIndex = STEPS.indexOf(p.onboarding_step);
             if (stepIndex > 0) setStep(stepIndex);
           }
+        }
+
+        // Fetch Founding Member eligibility for the membership step (server-side).
+        try {
+          const eligRes = await base44.functions.invoke('getFoundingMemberEligibility', {});
+          setFoundingEligibility(eligRes.data || { eligibility_status: 'ineligible' });
+        } catch (eligErr) {
+          console.warn('Founding eligibility fetch failed:', eligErr.message);
+          setFoundingEligibility({ eligibility_status: 'ineligible' });
         }
 
         setGuardState('show');
@@ -171,6 +197,24 @@ export default function Onboarding() {
         setGuardState('error');
       }
     })();
+  }, []);
+
+  // Keep stepRef in sync so the popstate handler sees the latest step.
+  useEffect(() => { stepRef.current = step; }, [step]);
+
+  // Intercept browser Back so it steps backward within onboarding (using the
+  // persisted step graph) instead of leaving/resetting to the age step. On the
+  // first step, allow normal back navigation (exit onboarding).
+  useEffect(() => {
+    window.history.pushState({ onb: 'trap' }, '');
+    const onPop = () => {
+      if (stepRef.current > 0) {
+        setStep((s) => Math.max(0, s - 1));
+        window.history.pushState({ onb: 'trap' }, '');
+      }
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
   }, []);
 
   const currentStep = STEPS[step];
@@ -186,9 +230,11 @@ export default function Onboarding() {
   };
 
   const goNext = () => {
-    // Save progress at key data-entry steps
+    const nextStep = STEPS[Math.min(step + 1, STEPS.length - 1)];
+    // Save progress at key data-entry steps. Entering the membership step marks
+    // awaiting_membership so re-entry restores there (not the age step).
     if (['profile', 'archetype', 'photos', 'questions', 'orientation'].includes(currentStep)) {
-      saveProgress(STEPS[Math.min(step + 1, STEPS.length - 1)]);
+      saveProgress(nextStep, nextStep === 'subscription');
     }
     setStep(s => Math.min(s + 1, STEPS.length - 1));
   };
@@ -199,7 +245,7 @@ export default function Onboarding() {
 
   // Save partial progress so refresh or connection loss doesn't erase work.
   // Fire-and-forget — non-blocking, errors are logged but never break the flow.
-  const saveProgress = async (stepName) => {
+  const saveProgress = async (stepName, awaitingMembership = false) => {
     try {
       const user = await base44.auth.me();
       const composedFullName = [profile.first_name, profile.middle_name, profile.last_name].filter(Boolean).join(' ').trim();
@@ -214,11 +260,14 @@ export default function Onboarding() {
         gender_pronoun: profile.gender_pronoun,
         relationship_status: profile.relationship_status,
         dating_archetype: archetype,
-        onboarding_status: 'in_progress',
-        onboarding_complete: false,
+        onboarding_status: awaitingMembership ? 'awaiting_membership' : 'in_progress',
+        onboarding_complete: awaitingMembership,
         onboarding_step: stepName || currentStep,
+        onboarding_current_step: COARSE_STEP[stepName] || COARSE_STEP[currentStep],
+        age_confirmation_status: 'confirmed',
         age_verified: true,
         guidelines_accepted: true,
+        last_saved_at: new Date().toISOString(),
         language: lang,
         profile_type: profileType || 'individual',
         paired_status: profileType === 'couple' ? 'pending' : 'single',
@@ -432,25 +481,68 @@ export default function Onboarding() {
       }
     }
 
-    // For paid plans, redirect to Stripe checkout
-    if (selectedPlan !== 'solar') {
-      if (window.self !== window.top) {
-        alert(lang === 'fr'
-          ? "Le paiement fonctionne uniquement depuis l'application publiée, pas dans l'aperçu."
-          : 'Payment only works from the published app, not the preview.');
+    // ── Membership checkout ──
+    if (window.self !== window.top) {
+      alert(lang === 'fr'
+        ? "Le paiement fonctionne uniquement depuis l'application publiée, pas dans l'aperçu."
+        : 'Payment only works from the published app, not the preview.');
+      setLoading(false);
+      goNext();
+      return;
+    }
+    const origin = window.location.origin;
+
+    // Re-check Founding Member eligibility server-side before deciding the path.
+    let elig = foundingEligibility;
+    try {
+      const eligRes = await base44.functions.invoke('getFoundingMemberEligibility', {});
+      elig = eligRes.data;
+      setFoundingEligibility(elig);
+    } catch (e) { console.warn('Eligibility re-check failed:', e.message); }
+
+    if (elig?.eligibility_status === 'eligible') {
+      // Founding Member trial path — 3 months free, then $20/month.
+      try {
+        const res = await base44.functions.invoke('startFoundingMemberTrial', {
+          success_url: `${origin}/home?payment=success`,
+          cancel_url: `${origin}/onboarding`,
+        });
+        if (res.data?.url) {
+          await base44.functions.invoke('saveOnboardingStep', {
+            membership_selection_status: 'trial_started',
+          }).catch(() => {});
+          window.location.href = res.data.url;
+          return;
+        }
+      } catch (e) {
+        setFormError(e.message || (lang === 'fr' ? "Échec du démarrage de l'essai." : 'Failed to start the trial.'));
         setLoading(false);
-        goNext();
         return;
       }
-      const origin = window.location.origin;
-      const res = await base44.functions.invoke('createCheckout', {
-        price_key: getPriceKey(selectedPlan, selectedDuration),
-        success_url: `${origin}/home?payment=success`,
-        cancel_url: `${origin}/onboarding`,
-        user_id: user.id,
-      });
-      if (res.data?.url) {
-        window.location.href = res.data.url;
+    } else if (elig?.eligibility_status === 'active') {
+      // Trial already active — no checkout needed.
+      setLoading(false);
+      goNext();
+      return;
+    } else if (selectedPlan !== 'solar') {
+      // Standard paid path.
+      try {
+        const res = await base44.functions.invoke('createCheckout', {
+          price_key: getPriceKey(selectedPlan, selectedDuration),
+          success_url: `${origin}/home?payment=success`,
+          cancel_url: `${origin}/onboarding`,
+          user_id: user.id,
+        });
+        if (res.data?.url) {
+          await base44.functions.invoke('saveOnboardingStep', {
+            membership_selection_status: 'standard_started',
+          }).catch(() => {});
+          window.location.href = res.data.url;
+          return;
+        }
+      } catch (e) {
+        setFormError(e.message || (lang === 'fr' ? 'Échec du paiement.' : 'Checkout failed.'));
+        setLoading(false);
         return;
       }
     }
@@ -554,7 +646,16 @@ export default function Onboarding() {
               <NinaSpeech message={t('onboarding.age_question')} />
               <p className="text-foreground/50 text-sm text-center">{t('onboarding.age_required')}</p>
               <div className="grid grid-cols-2 gap-4">
-                <button onClick={goNext}
+                <button onClick={() => {
+                  base44.functions.invoke('saveOnboardingStep', {
+                    onboarding_status: 'in_progress',
+                    onboarding_step: 'guidelines',
+                    age_confirmation_status: 'confirmed',
+                    age_confirmed_at: new Date().toISOString(),
+                    onboarding_started_at: new Date().toISOString(),
+                  }).catch(e => console.warn('age save failed:', e.message));
+                  goNext();
+                }}
                   className="py-4 glass-card-gold rounded-2xl text-[#F5A800] font-bold text-lg hover:bg-[rgba(245,168,0,0.08)] transition-all">
                   {t('onboarding.yes')}
                 </button>
@@ -595,7 +696,12 @@ export default function Onboarding() {
                   {lang === 'fr' ? 'Cochez la case ci-dessus pour continuer' : 'Check the box above to continue'}
                 </p>
               )}
-              <button onClick={goNext} disabled={!consentAccepted}
+              <button onClick={() => {
+                base44.functions.invoke('saveOnboardingStep', {
+                  onboarding_step: 'segmentation',
+                }).catch(e => console.warn('guidelines save failed:', e.message));
+                goNext();
+              }} disabled={!consentAccepted}
                 className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
                 {t('onboarding.accept_guidelines')}
               </button>
@@ -610,7 +716,11 @@ export default function Onboarding() {
                 setProfileType={setProfileType}
                 partnerEmail={partnerEmail}
                 setPartnerEmail={setPartnerEmail}
-                onContinue={goNext}
+                onContinue={() => {
+                  base44.functions.invoke('saveOnboardingStep', { onboarding_step: 'profile' })
+                    .catch(e => console.warn('segmentation save failed:', e.message));
+                  goNext();
+                }}
                 isFr={lang === 'fr'}
               />
             </motion.div>
@@ -957,6 +1067,17 @@ export default function Onboarding() {
                   {formError}
                 </div>
               )}
+              {(foundingEligibility?.eligibility_status === 'eligible' || foundingEligibility?.eligibility_status === 'active') ? (
+                <FoundingMemberOffer
+                  status={foundingEligibility.eligibility_status}
+                  trialEndsAt={foundingEligibility.trial_ends_at}
+                  lang={lang}
+                  loading={loading}
+                  onStart={() => handleComplete()}
+                  onContinue={() => { setLoading(false); goNext(); }}
+                />
+              ) : (
+                <>
               <NinaSpeech message={t('onboarding.subscription_intro')} />
               <h2 className="font-serif text-3xl text-foreground">{t('onboarding.subscription_title')}</h2>
               <p className="text-foreground/50 text-sm">{lang === 'fr' ? 'Vous pouvez changer de plan à tout moment.' : 'You can change your plan anytime.'}</p>
@@ -1027,6 +1148,8 @@ export default function Onboarding() {
                 className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all mt-2 shadow-[0_0_30px_rgba(245,168,0,0.25)] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                 {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> {lang === 'fr' ? 'Sauvegarde...' : 'Saving...'}</> : t('onboarding.continue')}
               </button>
+                </>
+              )}
             </motion.div>
           )}
 

@@ -106,31 +106,27 @@
     "billing_exempt_until": {
       "type": "string",
       "format": "date-time",
-      "description": "Until this date, the $20/mo charge is skipped but all entitlements remain active. Set by special code redemption."
+      "description": "Until this date, the $20/mo charge is skipped but all entitlements remain active. Set by special code redemption or legacy founding-member admin grant."
     },
     "free_profile_unlocks_used": {
       "type": "number",
-      "default": 0,
-      "description": "Counter for free profile unlocks used in the current billing cycle. Resets to 0 on subscription_renewal_date."
+      "default": 0
     },
     "free_messages_used": {
       "type": "number",
-      "default": 0,
-      "description": "Counter for free messages used in the current billing cycle. Resets to 0 on subscription_renewal_date. Excludes messages in the user's own rooms."
+      "default": 0
     },
     "signup_sequence_number": {
-      "type": "number",
-      "description": "Global signup order. First 200 users who complete signup after the Special Code feature ships are eligible for a code."
+      "type": "number"
     },
     "is_founding_member": {
       "type": "boolean",
       "default": false,
-      "description": "Granted by the grantFoundingMembers admin function. Permanent once granted; independent of subscription state or cutoff changes."
+      "description": "Granted by the grantFoundingMembers admin function. Permanent once granted; independent of subscription state or cutoff changes. Drives FoundingMemberBenefit eligibility."
     },
     "founding_member_since": {
       "type": "string",
-      "format": "date-time",
-      "description": "Timestamp the Founding Member grant was applied. Null until granted."
+      "format": "date-time"
     },
     "credit_balance": {
       "type": "number",
@@ -169,9 +165,11 @@
       "enum": [
         "not_started",
         "in_progress",
+        "awaiting_membership",
         "complete"
       ],
-      "default": "not_started"
+      "default": "not_started",
+      "description": "awaiting_membership = profile + compatibility complete but membership selection pending; restored to the membership step on re-entry."
     },
     "onboarding_completed_at": {
       "type": "string",
@@ -182,7 +180,44 @@
     },
     "onboarding_step": {
       "type": "string",
-      "description": "Last onboarding step reached, for resume functionality."
+      "description": "Last granular onboarding step reached (UI step name), for resume functionality."
+    },
+    "onboarding_current_step": {
+      "type": "string",
+      "description": "Coarse stable step identifier (age_eligibility | profile_basics | profile_media | compatibility | membership | completion). Survives UI reordering; used by route guards to restore the latest incomplete step."
+    },
+    "onboarding_started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_saved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "age_confirmation_status": {
+      "type": "string",
+      "enum": [
+        "confirmed"
+      ],
+      "description": "Set once the member confirms 18+ eligibility for the current onboarding version. When set, the age step is never re-asked on back/refresh/re-entry."
+    },
+    "age_confirmed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "membership_selection_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "trial_started",
+        "standard_started",
+        "active"
+      ],
+      "description": "Tracks membership selection at the membership step. pending = at step; trial_started = founding trial checkout initiated; standard_started = standard checkout initiated; active = membership active."
+    },
+    "membership_subscription_reference": {
+      "type": "string",
+      "description": "Stripe subscription/checkout reference for the membership selected at onboarding."
     },
     "age_verified": {
       "type": "boolean",
@@ -278,24 +313,21 @@
         "permanently_removed"
       ],
       "default": "active",
-      "description": "Server-enforced account-status guard. suspended = removed from discovery/matching, messaging and new bookings blocked, BBP frozen; login permitted so the member can view the notice and appeal. Enforced across profiles, connections, chat, events, experiences, BBP and redemption through a single guard."
+      "description": "Server-enforced account-status guard. suspended = removed from discovery/matching, messaging and new bookings blocked, BBP frozen; login permitted so the member can view the notice and appeal."
     },
     "suspended_at": {
       "type": "string",
       "format": "date-time"
     },
     "suspension_reason_code": {
-      "type": "string",
-      "description": "Stable code for the suspension reason."
+      "type": "string"
     },
     "suspension_expires_at": {
       "type": "string",
-      "format": "date-time",
-      "description": "Time-bound suspension. Null = active-review state pending staff decision."
+      "format": "date-time"
     },
     "review_owner": {
-      "type": "string",
-      "description": "Admin user ID overseeing the case and reinstatement decision."
+      "type": "string"
     },
     "appeal_status": {
       "type": "string",
@@ -319,15 +351,13 @@
         ]
       },
       "default": [],
-      "description": "Self-declared record of the sign-in methods the member has authenticated with, captured at login. Used by the privileged-mode step-up flow to show only methods the member has actually used. NOT platform-verified: Base44 does not expose linked identities, so this is a best-effort approximation. Passkey/passwordless methods are not representable here because the platform does not support them."
+      "description": "Self-declared record of the sign-in methods the member has authenticated with. Best-effort; Base44 does not expose linked identities."
     },
     "referral_code": {
-      "type": "string",
-      "description": "This member's unique shareable referral code (alphanumeric, conscious-relationship themed: a curated word + a random suffix, e.g. AURA7K3). Generated server-side by getReferralCode/ensureReferralCode. Used as the ?ref= value in the share link."
+      "type": "string"
     },
     "referred_by_code": {
-      "type": "string",
-      "description": "The referral code of the member who referred this user, captured at signup from the ?ref= query param. Stored on the first createProfile call; drives the $5 BBP referral reward to the referrer when this member completes onboarding."
+      "type": "string"
     }
   },
   "required": [

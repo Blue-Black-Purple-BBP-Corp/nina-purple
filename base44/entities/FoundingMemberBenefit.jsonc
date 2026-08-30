@@ -1,0 +1,148 @@
+{
+  "name": "FoundingMemberBenefit",
+  "type": "object",
+  "properties": {
+    "benefit_id": {
+      "type": "string",
+      "description": "Stable benefit identifier (UUID/ULID)."
+    },
+    "native_user_id": {
+      "type": "string",
+      "description": "Platform user ID of the founding member (RLS key)."
+    },
+    "bbp_member_id": {
+      "type": "string",
+      "description": "BBP member ID, when available."
+    },
+    "eligibility_source": {
+      "type": "string",
+      "enum": [
+        "founding_member_tag",
+        "approved_import",
+        "staff_grant"
+      ],
+      "description": "How eligibility was established."
+    },
+    "eligibility_status": {
+      "type": "string",
+      "enum": [
+        "eligible",
+        "active",
+        "redeemed",
+        "expired",
+        "revoked",
+        "ineligible"
+      ],
+      "default": "eligible",
+      "description": "eligible = may claim the 3-month trial; active = trial in progress; redeemed = trial used / converted to paid; expired = trial ended without conversion; revoked = staff revoked; ineligible = not a founding member."
+    },
+    "benefit_type": {
+      "type": "string",
+      "enum": [
+        "three_month_membership_trial"
+      ],
+      "default": "three_month_membership_trial"
+    },
+    "trial_duration_days": {
+      "type": "number",
+      "default": 90
+    },
+    "granted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "claimed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the member first clicked to start the trial (benefit created/claimed)."
+    },
+    "trial_started_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the Stripe subscription trial actually activated (webhook-confirmed)."
+    },
+    "trial_ends_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "trial_started_at + 90 days."
+    },
+    "subscription_id": {
+      "type": "string",
+      "description": "Stripe subscription ID for the trial."
+    },
+    "stripe_customer_id": {
+      "type": "string"
+    },
+    "stripe_price_id": {
+      "type": "string"
+    },
+    "redemption_reference": {
+      "type": "string",
+      "description": "Stripe checkout session ID or other reference."
+    },
+    "revoked_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "revocation_reason": {
+      "type": "string"
+    },
+    "audit_correlation_id": {
+      "type": "string",
+      "description": "Correlates grant/claim/activate/redeem/revoke audit events."
+    }
+  },
+  "required": [
+    "benefit_id",
+    "native_user_id",
+    "eligibility_source",
+    "eligibility_status",
+    "benefit_type"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.native_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.native_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

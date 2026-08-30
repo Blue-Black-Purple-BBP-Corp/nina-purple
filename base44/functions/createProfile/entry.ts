@@ -14,6 +14,9 @@ const ALLOWED_FIELDS = new Set([
   'language', 'onboarding_complete', 'age_verified', 'guidelines_accepted',
   'profile_type', 'paired_status', 'partner_email',
   'onboarding_status', 'onboarding_completed_at', 'onboarding_version', 'onboarding_step',
+  'onboarding_current_step', 'onboarding_started_at', 'last_saved_at',
+  'age_confirmation_status', 'age_confirmed_at',
+  'membership_selection_status', 'membership_subscription_reference',
   'referred_by_code',
   ]);
 

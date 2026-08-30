@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { evaluateOnboardingCompletion, hasMembership, coarseFromGranular } from '../../shared/onboardingState.ts';
 
 // Idempotent migration: for existing members who lack an onboarding_status field,
 // computes completion from their stored data and sets the field.
@@ -29,6 +30,7 @@ Deno.serve(async (req) => {
     const allProfiles = await base44.asServiceRole.entities.UserProfile.list('-created_date', 500);
 
     let backfilledComplete = 0;
+    let backfilledAwaiting = 0;
     let backfilledInProgress = 0;
     let alreadyComplete = 0;
     let alreadyInProgress = 0;
@@ -37,49 +39,45 @@ Deno.serve(async (req) => {
 
     for (const profile of allProfiles) {
       try {
-        // Skip if already has an explicit status
+        // Skip members already marked complete — never downgrade them.
         if (profile.onboarding_status === 'complete') {
           alreadyComplete++;
           continue;
         }
-        if (profile.onboarding_status === 'in_progress') {
-          alreadyInProgress++;
-          continue;
-        }
 
-        // Compute completion from data
-        const requiredFields = [
-          !!profile.display_name,
-          !!profile.city,
-          !!profile.birthdate,
-          !!profile.sexual_orientation,
-          !!profile.gender_pronoun,
-          !!profile.relationship_status,
-          !!profile.dating_archetype,
-        ];
-        const photosOk = (profile.photos || []).length >= 3;
-        const fieldsOk = requiredFields.every(f => f);
-
-        // Check 21 questions
+        // Compute completion from data (reads photos from the Photo entity).
         const answers = await base44.asServiceRole.entities.MatchingAnswers.filter({ user_id: profile.user_id });
-        const answeredCount = questionKeys.filter(k => answers[0]?.[k]).length;
-        const questionsOk = answeredCount === 21;
+        const completion = await evaluateOnboardingCompletion(base44, profile.user_id, profile, answers[0]);
 
-        const isComplete = fieldsOk && photosOk && questionsOk;
-
-        if (isComplete) {
-          await base44.asServiceRole.entities.UserProfile.update(profile.id, {
-            onboarding_status: 'complete',
-            onboarding_complete: true,
-            onboarding_completed_at: new Date().toISOString(),
-            onboarding_version: '1.0',
-          });
-          backfilledComplete++;
-        } else if (fieldsOk || photosOk || answeredCount > 0) {
-          // Has some data but not fully complete
+        if (completion.isComplete) {
+          // Profile + compatibility complete. If no membership yet → awaiting_membership;
+          // else complete.
+          if (hasMembership(profile)) {
+            await base44.asServiceRole.entities.UserProfile.update(profile.id, {
+              onboarding_status: 'complete',
+              onboarding_complete: true,
+              onboarding_completed_at: new Date().toISOString(),
+              onboarding_version: '1.0',
+              onboarding_current_step: 'completion',
+              onboarding_step: null,
+            });
+            backfilledComplete++;
+          } else {
+            await base44.asServiceRole.entities.UserProfile.update(profile.id, {
+              onboarding_status: 'awaiting_membership',
+              onboarding_complete: true,
+              onboarding_current_step: 'membership',
+              onboarding_step: 'subscription',
+            });
+            backfilledAwaiting++;
+          }
+        } else if (completion.fieldsOk || completion.photosOk || completion.questionsOk) {
+          // Has some data but not fully complete → in_progress at the latest valid step.
+          const coarse = coarseFromGranular(profile.onboarding_step) || 'profile_basics';
           await base44.asServiceRole.entities.UserProfile.update(profile.id, {
             onboarding_status: 'in_progress',
             onboarding_complete: false,
+            onboarding_current_step: coarse,
           });
           backfilledInProgress++;
         } else {
@@ -96,6 +94,7 @@ Deno.serve(async (req) => {
       summary: {
         total: allProfiles.length,
         backfilled_complete: backfilledComplete,
+        backfilled_awaiting_membership: backfilledAwaiting,
         backfilled_in_progress: backfilledInProgress,
         already_complete: alreadyComplete,
         already_in_progress: alreadyInProgress,

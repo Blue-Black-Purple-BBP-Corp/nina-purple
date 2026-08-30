@@ -48,7 +48,16 @@ Deno.serve(async (req) => {
 
       console.info('[stripeWebhook] checkout.session.completed — user:', user_id, 'price_key:', price_key);
 
-      if (!user_id) {
+      // ── Founding Member trial checkout: activate benefit + membership ──
+      if (session.metadata?.founding_member_trial === 'true' && session.metadata?.benefit_id && user_id) {
+        try {
+          const { activateFoundingTrial } = await import('../../shared/foundingMembers.ts');
+          await activateFoundingTrial(base44, user_id, session, session.metadata.benefit_id);
+          console.info('[stripeWebhook] Founding Member trial activated for user:', user_id);
+        } catch (e) {
+          console.error('[stripeWebhook] Founding trial activation failed:', e.message);
+        }
+      } else if (!user_id) {
         console.warn('[stripeWebhook] No user_id in session metadata, skipping');
       } else {
         const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_id });
@@ -97,6 +106,22 @@ Deno.serve(async (req) => {
       } else {
         console.warn('[stripeWebhook] subscription.deleted: no user_id in metadata:', subscription.id);
       }
+
+      // ── Founding Member trial: mark benefit expired on cancellation ──
+      if (metadata.founding_member_trial === 'true' && metadata.benefit_id) {
+        try {
+          const b = await base44.asServiceRole.entities.FoundingMemberBenefit.filter({ benefit_id: metadata.benefit_id });
+          if (b[0] && ['eligible', 'active'].includes(b[0].eligibility_status)) {
+            await base44.asServiceRole.entities.FoundingMemberBenefit.update(b[0].id, {
+              eligibility_status: 'expired',
+              revoked_at: new Date().toISOString(),
+            });
+            console.info('[stripeWebhook] Founding Member benefit expired:', metadata.benefit_id);
+          }
+        } catch (fbErr) {
+          console.error('[stripeWebhook] Founding benefit expire failed:', fbErr.message);
+        }
+      }
     }
 
     // ── Renewal: reset usage counters and update renewal date ──
@@ -118,6 +143,19 @@ Deno.serve(async (req) => {
                 subscription_status: 'active',
               });
               console.info('[stripeWebhook] Renewal — reset counters for user:', subUserId, 'next renewal:', renewalDate);
+
+              // ── Founding Member trial: first paid invoice (post-trial) → redeemed ──
+              if (sub.metadata?.founding_member_trial === 'true' && sub.metadata?.benefit_id && (invoice.amount_paid || 0) > 0) {
+                try {
+                  const b = await base44.asServiceRole.entities.FoundingMemberBenefit.filter({ benefit_id: sub.metadata.benefit_id });
+                  if (b[0] && b[0].eligibility_status === 'active') {
+                    await base44.asServiceRole.entities.FoundingMemberBenefit.update(b[0].id, { eligibility_status: 'redeemed' });
+                    console.info('[stripeWebhook] Founding Member trial redeemed for benefit:', sub.metadata.benefit_id);
+                  }
+                } catch (fbErr) {
+                  console.error('[stripeWebhook] Founding benefit redeem failed:', fbErr.message);
+                }
+              }
             }
           }
         } catch (e) {

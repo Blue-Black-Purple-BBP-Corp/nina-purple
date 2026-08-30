@@ -53,21 +53,43 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Apply grants
+    // Apply grants: set the permanent Founding Member tag and create an
+    // 'eligible' FoundingMemberBenefit (the member claims the 3-month Stripe
+    // trial at onboarding/membership). No billing_exempt_until is set here —
+    // the trial is a real Stripe subscription with a 90-day trial period.
     const now = new Date();
-    const exemptUntil = new Date(now.getTime() + 3 * 30 * 24 * 60 * 60 * 1000); // 3 months
     let granted = 0;
     for (const p of eligible) {
       await base44.asServiceRole.entities.UserProfile.update(p.id, {
         is_founding_member: true,
         founding_member_since: now.toISOString(),
-        billing_exempt_until: exemptUntil.toISOString(),
-        subscription_status: 'billing_exempt',
       });
+
+      // Create an eligible benefit if none exists (idempotent).
+      const existingBenefits = await base44.asServiceRole.entities.FoundingMemberBenefit.filter({ native_user_id: p.user_id });
+      if (existingBenefits.length === 0) {
+        let bbp = null;
+        try {
+          const eng = await base44.asServiceRole.entities.MemberEngagementProfile.filter({ native_user_id: p.user_id });
+          bbp = eng[0]?.bbp_member_id || null;
+        } catch {}
+        await base44.asServiceRole.entities.FoundingMemberBenefit.create({
+          benefit_id: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : Math.random().toString(36).slice(2),
+          native_user_id: p.user_id,
+          bbp_member_id: bbp,
+          eligibility_source: 'founding_member_tag',
+          eligibility_status: 'eligible',
+          benefit_type: 'three_month_membership_trial',
+          trial_duration_days: 90,
+          granted_at: now.toISOString(),
+          audit_correlation_id: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : Math.random().toString(36).slice(2),
+        });
+      }
+
       await base44.asServiceRole.entities.AdminNotification.create({
         type: 'system',
         title: `Founding Member granted: ${p.display_name || p.user_id}`,
-        body: `User ID: ${p.user_id}\nSignup #: ${p.signup_sequence_number}\nGranted: ${now.toISOString()}\nBilling exempt until: ${exemptUntil.toISOString()}`,
+        body: `User ID: ${p.user_id}\nSignup #: ${p.signup_sequence_number}\nGranted: ${now.toISOString()}\nEligible for the 3-month trial (claimed at onboarding).`,
         related_user_id: p.user_id,
       });
       await writeAuditLog(base44, {
@@ -76,8 +98,8 @@ Deno.serve(async (req) => {
         action: 'founding_member.grant',
         target_type: 'UserProfile',
         target_id: p.id,
-        reason: `Founding Member grant (cutoff ${cutoff}, signup #${p.signup_sequence_number})`,
-        changes: { subject_user_id: p.user_id, billing_exempt_until: exemptUntil.toISOString(), subscription_status: 'billing_exempt' },
+        reason: `Founding Member grant (cutoff ${cutoff}, signup #${p.signup_sequence_number}) — eligible for 3-month trial`,
+        changes: { subject_user_id: p.user_id, eligibility_status: 'eligible' },
       });
       granted++;
     }
