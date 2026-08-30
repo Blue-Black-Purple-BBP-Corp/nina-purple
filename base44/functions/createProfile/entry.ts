@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.36';
+import { generateBbpMemberId } from '../../shared/bbpRules.ts';
 
 // Creates a UserProfile for the authenticated caller.
 // Billing fields (subscription_tier, credit_balance) are forced server-side —
@@ -116,6 +117,33 @@ Deno.serve(async (req) => {
       console.info('Admin notification sent for new member:', displayName);
     } catch (notifyErr) {
       console.error('Admin notification failed:', notifyErr.message);
+    }
+
+    // ── Ensure MemberEngagementProfile + BBPWalletBalance exist ──
+    // Generates the immutable bbp_member_id for this new member idempotently.
+    try {
+      const existingEngagement = await base44.asServiceRole.entities.MemberEngagementProfile.filter({ native_user_id: user.id });
+      if (existingEngagement.length === 0) {
+        const bbpMemberId = generateBbpMemberId();
+        await base44.asServiceRole.entities.MemberEngagementProfile.create({
+          bbp_member_id: bbpMemberId,
+          native_user_id: user.id,
+          onboarding_state: 'getting_started',
+          community_standing_state: 'getting_started',
+          language_preference: profileData.language || 'en',
+          account_confirmed: false,
+        });
+        await base44.asServiceRole.entities.BBPWalletBalance.create({
+          bbp_member_id: bbpMemberId,
+          native_user_id: user.id,
+          available_points: 0,
+          pending_points: 0,
+          lifetime_earned: 0,
+          lifetime_redeemed: 0,
+        });
+      }
+    } catch (engErr) {
+      console.error('Engagement profile creation failed:', engErr.message);
     }
 
     return Response.json({ success: true, profile: created });

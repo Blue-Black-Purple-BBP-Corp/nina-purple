@@ -11,6 +11,7 @@ import PrivacySettingsModal from '@/components/profile/PrivacySettingsModal';
 import ReferralModal from '@/components/profile/ReferralModal';
 import UpgradeModal from '@/components/profile/UpgradeModal';
 import EditProfileModal from '@/components/profile/EditProfileModal';
+import CommunityStandingCard from '@/components/bbp/CommunityStandingCard';
 // TEMP: import AmbassadorBadge from '@/components/dashboard/AmbassadorBadge';
 import { base44 } from '@/api/base44Client';
 
@@ -250,6 +251,9 @@ export default function Profile() {
           </div>
         )}
       </motion.div>
+
+      {/* Community Standing card — private, shows engagement state + wallet link */}
+      <CommunityStandingCard lang={lang} />
 
       {/* Nina quote */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }}
