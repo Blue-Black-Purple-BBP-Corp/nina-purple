@@ -103,7 +103,7 @@ export default async function(req) {
         </div>`;
 
     try {
-      await base44.integrations.Core.SendEmail({
+      await base44.asServiceRole.integrations.Core.SendEmail({
         to: normalizedEmail,
         subject: lang === 'fr' ? 'Bienvenue sur Nina Purple — Configurez votre compte' : 'Welcome to Nina Purple — Set up your account',
         body: emailBody,

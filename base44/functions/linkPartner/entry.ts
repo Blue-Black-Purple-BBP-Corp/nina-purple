@@ -114,7 +114,7 @@ Deno.serve(async (req) => {
           </div>
         `;
         try {
-          await base44.integrations.Core.SendEmail({
+          await base44.asServiceRole.integrations.Core.SendEmail({
             to: partner_email,
             subject: `${safeDisplayName} invited you to Nina Purple`,
             body: inviteBody,

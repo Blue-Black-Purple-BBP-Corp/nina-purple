@@ -155,7 +155,7 @@ Deno.serve(async (req) => {
     // Send email to applicant (except for internal notes)
     if (action !== 'update_notes' && safeEmail) {
       try {
-        await base44.integrations.Core.SendEmail({
+        await base44.asServiceRole.integrations.Core.SendEmail({
           to: safeEmail,
           subject: emailSubject,
           body: emailBody,

@@ -35,13 +35,13 @@ Deno.serve(async (req) => {
     const host = escapeHtml(match.host_name || 'Nina Purple');
 
     if (action === 'book') {
-      await base44.integrations.Core.SendEmail({
+      await base44.asServiceRole.integrations.Core.SendEmail({
         to: user.email,
         subject: `Confirmed: ${title} — ${date}`,
         body: `You're booked for:\n\n${title}\nDate: ${date}\nTime: ${time}\nHost: ${host}\n${link ? `Join link: ${link}\n` : ''}\n\nNeed to cancel? Please do so at least 48 hours before the event to avoid a $10 USD no-show fee.\n\n— Nina Purple`,
       });
     } else if (action === 'cancel') {
-      await base44.integrations.Core.SendEmail({
+      await base44.asServiceRole.integrations.Core.SendEmail({
         to: user.email,
         subject: `Cancelled: ${title}`,
         body: `Your booking for "${title}" on ${date}${time ? ` at ${time}` : ''} has been cancelled.\n\n— Nina Purple`,
