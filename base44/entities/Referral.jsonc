@@ -1,0 +1,88 @@
+{
+  "name": "Referral",
+  "type": "object",
+  "properties": {
+    "referral_id": {
+      "type": "string"
+    },
+    "referrer_bbp_member_id": {
+      "type": "string"
+    },
+    "referrer_native_user_id": {
+      "type": "string",
+      "description": "Platform user ID of referrer for RLS."
+    },
+    "invite_code": {
+      "type": "string"
+    },
+    "invitee_bbp_member_id": {
+      "type": "string"
+    },
+    "invitee_native_user_id": {
+      "type": "string",
+      "description": "Platform user ID of invitee for RLS."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "qualified",
+        "rewarded",
+        "declined",
+        "fraud_hold"
+      ],
+      "default": "pending"
+    },
+    "qualified_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reward_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "risk_status": {
+      "type": "string",
+      "enum": [
+        "clear",
+        "review",
+        "blocked"
+      ],
+      "default": "clear"
+    }
+  },
+  "required": [
+    "referrer_bbp_member_id",
+    "invite_code"
+  ],
+  "rls": {
+    "create": {
+      "data.referrer_native_user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.referrer_native_user_id": "{{user.id}}"
+        },
+        {
+          "data.invitee_native_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "name": "Redemption",
+  "type": "object",
+  "properties": {
+    "redemption_id": {
+      "type": "string"
+    },
+    "bbp_member_id": {
+      "type": "string"
+    },
+    "native_user_id": {
+      "type": "string",
+      "description": "Platform user ID for RLS."
+    },
+    "benefit_type": {
+      "type": "string",
+      "enum": [
+        "connection_discount",
+        "event_ticket_discount",
+        "experience_waitlist_priority",
+        "subscription_perk"
+      ]
+    },
+    "points_cost": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "requested",
+        "fulfilled",
+        "cancelled",
+        "failed"
+      ],
+      "default": "requested"
+    },
+    "fulfillment_reference": {
+      "type": "string"
+    },
+    "requested_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "fulfilled_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "bbp_member_id",
+    "native_user_id",
+    "benefit_type",
+    "points_cost"
+  ],
+  "rls": {
+    "create": {
+      "data.native_user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.native_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

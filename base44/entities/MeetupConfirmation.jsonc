@@ -1,0 +1,114 @@
+{
+  "name": "MeetupConfirmation",
+  "type": "object",
+  "properties": {
+    "confirmation_id": {
+      "type": "string"
+    },
+    "connection_id": {
+      "type": "string"
+    },
+    "reporter_bbp_member_id": {
+      "type": "string"
+    },
+    "reporter_native_user_id": {
+      "type": "string",
+      "description": "Platform user ID of the initiating member for RLS."
+    },
+    "counterpart_bbp_member_id": {
+      "type": "string"
+    },
+    "counterpart_native_user_id": {
+      "type": "string",
+      "description": "Platform user ID of the counterpart for RLS."
+    },
+    "reporter_status": {
+      "type": "string",
+      "enum": [
+        "initiated",
+        "confirmed",
+        "deferred",
+        "declined",
+        "reported",
+        "expired"
+      ],
+      "default": "initiated"
+    },
+    "counterpart_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "confirmed",
+        "deferred",
+        "declined",
+        "reported",
+        "expired"
+      ],
+      "default": "pending"
+    },
+    "mutual_confirmed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "eligibility_status": {
+      "type": "string",
+      "enum": [
+        "eligible",
+        "pending",
+        "held",
+        "ineligible"
+      ],
+      "default": "pending"
+    },
+    "initiated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "counterpart_responded_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "connection_id",
+    "reporter_bbp_member_id",
+    "counterpart_bbp_member_id"
+  ],
+  "rls": {
+    "create": {
+      "data.reporter_native_user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.reporter_native_user_id": "{{user.id}}"
+        },
+        {
+          "data.counterpart_native_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.counterpart_native_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

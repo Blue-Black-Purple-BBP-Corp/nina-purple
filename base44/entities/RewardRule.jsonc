@@ -1,0 +1,87 @@
+{
+  "name": "RewardRule",
+  "type": "object",
+  "properties": {
+    "rule_id": {
+      "type": "string",
+      "description": "Stable rule identifier, e.g. PROFILE_COMPLETE."
+    },
+    "rule_version": {
+      "type": "number",
+      "default": 1
+    },
+    "action_type": {
+      "type": "string",
+      "enum": [
+        "profile_complete",
+        "orientation_complete",
+        "account_confirmation",
+        "meetup_confirmation",
+        "referral_qualified",
+        "event_attendance",
+        "experience_attendance",
+        "profile_refresh",
+        "community_contribution",
+        "social_proof"
+      ]
+    },
+    "points_amount": {
+      "type": "number",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "default": "active"
+    },
+    "pending_hours": {
+      "type": "number",
+      "default": 0
+    },
+    "cap_config": {
+      "type": "string",
+      "description": "JSON-encoded cap config: { one_time: bool, monthly: number, per_pair_cooldown_days: number }."
+    },
+    "effective_from": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "effective_until": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "eligibility_config": {
+      "type": "string",
+      "description": "JSON-encoded eligibility constraints."
+    }
+  },
+  "required": [
+    "rule_id",
+    "action_type"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

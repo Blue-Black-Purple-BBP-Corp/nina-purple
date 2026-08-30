@@ -1,0 +1,70 @@
+{
+  "name": "SafetyReviewCase",
+  "type": "object",
+  "properties": {
+    "case_id": {
+      "type": "string"
+    },
+    "subject_bbp_member_id": {
+      "type": "string"
+    },
+    "source_type": {
+      "type": "string",
+      "enum": [
+        "meetup_report",
+        "referral_fraud",
+        "community_report",
+        "staff_initiated"
+      ]
+    },
+    "source_event_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "under_review",
+        "resolved",
+        "escalated"
+      ],
+      "default": "open"
+    },
+    "points_hold_flag": {
+      "type": "boolean",
+      "default": false
+    },
+    "resolution_notes": {
+      "type": "string"
+    },
+    "resolved_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "subject_bbp_member_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

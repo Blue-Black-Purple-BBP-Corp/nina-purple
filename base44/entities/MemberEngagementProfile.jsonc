@@ -1,0 +1,105 @@
+{
+  "name": "MemberEngagementProfile",
+  "type": "object",
+  "properties": {
+    "bbp_member_id": {
+      "type": "string",
+      "description": "Immutable pseudonymous operational ID (npm_ + ULID). Not derived from PII."
+    },
+    "native_user_id": {
+      "type": "string",
+      "description": "The platform authenticated user ID for RLS and joins."
+    },
+    "onboarding_state": {
+      "type": "string",
+      "enum": [
+        "getting_started",
+        "profile_complete",
+        "community_ready",
+        "community_active",
+        "community_connected"
+      ],
+      "default": "getting_started"
+    },
+    "community_standing_state": {
+      "type": "string",
+      "enum": [
+        "getting_started",
+        "profile_complete",
+        "community_ready",
+        "community_active",
+        "community_connected"
+      ],
+      "default": "getting_started"
+    },
+    "market_code": {
+      "type": "string",
+      "description": "Coarse market/region code for campaign eligibility."
+    },
+    "language_preference": {
+      "type": "string",
+      "enum": [
+        "en",
+        "fr"
+      ],
+      "default": "en"
+    },
+    "safety_exclusion_flag": {
+      "type": "boolean",
+      "default": false
+    },
+    "profile_complete_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "community_ready_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "community_active_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "orientation_acknowledged_version": {
+      "type": "string",
+      "description": "The policy version the member last acknowledged."
+    },
+    "account_confirmed": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "bbp_member_id",
+    "native_user_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.native_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,118 @@
+{
+  "name": "BBPPointsLedger",
+  "type": "object",
+  "properties": {
+    "ledger_id": {
+      "type": "string",
+      "description": "ULID-formatted ledger entry ID."
+    },
+    "bbp_member_id": {
+      "type": "string"
+    },
+    "native_user_id": {
+      "type": "string",
+      "description": "Platform user ID for RLS (never used for reward eligibility)."
+    },
+    "entry_type": {
+      "type": "string",
+      "enum": [
+        "award",
+        "reversal",
+        "redemption",
+        "adjustment"
+      ]
+    },
+    "points_delta": {
+      "type": "number",
+      "description": "Positive for awards, negative for reversals/redemptions."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "available",
+        "redeemed",
+        "reversed",
+        "expired",
+        "held",
+        "under_review"
+      ],
+      "default": "available"
+    },
+    "source_type": {
+      "type": "string",
+      "enum": [
+        "profile_complete",
+        "orientation_complete",
+        "account_confirmation",
+        "meetup_confirmation",
+        "referral_qualified",
+        "event_attendance",
+        "experience_attendance",
+        "profile_refresh",
+        "community_contribution",
+        "social_proof",
+        "redemption",
+        "staff_adjustment"
+      ]
+    },
+    "source_event_id": {
+      "type": "string",
+      "description": "Unique event reference for idempotency."
+    },
+    "rule_version": {
+      "type": "string"
+    },
+    "campaign_id": {
+      "type": "string"
+    },
+    "available_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When pending points become available."
+    },
+    "reversal_of_ledger_id": {
+      "type": "string",
+      "description": "Links a reversal entry to the original award entry."
+    },
+    "internal_notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "bbp_member_id",
+    "native_user_id",
+    "entry_type",
+    "points_delta",
+    "source_type"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.native_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

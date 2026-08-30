@@ -1,0 +1,67 @@
+{
+  "name": "PolicyAcknowledgement",
+  "type": "object",
+  "properties": {
+    "ack_id": {
+      "type": "string"
+    },
+    "bbp_member_id": {
+      "type": "string"
+    },
+    "native_user_id": {
+      "type": "string",
+      "description": "Platform user ID for RLS."
+    },
+    "policy_type": {
+      "type": "string",
+      "enum": [
+        "community_orientation",
+        "bbp_points_rules"
+      ]
+    },
+    "policy_version": {
+      "type": "string"
+    },
+    "locale": {
+      "type": "string",
+      "enum": [
+        "en",
+        "fr"
+      ],
+      "default": "en"
+    }
+  },
+  "required": [
+    "bbp_member_id",
+    "native_user_id",
+    "policy_type",
+    "policy_version"
+  ],
+  "rls": {
+    "create": {
+      "data.native_user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.native_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

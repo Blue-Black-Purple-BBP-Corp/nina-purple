@@ -1,0 +1,74 @@
+{
+  "name": "IncentiveCampaign",
+  "type": "object",
+  "properties": {
+    "campaign_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "active",
+        "paused",
+        "completed"
+      ],
+      "default": "draft"
+    },
+    "audience_config": {
+      "type": "string",
+      "description": "JSON-encoded audience targeting using approved coarse attributes only."
+    },
+    "rule_id": {
+      "type": "string"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "issuance_ceiling": {
+      "type": "number"
+    },
+    "notification_copy_en": {
+      "type": "string"
+    },
+    "notification_copy_fr": {
+      "type": "string"
+    },
+    "terms_version": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

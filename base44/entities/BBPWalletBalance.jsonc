@@ -1,0 +1,62 @@
+{
+  "name": "BBPWalletBalance",
+  "type": "object",
+  "properties": {
+    "bbp_member_id": {
+      "type": "string"
+    },
+    "native_user_id": {
+      "type": "string",
+      "description": "Platform user ID for RLS."
+    },
+    "available_points": {
+      "type": "number",
+      "default": 0
+    },
+    "pending_points": {
+      "type": "number",
+      "default": 0
+    },
+    "lifetime_earned": {
+      "type": "number",
+      "default": 0
+    },
+    "lifetime_redeemed": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "bbp_member_id",
+    "native_user_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.native_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

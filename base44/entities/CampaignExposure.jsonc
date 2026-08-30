@@ -1,0 +1,77 @@
+{
+  "name": "CampaignExposure",
+  "type": "object",
+  "properties": {
+    "campaign_id": {
+      "type": "string"
+    },
+    "bbp_member_id": {
+      "type": "string"
+    },
+    "native_user_id": {
+      "type": "string",
+      "description": "Platform user ID for RLS."
+    },
+    "shown_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "claimed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "shown",
+        "claimed",
+        "completed",
+        "expired"
+      ],
+      "default": "shown"
+    }
+  },
+  "required": [
+    "campaign_id",
+    "bbp_member_id",
+    "native_user_id"
+  ],
+  "rls": {
+    "create": {
+      "data.native_user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.native_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.native_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

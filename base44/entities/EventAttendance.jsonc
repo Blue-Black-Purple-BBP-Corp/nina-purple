@@ -1,0 +1,88 @@
+{
+  "name": "EventAttendance",
+  "type": "object",
+  "properties": {
+    "attendance_id": {
+      "type": "string"
+    },
+    "event_id": {
+      "type": "string"
+    },
+    "bbp_member_id": {
+      "type": "string"
+    },
+    "native_user_id": {
+      "type": "string",
+      "description": "Platform user ID for RLS."
+    },
+    "booking_id": {
+      "type": "string"
+    },
+    "check_in_method": {
+      "type": "string",
+      "enum": [
+        "qr",
+        "manual_staff",
+        "system"
+      ],
+      "default": "manual_staff"
+    },
+    "check_in_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "attendance_status": {
+      "type": "string",
+      "enum": [
+        "attended",
+        "no_show",
+        "cancelled"
+      ],
+      "default": "attended"
+    },
+    "reward_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "available",
+        "reversed",
+        "ineligible"
+      ],
+      "default": "pending"
+    }
+  },
+  "required": [
+    "event_id",
+    "bbp_member_id",
+    "native_user_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.native_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
