@@ -64,6 +64,7 @@ export default function Onboarding() {
   const [loading, setLoading] = useState(false);
   const [ageError, setAgeError] = useState('');
   const [photos, setPhotos] = useState([null, null, null, null, null, null]);
+  const [photoIds, setPhotoIds] = useState([null, null, null, null, null, null]);
   const [photoFingerprints, setPhotoFingerprints] = useState([null, null, null, null, null, null]);
   const [uploadingPhoto, setUploadingPhoto] = useState(null);
   const [photoError, setPhotoError] = useState('');
@@ -134,14 +135,22 @@ export default function Onboarding() {
           if (p.profile_type) setProfileType(p.profile_type);
           if (p.partner_email) setPartnerEmail(p.partner_email);
 
-          // Pre-fill photos
-          if (p.photos && p.photos.length) {
+          // Pre-fill photos from private Photo records (owner self-access)
+          try {
+            const paRes = await base44.functions.invoke('getPhotoAccess', { owner_user_ids: [me.id] });
+            const paResults = paRes.data?.results || {};
+            const myPhotos = (paResults[me.id]?.photos || []).slice().sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
             setPhotos(prev => {
               const next = [...prev];
-              p.photos.forEach((url, i) => { if (i < 6) next[i] = url; });
+              myPhotos.forEach((ph, i) => { if (i < 6) next[i] = ph.signed_url; });
               return next;
             });
-          }
+            setPhotoIds(prev => {
+              const next = [...prev];
+              myPhotos.forEach((ph, i) => { if (i < 6) next[i] = ph.photo_id; });
+              return next;
+            });
+          } catch (e) { /* non-fatal — no existing photos */ }
 
           // Pre-fill answers
           const existingAnswers = await base44.entities.MatchingAnswers.filter({ user_id: me.id });
@@ -205,7 +214,6 @@ export default function Onboarding() {
         gender_pronoun: profile.gender_pronoun,
         relationship_status: profile.relationship_status,
         dating_archetype: archetype,
-        photos: photos.filter(Boolean),
         onboarding_status: 'in_progress',
         onboarding_complete: false,
         onboarding_step: stepName || currentStep,
@@ -302,19 +310,33 @@ export default function Onboarding() {
     }
 
     setUploadingPhoto(index);
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    setPhotos(prev => { const next = [...prev]; next[index] = file_url; return next; });
-    setPhotoFingerprints(prev => { const next = [...prev]; next[index] = fp; return next; });
-    setUploadingPhoto(null);
+    try {
+      const previewUrl = URL.createObjectURL(file);
+      const { file_uri } = await base44.integrations.Core.UploadPrivateFile({ file });
+      const upRes = await base44.functions.invoke('uploadPhoto', { file_uri });
+      const photoId = upRes.data?.photo_id;
+      setPhotos(prev => { const next = [...prev]; next[index] = previewUrl; return next; });
+      setPhotoIds(prev => { const next = [...prev]; next[index] = photoId; return next; });
+      setPhotoFingerprints(prev => { const next = [...prev]; next[index] = fp; return next; });
+    } catch (e) {
+      setPhotoError(e?.message || (lang === 'fr' ? 'Échec du téléversement.' : 'Upload failed.'));
+    } finally {
+      setUploadingPhoto(null);
+    }
   };
 
-  const handlePhotoRemove = (index) => {
+  const handlePhotoRemove = async (index) => {
+    const pid = photoIds[index];
+    if (pid) {
+      try { await base44.functions.invoke('managePhotos', { action: 'remove', photo_id: pid }); } catch (e) { /* non-fatal */ }
+    }
     setPhotos(prev => { const next = [...prev]; next[index] = null; return next; });
+    setPhotoIds(prev => { const next = [...prev]; next[index] = null; return next; });
     setPhotoFingerprints(prev => { const next = [...prev]; next[index] = null; return next; });
     setPhotoError('');
   };
 
-  const mandatoryPhotosUploaded = photos.slice(0, 3).every(p => p !== null);
+  const mandatoryPhotosUploaded = photoIds.slice(0, 3).every(p => p !== null);
 
   // ── Save profile & answers, then handle plan ──
   // Called after OTP verification (user is now authenticated)
@@ -334,7 +356,7 @@ export default function Onboarding() {
     if (profile.gender_pronoun) compScore += 10;
     if (profile.relationship_status) compScore += 10;
     if (archetype) compScore += 10;
-    const photosCount = photos.filter(Boolean).length;
+    const photosCount = photoIds.filter(Boolean).length;
     if (photosCount >= 1) compScore += 5;
     if (photosCount >= 3) compScore += 5;
     if (photosCount >= 6) compScore += 5;
@@ -366,7 +388,6 @@ export default function Onboarding() {
       gender_pronoun: profile.gender_pronoun,
       relationship_status: profile.relationship_status,
       dating_archetype: archetype,
-      photos: photos.filter(Boolean),
       onboarding_status: 'complete',
       onboarding_complete: true,
       onboarding_step: null,

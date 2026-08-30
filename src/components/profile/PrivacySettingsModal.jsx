@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { X, Loader2 } from 'lucide-react';
+import { X, Loader2, Shield } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 export default function PrivacySettingsModal({ isOpen, onClose, userProfile, onUpdate, lang }) {
-  const [photosPrivate, setPhotosPrivate] = useState(userProfile?.photos_private ?? true);
   const [showInListings, setShowInListings] = useState(userProfile?.show_in_listings ?? true);
   const [allowMessages, setAllowMessages] = useState(userProfile?.allow_messages_all ?? true);
   const [saving, setSaving] = useState(false);
@@ -13,11 +12,10 @@ export default function PrivacySettingsModal({ isOpen, onClose, userProfile, onU
   const handleSave = async () => {
     setSaving(true);
     await base44.functions.invoke('updateProfile', {
-      photos_private: photosPrivate,
       show_in_listings: showInListings,
       allow_messages_all: allowMessages,
     });
-    onUpdate({ ...userProfile, photos_private: photosPrivate, show_in_listings: showInListings, allow_messages_all: allowMessages });
+    onUpdate({ ...userProfile, show_in_listings: showInListings, allow_messages_all: allowMessages });
     setSaving(false);
     onClose();
   };
@@ -48,13 +46,18 @@ export default function PrivacySettingsModal({ isOpen, onClose, userProfile, onU
             <button onClick={onClose} className="text-[#F0E6FF]/40 hover:text-[#F0E6FF]"><X className="w-5 h-5" /></button>
           </div>
 
+          <div className="glass-card rounded-2xl px-4 py-3 mb-3">
+            <div className="flex items-start gap-2.5">
+              <Shield className="w-4 h-4 text-[#7B2FBE] shrink-0 mt-0.5" />
+              <p className="text-[#F0E6FF]/60 text-xs leading-relaxed">
+                {lang === 'fr'
+                  ? 'Toutes vos photos sont privées par défaut. Elles ne sont visibles que par vous et les membres qui déverrouillent votre profil via le flux de paiement. Ce réglage ne peut pas être désactivé.'
+                  : 'All your photos are private by default. They are visible only to you and members who unlock your profile through the paid flow. This cannot be turned off.'}
+              </p>
+            </div>
+          </div>
+
           <div className="glass-card rounded-2xl px-4">
-            <Toggle
-              value={photosPrivate}
-              onChange={setPhotosPrivate}
-              label={lang === 'fr' ? 'Photos privées' : 'Private Photos'}
-              desc={lang === 'fr' ? 'Vos photos sont cachées jusqu\'à déverrouillage du profil' : 'Your photos are hidden until a profile is unlocked'}
-            />
             <Toggle
               value={showInListings}
               onChange={setShowInListings}

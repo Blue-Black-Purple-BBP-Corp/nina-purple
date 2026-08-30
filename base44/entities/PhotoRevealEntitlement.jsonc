@@ -1,0 +1,140 @@
+{
+  "name": "PhotoRevealEntitlement",
+  "type": "object",
+  "properties": {
+    "entitlement_id": {
+      "type": "string",
+      "description": "Stable entitlement identifier (ULID)."
+    },
+    "viewer_native_user_id": {
+      "type": "string",
+      "description": "Platform user ID of the viewer granted photo access."
+    },
+    "viewer_bbp_member_id": {
+      "type": "string",
+      "description": "BBP member ID of the viewer, when available."
+    },
+    "owner_native_user_id": {
+      "type": "string",
+      "description": "Platform user ID of the photo owner whose profile is revealed."
+    },
+    "owner_bbp_member_id": {
+      "type": "string",
+      "description": "BBP member ID of the owner, when available."
+    },
+    "scope": {
+      "type": "string",
+      "enum": [
+        "profile"
+      ],
+      "default": "profile",
+      "description": "Entitlement scope. profile = all active/approved photos for this owner's profile."
+    },
+    "source_type": {
+      "type": "string",
+      "enum": [
+        "paid_credit",
+        "paid_transaction",
+        "subscription_perk",
+        "bbp_redemption",
+        "staff_grant",
+        "approved_promotion"
+      ],
+      "description": "How the entitlement was granted. paid_credit = connection unlock via credit pricing; subscription_perk = Galactic monthly allowance; staff_grant = manual staff grant."
+    },
+    "source_transaction_id": {
+      "type": "string",
+      "description": "Reference to the originating transaction/connection (e.g. Connection.id)."
+    },
+    "source_connection_id": {
+      "type": "string",
+      "description": "The Connection record that gave rise to this entitlement, for traceability."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "active",
+        "revoked",
+        "expired",
+        "refunded",
+        "blocked",
+        "superseded"
+      ],
+      "default": "pending",
+      "description": "Only one active entitlement per viewer\u2192owner pair. superseded = replaced by a higher-tier entitlement (e.g. paid_credit replaces subscription_perk)."
+    },
+    "granted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the entitlement became active."
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Optional expiry. Null = no expiry (entitlement lasts until revoked)."
+    },
+    "revoked_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "revocation_reason": {
+      "type": "string",
+      "description": "refund | block | moderation | staff_action | superseded | fraud_hold."
+    }
+  },
+  "required": [
+    "entitlement_id",
+    "viewer_native_user_id",
+    "owner_native_user_id",
+    "scope",
+    "source_type",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.viewer_native_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.viewer_native_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Heart, Check, Loader2, Lock } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import FoundingMemberBadge from '@/components/FoundingMemberBadge';
+import { usePhotoAccess, primaryPhotoUrl } from '@/hooks/usePhotoAccess';
 
 const ARCHETYPE_META = {
   blue: { color: '#60A5FA', label_en: 'The Traveler', label_fr: 'Le Voyageur' },
@@ -20,6 +21,12 @@ export default function IncomingConnections({ lang, onAccepted }) {
   const [loading, setLoading] = useState(true);
   const [accepting, setAccepting] = useState(null);
   const [error, setError] = useState('');
+
+  // Photos for incoming matchers come via authorized delivery. The viewer
+  // has no entitlement for the matcher unless they also unlocked them, so
+  // unauthorised viewers see the locked placeholder (never the original).
+  const fromIds = incoming.map(c => c.from_user_id);
+  const { photoData } = usePhotoAccess(fromIds, JSON.stringify(fromIds));
 
   useEffect(() => { load(); }, []);
 
@@ -107,8 +114,8 @@ export default function IncomingConnections({ lang, onAccepted }) {
             <div className="px-5 pt-5 pb-3">
               <div className="w-full h-28 rounded-2xl mb-3 relative overflow-hidden flex items-center justify-center"
                 style={{ background: 'linear-gradient(135deg, #2D1B3D, #1F1026)' }}>
-                {profile.photos?.[0]
-                  ? <img src={profile.photos[0]} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                {primaryPhotoUrl(photoData, conn.from_user_id)
+                  ? <img src={primaryPhotoUrl(photoData, conn.from_user_id)} alt="" className="absolute inset-0 w-full h-full object-cover" />
                   : (
                     <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#7B2FBE] to-[#A855F7] flex items-center justify-center">
                       <span className="text-white font-serif text-2xl">{profile.display_name?.[0]}</span>

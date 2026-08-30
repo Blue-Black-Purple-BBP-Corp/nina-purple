@@ -47,13 +47,15 @@ Deno.serve(async (req) => {
       const theirMode = p.profile_type || 'individual';
       if (theirMode !== myMode) return;
 
-      const conn = connectionMap[uid];
-      const photosPrivate = p.photos_private !== false; // default true
-      const galleryUnlocked = conn.gallery_unlocked;
-      const isUnlocked = conn.is_unlocked;
-
-      // Only include photos if: profile is unlocked AND (gallery unlocked OR photos not private)
-      const photos = (isUnlocked && (!photosPrivate || galleryUnlocked)) ? (p.photos || []) : [];
+      // Photo delivery is now entitlement-based via getPhotoAccess (signed
+      // URLs). Here we only expose whether the owner has any active photos,
+      // so the client can render a placeholder vs. a photo area. No raw photo
+      // URLs are returned in any profile payload.
+      let hasPhotos = false;
+      try {
+        const photoRecs = await base44.asServiceRole.entities.Photo.filter({ owner_native_user_id: uid });
+        hasPhotos = photoRecs.some((ph) => ph.status === 'active');
+      } catch (e) { /* non-fatal — default false */ }
 
       // Return only the public-safe subset — never phone, birthdate, sexual_orientation, relationship_status
       profileMap[uid] = {
@@ -63,13 +65,13 @@ Deno.serve(async (req) => {
         city: p.city,
         country: p.country,
         dating_archetype: p.dating_archetype,
-        bio: isUnlocked ? p.bio : null,
+        bio: conn.is_unlocked ? p.bio : null,
         zodiac: p.zodiac,
         gender_pronoun: p.gender_pronoun,
         paired_status: p.paired_status,
         profile_type: p.profile_type,
         is_founding_member: p.is_founding_member === true,
-        photos,
+        has_photos: hasPhotos,
       };
     }));
 

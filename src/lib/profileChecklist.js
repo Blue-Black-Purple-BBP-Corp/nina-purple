@@ -24,7 +24,7 @@ export const PROFILE_CHECKLIST = [
   { key: 'phone', label_en: 'Phone number', label_fr: 'Téléphone',
     isComplete: p => !!p?.phone?.trim(), isNew: false, action: { modal: 'edit' } },
   { key: 'photos', label_en: 'Photos (at least 3)', label_fr: 'Photos (au moins 3)',
-    isComplete: p => (p?.photos?.filter(Boolean).length || 0) >= 3, isNew: false, action: { modal: 'photos' } },
+    isComplete: p => (p?.photo_count ?? (p?.photos?.filter(Boolean).length || 0)) >= 3, isNew: false, action: { modal: 'photos' } },
   { key: 'bio', label_en: 'Biography', label_fr: 'Biographie',
     isComplete: p => !!p?.bio?.trim(), isNew: true, action: { modal: 'edit' } },
   { key: 'country', label_en: 'Country', label_fr: 'Pays',

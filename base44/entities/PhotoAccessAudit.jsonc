@@ -1,0 +1,90 @@
+{
+  "name": "PhotoAccessAudit",
+  "type": "object",
+  "properties": {
+    "audit_id": {
+      "type": "string",
+      "description": "Stable audit identifier (ULID)."
+    },
+    "viewer_native_user_id": {
+      "type": "string",
+      "description": "Platform user ID of the viewer requesting photo access. Null for system/owner-self events where no viewer context applies."
+    },
+    "viewer_bbp_member_id": {
+      "type": "string"
+    },
+    "owner_native_user_id": {
+      "type": "string",
+      "description": "Platform user ID of the photo owner whose profile was the target."
+    },
+    "owner_bbp_member_id": {
+      "type": "string"
+    },
+    "photo_id": {
+      "type": "string",
+      "description": "Specific photo accessed, when applicable. Null for profile-scope checks or entitlement creation events."
+    },
+    "entitlement_id": {
+      "type": "string",
+      "description": "The entitlement used to authorize access, when applicable."
+    },
+    "access_result": {
+      "type": "string",
+      "enum": [
+        "allowed",
+        "denied",
+        "blocked",
+        "expired",
+        "missing_entitlement",
+        "owner_access",
+        "staff_access",
+        "removed_photo",
+        "entitlement_created",
+        "entitlement_revoked",
+        "photo_uploaded",
+        "photo_removed",
+        "photo_replaced"
+      ],
+      "description": "Outcome of the access request or lifecycle event."
+    },
+    "access_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source_type": {
+      "type": "string",
+      "description": "For entitlement_created/revoked events: the source_type of the entitlement."
+    },
+    "correlation_id": {
+      "type": "string",
+      "description": "Correlates related events (e.g. a reveal request + its entitlement creation + the first delivery)."
+    }
+  },
+  "required": [
+    "audit_id",
+    "access_result"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "update": false,
+    "delete": false
+  }
+}

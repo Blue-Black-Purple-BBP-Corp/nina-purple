@@ -4,10 +4,14 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.36';
 // Billing/trust fields (subscription_tier, credit_balance, bbp_rewards,
 // consecutive_no_match_months, last_bbp_conversion_date, is_verified) are
 // intentionally excluded — only Stripe webhooks and admin functions set those.
+// Photos are managed via the Photo entity (uploadPhoto/managePhotos) — they
+// are excluded here so the legacy UserProfile.photos[] array cannot be used
+// to bypass private storage. photos_private is retired (paid-reveal is a
+// server-side invariant).
 const ALLOWED_FIELDS = new Set([
   'full_name', 'display_name', 'birthdate', 'city', 'country', 'phone',
   'sexual_orientation', 'gender_pronoun', 'relationship_status',
-  'dating_archetype', 'bio', 'photos', 'photos_private',
+  'dating_archetype', 'bio',
   'show_in_listings', 'allow_messages_all', 'profile_completeness',
   'couple_consent_given', 'language',
   'attachment_style', 'attachment_anxiety', 'attachment_avoidance',

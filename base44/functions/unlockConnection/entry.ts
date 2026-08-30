@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.36';
 import { PLAN_LIMITS, getPricingForCompatibility, getMonthStart, hasActiveMembership } from '../../shared/planLimits.ts';
+import { grantEntitlement } from '../../shared/photoAccess.ts';
 
 // Authoritative server-side handler for connection unlocks.
 // The client must NEVER write is_unlocked / unlock_cost_paid / gallery_unlocked
@@ -64,6 +65,12 @@ Deno.serve(async (req) => {
           await base44.asServiceRole.entities.UserProfile.update(profile.id, {
             free_profile_unlocks_used: freeUsed + 1,
           });
+          // Grant the profile-level photo-reveal entitlement (free-unlock path).
+          await grantEntitlement(base44, {
+            viewer_id: user.id, owner_id: conn.to_user_id,
+            source_type: 'paid_credit', source_connection_id: conn.id,
+            correlation_id: `unlock-${conn.id}`,
+          });
           return Response.json({ success: true, unlock_cost_paid: 0, free_unlock: true });
         }
         // Free allowance exhausted — fall through to paid pricing below
@@ -90,23 +97,25 @@ Deno.serve(async (req) => {
         is_unlocked: true,
         unlock_cost_paid: pricing.unlock,
       });
+      // Grant the profile-level photo-reveal entitlement (paid path).
+      await grantEntitlement(base44, {
+        viewer_id: user.id, owner_id: conn.to_user_id,
+        source_type: 'paid_credit', source_connection_id: conn.id,
+        correlation_id: `unlock-${conn.id}`,
+      });
 
       return Response.json({ success: true, unlock_cost_paid: pricing.unlock });
     }
 
-    // ── Gallery unlock (Galactic-only free perk) ──
+    // gallery_unlock has been folded into the PhotoRevealEntitlement model
+    // (source_type=subscription_perk via the revealPhotos function). The
+    // legacy gallery_unlock action is intentionally no longer supported here.
     if (action === 'gallery_unlock') {
-      if (conn.gallery_unlocked) {
-        return Response.json({ success: true, already_unlocked: true });
-      }
-      if (!limits.gallery_unlock_free) {
-        return Response.json({
-          success: false,
-          reason: 'Gallery unlock is not included in your plan. Upgrade to Galactic for free access.',
-        });
-      }
-      await base44.asServiceRole.entities.Connection.update(conn.id, { gallery_unlocked: true });
-      return Response.json({ success: true });
+      return Response.json({
+        success: false,
+        reason: 'Gallery unlock is now handled via the photo reveal flow. Use revealPhotos.',
+        code: 'use_reveal_photos',
+      }, { status: 410 });
     }
 
     return Response.json({ error: 'Unknown action' }, { status: 400 });

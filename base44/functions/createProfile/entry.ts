@@ -8,7 +8,7 @@ import { sendAdminEmail } from '../../shared/adminEmail.ts';
 const ALLOWED_FIELDS = new Set([
   'full_name', 'display_name', 'birthdate', 'city', 'country', 'phone',
   'sexual_orientation', 'gender_pronoun', 'relationship_status',
-  'dating_archetype', 'bio', 'photos', 'photos_private',
+  'dating_archetype', 'bio',
   'show_in_listings', 'allow_messages_all', 'profile_completeness',
   'language', 'onboarding_complete', 'age_verified', 'guidelines_accepted',
   'profile_type', 'paired_status', 'partner_email',
@@ -44,7 +44,10 @@ Deno.serve(async (req) => {
         !!profileData.relationship_status,
         !!profileData.dating_archetype,
       ];
-      const photosCount = (profileData.photos || []).length;
+      // Photos are validated from the Photo entity (private storage), not the
+      // legacy UserProfile.photos[] array.
+      const photoRecs = await base44.asServiceRole.entities.Photo.filter({ owner_native_user_id: user.id });
+      const photosCount = photoRecs.filter((p) => p.status === 'active').length;
       if (!requiredFields.every(f => f) || photosCount < 3) {
         return Response.json({ error: 'Required profile fields or photos missing for onboarding completion' }, { status: 400 });
       }

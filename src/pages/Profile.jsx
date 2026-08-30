@@ -13,6 +13,7 @@ import UpgradeModal from '@/components/profile/UpgradeModal';
 import EditProfileModal from '@/components/profile/EditProfileModal';
 import FoundingMemberBadge from '@/components/FoundingMemberBadge';
 import ExperienceModeSwitch from '@/components/profile/ExperienceModeSwitch';
+import { usePhotoAccess, primaryPhotoUrl } from '@/hooks/usePhotoAccess';
 import CommunityStandingCard from '@/components/bbp/CommunityStandingCard';
 import UsageIndicator from '@/components/dashboard/UsageIndicator';
 // TEMP: import AmbassadorBadge from '@/components/dashboard/AmbassadorBadge';
@@ -45,6 +46,10 @@ export default function Profile() {
   const [loading, setLoading]           = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  // Owner views their own photos via authorized delivery (owner_access).
+  const ownerId = userProfile?.user_id;
+  const { photoData: myPhotoData } = usePhotoAccess(ownerId ? [ownerId] : [], ownerId || '');
+
   useEffect(() => { loadProfile(); }, []);
 
   const loadProfile = async () => {
@@ -58,7 +63,14 @@ export default function Profile() {
         base44.entities.UserProfile.filter({ user_id: user.id }),
         base44.entities.MatchingAnswers.filter({ user_id: user.id }),
       ]);
-      setUserProfile(profiles[0] || null);
+      const profile = profiles[0] || null;
+      if (profile) {
+        try {
+          const myPhotos = await base44.entities.Photo.filter({ owner_native_user_id: user.id });
+          profile.photo_count = myPhotos.filter(p => p.status === 'active').length;
+        } catch (e) { /* non-fatal */ }
+      }
+      setUserProfile(profile);
       setMatchingAnswers(answers[0] || null);
     }
     setLoading(false);
@@ -130,14 +142,15 @@ export default function Profile() {
     if (!userProfile?.gender_pronoun) items.push(lang === 'fr' ? 'Ajouter votre pronom' : 'Add your pronoun');
     if (!userProfile?.relationship_status) items.push(lang === 'fr' ? 'Ajouter votre statut' : 'Add your status');
     if (!userProfile?.dating_archetype) items.push(lang === 'fr' ? 'Choisir un archétype' : 'Choose an archetype');
-    const photoCount = (userProfile?.photos || []).length;
+    const photoCount = userProfile?.photo_count ?? (userProfile?.photos || []).length;
     if (photoCount < 3) items.push(lang === 'fr' ? `Ajouter ${3 - photoCount} photo(s) (minimum 3)` : `Add ${3 - photoCount} more photo(s) (minimum 3)`);
     const answered = Object.keys(matchingAnswers || {}).filter(k => matchingAnswers[k] && k.startsWith('q')).length;
     if (answered < 21) items.push(lang === 'fr' ? `Répondre aux 21 questions (${answered}/21)` : `Answer all 21 questions (${answered}/21)`);
     return items.length > 0 ? items : [lang === 'fr' ? 'Profil complet !' : 'Profile complete!'];
   };
   const tierMeta    = TIER_META[tier] || TIER_META.solar;
-  const firstPhoto  = userProfile?.photos?.[0] || null;
+  const firstPhoto  = primaryPhotoUrl(myPhotoData, ownerId) || null;
+  const photoCount  = userProfile?.photo_count ?? (userProfile?.photos || []).length;
   const initials    = displayName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
 
   const sections = [

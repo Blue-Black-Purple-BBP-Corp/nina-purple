@@ -143,6 +143,25 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ── Refund / chargeback: flag for staff review ──
+    // Photo-reveal entitlements are credit-based (wallet top-ups), not tied
+    // 1:1 to a Stripe charge, so auto-revocation is not directly traceable.
+    // Flag the event for staff to review entitlement policy manually.
+    if (event.type === 'charge.refunded' || event.type === 'charge.dispute.created') {
+      const charge = event.data.object;
+      console.info('[stripeWebhook] Refund/dispute event:', event.type, 'charge:', charge.id);
+      try {
+        await base44.asServiceRole.entities.AdminNotification.create({
+          type: 'system',
+          title: event.type === 'charge.refunded' ? 'Payment Refunded' : 'Chargeback Dispute',
+          body: `Charge ${charge.id} for customer ${charge.customer || '(unknown)'}. Review photo-reveal entitlements if applicable.`,
+          is_read: false,
+        });
+      } catch (notifErr) {
+        console.error('[stripeWebhook] refund notification failed:', notifErr.message);
+      }
+    }
+
   } catch (err) {
     console.error('[stripeWebhook] Handler error:', err.message, err.stack);
     return Response.json({ error: err.message }, { status: 500 });

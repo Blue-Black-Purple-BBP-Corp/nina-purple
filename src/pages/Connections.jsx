@@ -8,6 +8,7 @@ import FoundingMemberBadge from '@/components/FoundingMemberBadge';
 import IncomingConnections from '@/components/IncomingConnections';
 import { base44 } from '@/api/base44Client';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
+import { usePhotoAccess, primaryPhotoUrl } from '@/hooks/usePhotoAccess';
 
 const ARCHETYPE_META = {
   blue:   { color: '#60A5FA', label_en: 'The Traveler',    label_fr: 'Le Voyageur' },
@@ -35,6 +36,10 @@ export default function Connections() {
   const [limitError, setLimitError] = useState('');
   const [view, setView] = useState('outgoing');
   const { data: limitsData, refresh: refreshLimits } = usePlanLimits();
+
+  // Photos for unlocked connections come via authorized delivery (getPhotoAccess).
+  const entitledIds = connections.filter(c => c.is_unlocked).map(c => c.to_user_id);
+  const { photoData, refresh: refreshPhotos } = usePhotoAccess(entitledIds, JSON.stringify(entitledIds));
 
   useEffect(() => {
     loadData();
@@ -89,20 +94,15 @@ export default function Connections() {
     }
   };
 
-  const handleGalleryUnlock = async (conn) => {
+  const handleReveal = async (conn) => {
     setLimitError('');
-    // Gallery unlock is authorized server-side — the client never writes gallery_unlocked.
+    // Galactic subscription-perk: reveal photos via a viewer-specific entitlement.
     try {
-      const res = await base44.functions.invoke('unlockConnection', {
-        connection_id: conn.id,
-        action: 'gallery_unlock',
-      });
+      const res = await base44.functions.invoke('revealPhotos', { owner_user_id: conn.to_user_id });
       if (res.data?.success) {
-        setConnections(prev => prev.map(c => c.id === conn.id ? { ...c, gallery_unlocked: true } : c));
+        refreshPhotos();
       } else {
-        setLimitError(lang === 'fr'
-          ? 'Le déverrouillage de galerie n\'est pas inclus dans votre plan. Passez à Galactic pour un accès gratuit.'
-          : 'Gallery unlock is not included in your plan. Upgrade to Galactic for free access.');
+        setLimitError(res.data?.reason || (lang === 'fr' ? 'Révélation refusée.' : 'Reveal denied.'));
         setPricingOpen(true);
       }
     } catch (e) {
@@ -241,8 +241,8 @@ export default function Connections() {
                 <div className="px-5 pt-5 pb-3">
                   <div className="w-full h-32 rounded-2xl mb-3 relative overflow-hidden flex items-center justify-center"
                     style={{ background: 'linear-gradient(135deg, #2D1B3D, #1F1026)' }}>
-                    {conn.is_unlocked && profile.photos?.[0] ? (
-                      <img src={profile.photos[0]} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                    {primaryPhotoUrl(photoData, conn.to_user_id) ? (
+                      <img src={primaryPhotoUrl(photoData, conn.to_user_id)} alt="" className="absolute inset-0 w-full h-full object-cover" />
                     ) : conn.is_unlocked ? (
                       <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#7B2FBE] to-[#A855F7] flex items-center justify-center">
                         <span className="text-white font-serif text-2xl">{profile.display_name?.[0]}</span>
@@ -305,25 +305,25 @@ export default function Connections() {
                 {/* Actions */}
                 <div className="p-4 flex gap-2">
                   {!conn.is_unlocked ? (
-                    <button onClick={() => setSelectedUnlock(conn)}
-                      className="flex-1 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all bg-[rgba(245,168,0,0.1)] border border-[rgba(245,168,0,0.3)] text-[#F5A800] hover:bg-[rgba(245,168,0,0.2)]">
-                      <Unlock className="w-4 h-4" />
-                      {t('connections.unlock')} · ${pricing.unlock}
-                    </button>
-                  ) : (
                     <>
-                      <button className="flex-1 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 bg-[#F5A800] text-[#0B0510] hover:bg-yellow-400 transition-all">
-                        <MessageCircle className="w-4 h-4" />
-                        {t('connections.send_message')} · ${pricing.msg.toFixed(2)}
+                      <button onClick={() => setSelectedUnlock(conn)}
+                        className="flex-1 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all bg-[rgba(245,168,0,0.1)] border border-[rgba(245,168,0,0.3)] text-[#F5A800] hover:bg-[rgba(245,168,0,0.2)]">
+                        <Unlock className="w-4 h-4" />
+                        {t('connections.unlock')} · ${pricing.unlock}
                       </button>
-                      {!conn.gallery_unlocked && (
-                        <button onClick={() => handleGalleryUnlock(conn)}
+                      {myProfile?.subscription_tier === 'galactic' && !primaryPhotoUrl(photoData, conn.to_user_id) && (
+                        <button onClick={() => handleReveal(conn)}
                           className="px-4 py-3 glass-card rounded-xl text-[#F0E6FF]/60 hover:text-[#F5A800] transition-all"
-                          title={lang === 'fr' ? 'Déverrouiller la galerie' : 'Unlock gallery'}>
+                          title={lang === 'fr' ? 'Révéler les photos (avantage Galactic)' : 'Reveal photos (Galactic perk)'}>
                           <Camera className="w-4 h-4" />
                         </button>
                       )}
                     </>
+                  ) : (
+                    <button className="flex-1 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 bg-[#F5A800] text-[#0B0510] hover:bg-yellow-400 transition-all">
+                      <MessageCircle className="w-4 h-4" />
+                      {t('connections.send_message')} · ${pricing.msg.toFixed(2)}
+                    </button>
                   )}
                 </div>
               </motion.div>

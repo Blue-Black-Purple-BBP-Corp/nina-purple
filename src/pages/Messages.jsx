@@ -9,6 +9,7 @@ import { usePlanLimits } from '@/hooks/usePlanLimits';
 import CardStack from '@/components/cards/CardStack';
 import ConnectionBriefCard from '@/components/ConnectionBriefCard';
 import { GOING_DEEPER, DEEP_CONNECTION, DEEP_CONNECTION_GATE } from '@/lib/connectionCardContent';
+import { usePhotoAccess, primaryPhotoUrl } from '@/hooks/usePhotoAccess';
 
 const ARCHETYPE_COLORS = { blue: '#60A5FA', black: '#9CA3AF', purple: '#A855F7' };
 
@@ -29,6 +30,10 @@ export default function Messages() {
   const { data: limitsData, refresh: refreshLimits } = usePlanLimits();
   const bottomRef = useRef(null);
 
+  // Photos for unlocked conversations come via authorized delivery.
+  const convToIds = connections.map(c => c.to_user_id);
+  const { photoData } = usePhotoAccess(convToIds, JSON.stringify(convToIds));
+
   const cardDecks = [
     { id: 'going_deeper', label_en: 'Going Deeper', label_fr: 'Aller plus loin', color: '#7B2FBE', cards: GOING_DEEPER },
     { id: 'deep_connection', label_en: 'Deep Connection', label_fr: 'Connexion profonde', color: '#F5A800', gate: DEEP_CONNECTION_GATE, cards: DEEP_CONNECTION },
@@ -43,11 +48,16 @@ export default function Messages() {
     const user = await base44.auth.me();
     setCurrentUser(user);
     const conns = await base44.entities.Connection.filter({ from_user_id: user.id, is_unlocked: true });
-    const profileMap = {};
-    await Promise.all(conns.map(async c => {
-      const res = await base44.entities.UserProfile.filter({ user_id: c.to_user_id });
-      if (res[0]) profileMap[c.to_user_id] = res[0];
-    }));
+    const toIds = [...new Set(conns.map(c => c.to_user_id))];
+    let profileMap = {};
+    if (toIds.length) {
+      try {
+        const res = await base44.functions.invoke('getConnectionProfiles', { user_ids: toIds });
+        profileMap = res.data?.profiles || {};
+      } catch (e) {
+        console.warn('getConnectionProfiles failed:', e.message);
+      }
+    }
     setConnections(conns);
     setProfiles(profileMap);
     setLoading(false);
@@ -105,8 +115,8 @@ export default function Messages() {
             <ChevronLeft className="w-5 h-5" />
           </button>
           <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#7B2FBE] to-[#A855F7] flex items-center justify-center overflow-hidden shrink-0">
-            {profile?.photos?.[0]
-              ? <img src={profile.photos[0]} alt="" className="w-full h-full object-cover" />
+            {primaryPhotoUrl(photoData, activeConn?.to_user_id)
+              ? <img src={primaryPhotoUrl(photoData, activeConn?.to_user_id)} alt="" className="w-full h-full object-cover" />
               : <span className="text-white font-serif">{profile?.display_name?.[0]}</span>
             }
           </div>
@@ -144,8 +154,8 @@ export default function Messages() {
                   className={`flex ${isOwn ? 'justify-end' : 'justify-start'} gap-2`}>
                   {!isOwn && (
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7B2FBE] to-[#A855F7] flex items-center justify-center shrink-0 mt-1 overflow-hidden">
-                      {profile?.photos?.[0]
-                        ? <img src={profile.photos[0]} alt="" className="w-full h-full object-cover" />
+                      {primaryPhotoUrl(photoData, activeConn?.to_user_id)
+                        ? <img src={primaryPhotoUrl(photoData, activeConn?.to_user_id)} alt="" className="w-full h-full object-cover" />
                         : <span className="text-white text-xs font-serif">{profile?.display_name?.[0]}</span>
                       }
                     </div>
@@ -272,8 +282,8 @@ export default function Messages() {
                 onClick={() => setActiveConvId(conn.id)}
                 className="w-full glass-card rounded-2xl p-4 text-left flex items-center gap-3 hover:border-[rgba(245,168,0,0.2)] transition-all duration-300">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#7B2FBE] to-[#A855F7] flex items-center justify-center shrink-0 overflow-hidden">
-                  {profile.photos?.[0]
-                    ? <img src={profile.photos[0]} alt="" className="w-full h-full object-cover" />
+                  {primaryPhotoUrl(photoData, conn.to_user_id)
+                    ? <img src={primaryPhotoUrl(photoData, conn.to_user_id)} alt="" className="w-full h-full object-cover" />
                     : <span className="text-white font-serif">{profile.display_name?.[0]}</span>
                   }
                 </div>

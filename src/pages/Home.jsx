@@ -12,6 +12,7 @@ import ProfileProgressPanel from '@/components/dashboard/ProfileProgressPanel';
 import EditProfileModal from '@/components/profile/EditProfileModal';
 import ManagePhotosModal from '@/components/profile/ManagePhotosModal';
 import { base44 } from '@/api/base44Client';
+import { usePhotoAccess, primaryPhotoUrl } from '@/hooks/usePhotoAccess';
 
 const ARCHETYPE_COLORS = { blue: '#60A5FA', black: '#9CA3AF', purple: '#A855F7' };
 
@@ -43,6 +44,10 @@ export default function Home() {
   const [photosOpen, setPhotosOpen] = useState(false);
   const [matchingAnswers, setMatchingAnswers] = useState(null);
 
+  // Photos for connections come via authorized delivery (getPhotoAccess).
+  const connToIds = connections.map(c => c.to_user_id);
+  const { photoData } = usePhotoAccess(connToIds, JSON.stringify(connToIds));
+
   useEffect(() => {
     loadData();
   }, []);
@@ -60,6 +65,12 @@ export default function Home() {
     ]);
 
     const profile = profiles[0] || null;
+    if (profile) {
+      try {
+        const myPhotos = await base44.entities.Photo.filter({ owner_native_user_id: user.id });
+        profile.photo_count = myPhotos.filter(p => p.status === 'active').length;
+      } catch (e) { /* non-fatal */ }
+    }
     setUserProfile(profile);
     setConnections(conns);
     setRooms(chatRooms);
@@ -255,8 +266,8 @@ export default function Home() {
                   <motion.div key={conn.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.25 + i * 0.08 }}
                     className="glass-card rounded-2xl p-4 flex items-center gap-3">
                     <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#7B2FBE] to-[#A855F7] flex items-center justify-center shrink-0 overflow-hidden">
-                      {mp?.photos?.[0]
-                        ? <img src={mp.photos[0]} alt="" className="w-full h-full object-cover" />
+                      {primaryPhotoUrl(photoData, conn.to_user_id)
+                        ? <img src={primaryPhotoUrl(photoData, conn.to_user_id)} alt="" className="w-full h-full object-cover" />
                         : <span className="text-white text-sm font-serif">{(mp?.display_name || '?')[0]}</span>
                       }
                     </div>
