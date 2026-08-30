@@ -7,7 +7,7 @@ import ThemeToggle from '@/components/ThemeToggle';
 import PricingModal from '@/components/PricingModal';
 import { useLang } from '@/lib/LanguageContext';
 import { useTranslation, PRICING_TABLE } from '@/lib/i18n';
-import { ALL_PLANS, INDIVIDUAL_PLANS, COUPLE_PLANS, THERAPY_ADDON } from '@/lib/plans';
+import { THERAPY_ADDON, NINA_MEMBERSHIP } from '@/lib/plans';
 import { ninaIcon, ninaHorizontal, ninaCharacter } from '@/lib/images';
 import FAQ from '@/components/FAQ';
 
@@ -304,86 +304,57 @@ export default function Landing() {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-          {(planType === 'couple' ? COUPLE_PLANS : INDIVIDUAL_PLANS).map((plan, i) => {
-            const isGalactic = plan.key === 'galactic';
-            const isSolar = plan.key === 'solar';
-            return (
-              <motion.div
-                key={plan.key}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className={`rounded-2xl p-6 flex flex-col gap-4 relative overflow-hidden ${isGalactic ? 'glass-card-gold' : 'glass-card'}`}
-              >
-                {/* Galactic badge */}
-                {isGalactic && (
-                  <div className="absolute -top-0.5 left-1/2 -translate-x-1/2 px-4 py-0.5 rounded-b-full text-[10px] font-bold uppercase tracking-widest"
-                    style={{ background: plan.color, color: '#0B0510' }}>
-                    {lang === 'fr' ? 'Populaire' : 'Popular'}
-                  </div>
-                )}
+        <div className="max-w-md mx-auto mb-8">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="glass-card-gold rounded-3xl p-8 flex flex-col gap-5 relative overflow-hidden"
+          >
+            {/* Icon + Name */}
+            <div className="text-center">
+              <div className="text-3xl mb-2">{NINA_MEMBERSHIP.icon}</div>
+              <h3 className="font-serif text-2xl font-bold" style={{ color: NINA_MEMBERSHIP.color }}>
+                {lang === 'fr' ? NINA_MEMBERSHIP.label_fr : NINA_MEMBERSHIP.label_en}
+              </h3>
+              <p className="text-muted-foreground text-sm mt-1">
+                {lang === 'fr' ? NINA_MEMBERSHIP.desc_fr : NINA_MEMBERSHIP.desc_en}
+              </p>
+            </div>
 
-                {/* Icon + Name */}
-                <div className="text-center">
-                  <div className="text-2xl mb-1.5">{plan.icon}</div>
-                  <h3 className="font-serif text-xl font-bold" style={{ color: plan.color }}>
-                    {lang === 'fr' ? plan.label_fr : plan.label_en}
-                  </h3>
-                  <p className="text-muted-foreground text-xs mt-0.5">
-                    {lang === 'fr' ? plan.desc_fr : plan.desc_en}
-                  </p>
-                </div>
+            {/* Price */}
+            <div className="text-center">
+              <span className="text-4xl font-serif font-bold text-[#F5A800]">
+                {lang === 'fr' ? NINA_MEMBERSHIP.price_fr : NINA_MEMBERSHIP.price_en}
+              </span>
+            </div>
 
-                {/* Price */}
-                <div className="text-center">
-                  {isSolar ? (
-                    <span className="text-3xl font-serif font-bold" style={{ color: plan.color }}>
-                      {lang === 'fr' ? 'Gratuit' : 'Free'}
-                    </span>
-                  ) : (
-                    <div>
-                      <span className="text-2xl font-serif font-bold text-foreground">
-                        {lang === 'fr' ? plan.price_fr : plan.price_en}
-                      </span>
-                    </div>
-                  )}
-                </div>
+            {/* Divider */}
+            <div className="border-t border-border/60" />
 
-                {/* Divider */}
-                <div className="border-t border-border/60" />
+            {/* Perks */}
+            <ul className="space-y-3 flex-1">
+              {(lang === 'fr' ? NINA_MEMBERSHIP.perks_fr : NINA_MEMBERSHIP.perks_en).map((perk, j) => {
+                const isExpLink = /Nina Purple Experiences|Expériences Nina Purple/i.test(perk);
+                return (
+                  <li key={j} className="flex items-start gap-3 text-sm text-foreground/75 leading-relaxed">
+                    <span className="mt-0.5 shrink-0 flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold"
+                      style={{ background: `${NINA_MEMBERSHIP.color}18`, color: NINA_MEMBERSHIP.color }}>✓</span>
+                    {isExpLink ? (
+                      <Link to="/experiences" className="text-[#F5A800] underline underline-offset-2 hover:opacity-80 transition-opacity font-medium">{perk}</Link>
+                    ) : perk}
+                  </li>
+                );
+              })}
+            </ul>
 
-                {/* Perks */}
-                <ul className="space-y-2 flex-1">
-                  {(lang === 'fr' ? plan.perks_fr : plan.perks_en).map((perk, j) => {
-                    const isExpLink = /Nina Purple Experiences|Expériences Nina Purple/i.test(perk);
-                    return (
-                    <li key={j} className="flex items-start gap-2.5 text-xs text-foreground/65 leading-relaxed">
-                      <span className="mt-0.5 shrink-0 flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold"
-                        style={{ background: `${plan.color}18`, color: plan.color }}>✓</span>
-                      {isExpLink ? (
-                        <Link to="/experiences" className="text-[#F5A800] underline underline-offset-2 hover:opacity-80 transition-opacity font-medium">{perk}</Link>
-                      ) : perk}
-                    </li>
-                    );
-                  })}
-                </ul>
-
-                {/* CTA */}
-                <Link to="/onboarding"
-                  className="block text-center text-sm font-bold py-3 rounded-full transition-all duration-300"
-                  style={isSolar
-                    ? { background: 'transparent', color: plan.color, border: `1.5px solid ${plan.color}40` }
-                    : isGalactic
-                      ? { background: plan.color, color: '#0B0510', boxShadow: `0 4px 20px ${plan.color}30` }
-                      : { background: `${plan.color}20`, color: plan.color, border: `1px solid ${plan.color}30` }
-                  }>
-                  {lang === 'fr' ? 'Commencer' : 'Get Started'}
-                </Link>
-              </motion.div>
-            );
-          })}
+            {/* CTA */}
+            <Link to="/onboarding"
+              className="block text-center text-sm font-bold py-3.5 rounded-full transition-all duration-300"
+              style={{ background: NINA_MEMBERSHIP.color, color: '#0B0510', boxShadow: `0 4px 20px ${NINA_MEMBERSHIP.color}30` }}>
+              {lang === 'fr' ? 'Commencer' : 'Get Started'}
+            </Link>
+          </motion.div>
         </div>
 
         {/* Therapy Add-On */}

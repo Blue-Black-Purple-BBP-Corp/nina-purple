@@ -3,6 +3,7 @@ import { X } from 'lucide-react';
 import { PRICING_TABLE } from '@/lib/i18n';
 import { useLang } from '@/lib/LanguageContext';
 import { useTranslation } from '@/lib/i18n';
+import { NINA_MEMBERSHIP, THERAPY_ADDON } from '@/lib/plans';
 import BBPConversionChart from '@/components/BBPConversionChart';
 
 const TABS = [
@@ -10,16 +11,6 @@ const TABS = [
   { id: 'unlock',      en: 'Profile Unlock',   fr: 'Déverrouillage' },
   { id: 'micro',       en: 'Messaging',         fr: 'Messagerie' },
   { id: 'guarantee',   en: 'Value Guarantee',  fr: 'Garantie de valeur' },
-];
-
-const MEMBERSHIP_ROWS = [
-  { key: '7d',   en: '7 days',   fr: '7 jours',   solar: 'Free', lunar: 'N/A',     stellar: 'N/A',     galactic: '$7' },
-  { key: '14d',  en: '14 days',  fr: '14 jours',  solar: 'Free', lunar: '$5',      stellar: '$10',     galactic: '$14' },
-  { key: '1m',   en: '1 month',  fr: '1 mois',    solar: 'Free', lunar: '$10',     stellar: '$15',     galactic: '$20' },
-  { key: '3m',   en: '3 months', fr: '3 mois',    solar: 'Free', lunar: '$27.50',  stellar: '$41.25',  galactic: '$55' },
-  { key: '6m',   en: '6 months', fr: '6 mois',    solar: 'Free', lunar: '$55',     stellar: '$82.50',  galactic: '$110' },
-  { key: '1y',   en: '1 year',   fr: '1 an',      solar: 'Free', lunar: '$110',    stellar: '$165',    galactic: '$220' },
-  { key: 'life', en: 'Lifetime', fr: 'À vie',      solar: 'N/A',  lunar: 'N/A',     stellar: 'N/A',     galactic: '$400' },
 ];
 
 const MICRO_ROWS = (lang) => [
@@ -138,51 +129,51 @@ export default function PricingModal({ isOpen, onClose }) {
                 </div>
                 {membershipType === 'couple' && (
                   <p className="text-center text-[#F0E6FF]/40 text-xs pb-1">
-                    {lang === 'fr' ? 'Les prix sont par personne — chaque membre a son propre compte.' : 'Prices are per person — each member has their own account.'}
+                    {lang === 'fr' ? 'Même prix — chaque membre a son propre compte.' : 'Same price — each member has their own account.'}
                   </p>
                 )}
-                {(membershipType === 'couple' ? MEMBERSHIP_ROWS.filter(r => r.key === '1m') : MEMBERSHIP_ROWS).map(row => (
-                  <div key={row.key} className="rounded-2xl bg-[#150C1E] border border-purple-900/30 overflow-hidden">
-                    <div className="px-4 py-2 bg-[#1F1026] border-b border-purple-900/30">
-                      <span className="text-[#F0E6FF]/70 text-xs font-semibold uppercase tracking-wider">
-                        {lang === 'fr' ? row.fr : row.en}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-4 divide-x divide-purple-900/30">
-                      {[
-                        { label: membershipType === 'couple' ? (lang === 'fr' ? 'Solaire C.' : 'Solar C.') : 'Solar', val: row.solar, color: 'text-[#A78BFA]' },
-                        { label: membershipType === 'couple' ? (lang === 'fr' ? 'Lunaire C.' : 'Lunar C.') : (lang === 'fr' ? 'Lunaire' : 'Lunar'), val: row.lunar, color: 'text-[#7B2FBE]' },
-                        { label: membershipType === 'couple' ? (lang === 'fr' ? 'Stellaire C.' : 'Stellar C.') : (lang === 'fr' ? 'Stellaire' : 'Stellar'), val: row.stellar, color: 'text-[#A855F7]' },
-                        { label: membershipType === 'couple' ? (lang === 'fr' ? 'Galactique C.' : 'Galactic C.') : (lang === 'fr' ? 'Galactique' : 'Galactic'), val: row.galactic, color: 'text-[#F5A800]' },
-                      ].map(cell => (
-                        <div key={cell.label} className="flex flex-col items-center py-3 px-1">
-                          <span className="text-[#F0E6FF]/30 text-[10px] uppercase tracking-wide mb-1">{cell.label}</span>
-                          <span className={`font-bold text-sm ${cell.color}`}>{cell.val}</span>
-                        </div>
-                      ))}
-                    </div>
+
+                {/* Membership card */}
+                <div className="glass-card-gold rounded-2xl p-5 flex flex-col gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl mb-1">{NINA_MEMBERSHIP.icon}</div>
+                    <h3 className="font-serif text-lg font-bold" style={{ color: NINA_MEMBERSHIP.color }}>
+                      {lang === 'fr' ? NINA_MEMBERSHIP.label_fr : NINA_MEMBERSHIP.label_en}
+                    </h3>
+                    <p className="text-[#F0E6FF]/50 text-xs mt-0.5">
+                      {lang === 'fr' ? NINA_MEMBERSHIP.desc_fr : NINA_MEMBERSHIP.desc_en}
+                    </p>
                   </div>
-                ))}
-                <div className="rounded-xl px-4 py-3 bg-[#150C1E] border border-purple-900/30 text-[#F0E6FF]/40 text-xs">
-                  {lang === 'fr'
-                    ? '* Plan International : +5$/mois — accès aux profils hors de votre région.'
-                    : '* International Plan: +$5/month — access profiles outside your region.'}
+                  <div className="text-center">
+                    <span className="text-3xl font-serif font-bold text-[#F5A800]">
+                      {lang === 'fr' ? NINA_MEMBERSHIP.price_fr : NINA_MEMBERSHIP.price_en}
+                    </span>
+                  </div>
+                  <div className="border-t border-purple-900/30" />
+                  <ul className="space-y-2">
+                    {(lang === 'fr' ? NINA_MEMBERSHIP.perks_fr : NINA_MEMBERSHIP.perks_en).map((perk, j) => (
+                      <li key={j} className="flex items-start gap-2.5 text-xs text-[#F0E6FF]/70 leading-relaxed">
+                        <span className="mt-0.5 shrink-0 flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold"
+                          style={{ background: `${NINA_MEMBERSHIP.color}18`, color: NINA_MEMBERSHIP.color }}>✓</span>
+                        {perk}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
+
                 {/* Therapy Add-On */}
                 <div className="glass-card-gold rounded-2xl p-4 flex items-center gap-3">
-                  <div className="text-2xl">🧠</div>
+                  <div className="text-2xl">{THERAPY_ADDON.icon}</div>
                   <div className="flex-1">
                     <div className="text-[#F0E6FF] font-medium text-sm">
-                      {lang === 'fr' ? 'Supplément Thérapie' : 'Therapy Add-On'}
+                      {lang === 'fr' ? THERAPY_ADDON.label_fr : THERAPY_ADDON.label_en}
                     </div>
                     <div className="text-[#F0E6FF]/40 text-xs mt-0.5">
-                      {lang === 'fr'
-                        ? '1× thérapie individuelle ou de couple + 1× thérapie de groupe / semaine'
-                        : '1× individual or couple therapy + 1× group therapy / week'}
+                      {lang === 'fr' ? THERAPY_ADDON.desc_fr : THERAPY_ADDON.desc_en}
                     </div>
                   </div>
                   <div className="text-right shrink-0">
-                    <div className="text-[#F5A800] font-bold text-sm">$100{lang === 'fr' ? '/sem' : '/wk'}</div>
+                    <div className="text-[#F5A800] font-bold text-sm">{lang === 'fr' ? THERAPY_ADDON.price_fr : THERAPY_ADDON.price_en}</div>
                     <div className="text-[#F0E6FF]/30 text-[10px]">{lang === 'fr' ? 'Tous membres' : 'All members'}</div>
                   </div>
                 </div>
