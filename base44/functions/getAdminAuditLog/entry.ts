@@ -1,16 +1,18 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.36';
 import { isAdminRole } from '../../shared/adminAudit.ts';
 
-// Read the append-only AdminAuditLog. Super_admin only — regular admins do not
-// get audit-log access (role separation by design).
+// Read the append-only AdminAuditLog. Admin or super_admin.
+// (The platform does not allow promoting the app owner to super_admin, so
+// admin access is required for the owner to read their own logs. Append-only
+// integrity is preserved by update:false / delete:false on the entity.)
 //
 // Query: ?from=ISO&to=ISO&limit=100&offset=0
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
-    if (!user || user.role !== 'super_admin') {
-      return Response.json({ error: 'Super admin access required' }, { status: 403 });
+    if (!user || !isAdminRole(user.role)) {
+      return Response.json({ error: 'Admin access required' }, { status: 403 });
     }
 
     const url = new URL(req.url);
