@@ -10,6 +10,10 @@
       "type": "string",
       "description": "Platform user ID of the staff member operating in privileged mode."
     },
+    "bbp_member_id": {
+      "type": "string",
+      "description": "BBP member ID of the staff member, when available. Populated from BBPWalletBalance at activation."
+    },
     "active_role": {
       "type": "string",
       "description": "Role active for this session, from the UserRoleAssignment used to activate."
@@ -24,6 +28,33 @@
       ],
       "description": "The privileged context. Member mode is the absence of an active session."
     },
+    "auth_method": {
+      "type": "string",
+      "enum": [
+        "password",
+        "google",
+        "microsoft",
+        "apple"
+      ],
+      "description": "Step-up method used to activate this session."
+    },
+    "identity_provider": {
+      "type": "string",
+      "description": "Identity provider for the step-up. 'password' for local credential, otherwise the SSO provider slug."
+    },
+    "step_up_verified_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When fresh step-up verification was completed for this session. Used for high-impact-action freshness checks."
+    },
+    "session_assurance_level": {
+      "type": "string",
+      "enum": [
+        "password_reauth",
+        "platform_sso_reauth"
+      ],
+      "description": "Assurance level of the step-up. password_reauth = local credential verified server-side via loginViaEmailPassword. platform_sso_reauth = platform-mediated provider re-authentication; the app does NOT validate the provider token (Base44 handles OAuth internally and does not expose it to backend functions)."
+    },
     "activated_at": {
       "type": "string",
       "format": "date-time"
@@ -31,7 +62,7 @@
     "expires_at": {
       "type": "string",
       "format": "date-time",
-      "description": "Hard expiry (activated_at + max lifetime)."
+      "description": "Hard expiry (activated_at + max lifetime for the operating context)."
     },
     "last_activity_at": {
       "type": "string",
@@ -41,7 +72,7 @@
     "reauthenticated_at": {
       "type": "string",
       "format": "date-time",
-      "description": "Timestamp the user re-authenticated (password) before activation."
+      "description": "Timestamp the user re-authenticated before activation. Alias of step_up_verified_at; kept for backward compatibility."
     },
     "ended_at": {
       "type": "string",
@@ -50,7 +81,7 @@
     },
     "end_reason": {
       "type": "string",
-      "description": "manual_exit | expired_inactivity | expired_hard_limit | role_revoked | forced"
+      "description": "manual_exit | expired_inactivity | expired_hard_limit | role_revoked | forced | superseded"
     }
   },
   "required": [

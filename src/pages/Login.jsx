@@ -24,6 +24,7 @@ export default function Login() {
     setError("");
     setLoading(true);
     try {
+      sessionStorage.setItem('pending_auth_method', 'password');
       await base44.auth.loginViaEmailPassword(email, password);
       try {
         const res = await base44.functions.invoke('getOnboardingStatus', {});
@@ -43,14 +44,17 @@ export default function Login() {
   };
 
   const handleGoogle = () => {
+    sessionStorage.setItem('pending_auth_method', 'google');
     base44.auth.loginWithProvider("google", nextUrl);
   };
 
   const handleApple = () => {
+    sessionStorage.setItem('pending_auth_method', 'apple');
     base44.auth.loginWithProvider("apple", nextUrl);
   };
 
   const handleMicrosoft = () => {
+    sessionStorage.setItem('pending_auth_method', 'microsoft');
     base44.auth.loginWithProvider("microsoft", nextUrl);
   };
 

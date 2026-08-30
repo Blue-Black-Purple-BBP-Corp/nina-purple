@@ -3,12 +3,20 @@
 // Staff members use the app as ordinary members by default (member mode = the
 // absence of an active PrivilegedSession). Privileged access requires:
 //   1. an active UserRoleAssignment authorizing the requested operating_context
-//   2. a fresh PrivilegedSession in that context, created after re-authentication
+//   2. a fresh PrivilegedSession in that context, created after step-up
+//      authentication (password re-entry, or platform-mediated SSO re-auth)
 //   3. no conflict of interest between the staff member and the target
 //
 // Every protected backend function calls requirePrivilegedContext() before
 // acting, and writeStaffAuditLog() in the same call. The client never decides
 // authorization — it only renders based on getStaffContext().
+//
+// PLATFORM LIMITATION: Base44 does not expose linked identities, passkeys, or
+// server-side OAuth token validation. The only server-verifiable credential
+// check is loginViaEmailPassword (password). SSO step-up is therefore
+// platform-mediated (loginWithProvider redirect), not app-validated; its
+// assurance level is recorded as "platform_sso_reauth". Passkey and magic-link
+// step-up are not supported by the platform and are intentionally not faked.
 
 export const OPERATING_CONTEXTS = [
   "member",
@@ -27,6 +35,22 @@ export const PRIVILEGED_CONTEXTS = [
 
 export const SESSION_MAX_LIFETIME_MINUTES = 30;
 export const SESSION_INACTIVITY_MINUTES = 20;
+
+// Trust & Safety requires tighter bounds: 5-minute step-up freshness, 15-minute
+// inactivity, 30-minute absolute duration. Other contexts keep the defaults.
+export const STEP_UP_FRESHNESS_MINUTES = 5;
+export const HIGH_VALUE_BBP_THRESHOLD = 100;
+
+const CONTEXT_SESSION_LIMITS: Record<string, { inactivity: number; absolute: number }> = {
+  trust_safety: { inactivity: 15, absolute: 30 },
+  admin: { inactivity: SESSION_INACTIVITY_MINUTES, absolute: SESSION_MAX_LIFETIME_MINUTES },
+  rewards_finance: { inactivity: SESSION_INACTIVITY_MINUTES, absolute: SESSION_MAX_LIFETIME_MINUTES },
+  engineering_operations: { inactivity: SESSION_INACTIVITY_MINUTES, absolute: SESSION_MAX_LIFETIME_MINUTES },
+};
+
+export function getSessionLimits(context: string): { inactivity: number; absolute: number } {
+  return CONTEXT_SESSION_LIMITS[context] || { inactivity: SESSION_INACTIVITY_MINUTES, absolute: SESSION_MAX_LIFETIME_MINUTES };
+}
 
 // Role -> operating contexts granted by that role.
 // `admin` is the top clearance: it grants every operating context, identical to
@@ -76,6 +100,32 @@ export function authorizedContexts(assignments: any[]): string[] {
   return Array.from(ctxs);
 }
 
+// ── Account status & auth methods (read from UserProfile) ──
+
+// Returns the member's account_status, or null if it cannot be determined.
+// Callers should deny privileged access when null (fail closed).
+export async function getAccountStatus(base44: any, native_user_id: string): Promise<string | null> {
+  try {
+    const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_id: native_user_id });
+    return profiles[0]?.account_status ?? null;
+  } catch (e) {
+    console.error("[staffAuth] getAccountStatus error:", e?.message || e);
+    return null;
+  }
+}
+
+// Returns the member's self-declared auth_methods (sign-in methods they have
+// used). Best-effort: Base44 does not expose linked identities.
+export async function getAuthMethods(base44: any, native_user_id: string): Promise<string[]> {
+  try {
+    const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_id: native_user_id });
+    return Array.isArray(profiles[0]?.auth_methods) ? profiles[0].auth_methods : [];
+  } catch (e) {
+    console.error("[staffAuth] getAuthMethods error:", e?.message || e);
+    return [];
+  }
+}
+
 // ── Privileged sessions ──
 
 export async function _endSession(base44: any, session: any, reason: string) {
@@ -90,7 +140,8 @@ export async function _endSession(base44: any, session: any, reason: string) {
 }
 
 // Returns the user's currently-active privileged session, or null if none
-// (after auto-ending any that have hit hard or inactivity expiry).
+// (after auto-ending any that have hit hard or inactivity expiry, using the
+// limits for that session's operating context).
 export async function getActivePrivilegedSession(base44: any, native_user_id: string) {
   const now = new Date();
   let sessions: any[] = [];
@@ -105,6 +156,7 @@ export async function getActivePrivilegedSession(base44: any, native_user_id: st
     .sort((a, b) => new Date(b.activated_at).getTime() - new Date(a.activated_at).getTime());
   if (!live.length) return null;
   const session = live[0];
+  const limits = getSessionLimits(session.operating_context);
   // Hard expiry
   if (session.expires_at && new Date(session.expires_at) < now) {
     await _endSession(base44, session, "expired_hard_limit");
@@ -113,7 +165,7 @@ export async function getActivePrivilegedSession(base44: any, native_user_id: st
   // Inactivity expiry
   const lastActivity = new Date(session.last_activity_at || session.activated_at);
   const inactiveMs = now.getTime() - lastActivity.getTime();
-  if (inactiveMs > SESSION_INACTIVITY_MINUTES * 60 * 1000) {
+  if (inactiveMs > limits.inactivity * 60 * 1000) {
     await _endSession(base44, session, "expired_inactivity");
     return null;
   }
@@ -154,8 +206,25 @@ export async function requirePrivilegedContext(base44: any, user: any, context: 
     await _endSession(base44, session, "role_revoked");
     return { errorResponse: Response.json({ error: "Role assignment no longer active.", code: "role_revoked" }, { status: 403 }) };
   }
+  // Account must remain active for privileged actions.
+  const accountStatus = await getAccountStatus(base44, user.id);
+  if (accountStatus && accountStatus !== "active") {
+    await _endSession(base44, session, "account_restricted");
+    return { errorResponse: Response.json({ error: "Account is no longer eligible for privileged access.", code: "account_restricted" }, { status: 403 }) };
+  }
   await _touchSession(base44, session);
   return { session, assignments };
+}
+
+// High-impact actions require a fresh step-up (within STEP_UP_FRESHNESS_MINUTES).
+// Returns { fresh: true } or { fresh: false, reason }. Callers should return a
+// 419 with code "fresh_step_up_required" when not fresh, so the client can
+// re-prompt step-up verification.
+export function requireFreshStepUp(session: any, withinMinutes = STEP_UP_FRESHNESS_MINUTES) {
+  if (!session?.step_up_verified_at) return { fresh: false, reason: "no_step_up" };
+  const ageMs = Date.now() - new Date(session.step_up_verified_at).getTime();
+  if (ageMs > withinMinutes * 60 * 1000) return { fresh: false, reason: "stale_step_up" };
+  return { fresh: true };
 }
 
 // ── Conflict of interest ──

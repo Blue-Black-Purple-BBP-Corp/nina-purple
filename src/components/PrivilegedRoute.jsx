@@ -15,7 +15,7 @@ import { CONTEXT_LABELS } from './PrivilegedModeBanner';
 // enforcement boundary.
 export default function PrivilegedRoute({ context }) {
   const { isAuthenticated, isLoadingAuth } = useAuth();
-  const { activeSession, authorizedContexts, loading: sessionLoading } = useStaffSession();
+  const { activeSession, authorizedContexts, loading: sessionLoading, pendingActivationError, clearPendingActivationError } = useStaffSession();
   const [showReauth, setShowReauth] = useState(false);
   const navigate = useNavigate();
 
@@ -59,7 +59,29 @@ export default function PrivilegedRoute({ context }) {
             : 'You are not authorized for this workspace.'}
         </p>
       </div>
-      {authorized && (
+      {pendingActivationError && (
+        <div className="glass-card rounded-2xl p-4 max-w-sm text-center space-y-2">
+          <p className="text-[#F0E6FF]/70 text-sm">
+            {label} mode was not activated. Your member session remains active.
+          </p>
+          <p className="text-[#F0E6FF]/40 text-xs">{pendingActivationError}</p>
+          <div className="flex items-center justify-center gap-3 pt-1">
+            <button
+              onClick={() => { clearPendingActivationError(); setShowReauth(true); }}
+              className="px-5 py-2 bg-[#F5A800] text-[#0B0510] rounded-full font-bold text-xs uppercase tracking-widest hover:bg-yellow-400 transition-all"
+            >
+              Try again
+            </button>
+            <button
+              onClick={() => navigate('/home')}
+              className="px-5 py-2 glass-card rounded-full text-[#F0E6FF]/60 text-xs hover:text-[#F5A800] transition-colors"
+            >
+              Return to Member mode
+            </button>
+          </div>
+        </div>
+      )}
+      {authorized && !pendingActivationError && (
         <button
           onClick={() => setShowReauth(true)}
           className="px-6 py-3 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest text-sm hover:bg-yellow-400 transition-all"

@@ -306,6 +306,20 @@
         "denied"
       ],
       "default": "none"
+    },
+    "auth_methods": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "password",
+          "google",
+          "microsoft",
+          "apple"
+        ]
+      },
+      "default": [],
+      "description": "Self-declared record of the sign-in methods the member has authenticated with, captured at login. Used by the privileged-mode step-up flow to show only methods the member has actually used. NOT platform-verified: Base44 does not expose linked identities, so this is a best-effort approximation. Passkey/passwordless methods are not representable here because the platform does not support them."
     }
   },
   "required": [

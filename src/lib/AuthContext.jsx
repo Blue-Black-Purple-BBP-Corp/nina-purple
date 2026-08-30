@@ -96,6 +96,15 @@ export const AuthProvider = ({ children }) => {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       setIsAuthenticated(true);
+      // Record the sign-in method used (self-declared; powers the auth-method-aware
+      // privileged step-up modal). Best-effort — never blocks the session.
+      try {
+        const pending = sessionStorage.getItem('pending_auth_method');
+        if (pending) {
+          sessionStorage.removeItem('pending_auth_method');
+          base44.functions.invoke('recordAuthMethod', { method: pending }).catch(() => {});
+        }
+      } catch (e) { /* non-fatal */ }
       setIsLoadingAuth(false);
       setAuthChecked(true);
     } catch (error) {
