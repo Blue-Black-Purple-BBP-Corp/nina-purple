@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.36';
-import { computeScoreFromStored, mapStoredAnswers, QUESTION_THEMES } from '../../shared/compatibilityScoring.ts';
+import { computeScoreFromStored, mapStoredAnswers, QUESTION_THEMES, computeDetailed, QUESTION_OPTIONS } from '../../shared/compatibilityScoring.ts';
 
 // Admin-only: returns the top 3 matches for a selected user (by compatibility
 // score), with an AI-generated strengths / friction_points analysis per match.
@@ -131,28 +131,31 @@ function makeHash(a: any, b: any): string {
 function buildAnalysisPrompt(a: any, b: any, pa: any, pb: any): string {
   const ma = mapStoredAnswers(a);
   const mb = mapStoredAnswers(b);
-  const { categoryScores } = computeScoreFromStored(a, b);
+  const detailed = computeDetailed(ma, mb);
   const lines: string[] = [];
-  for (const [short, theme] of Object.entries(QUESTION_THEMES)) {
-    const av = ma[short] || '—';
-    const bv = mb[short] || '—';
-    const align = av === bv ? 'aligned' : 'differs';
-    lines.push(`- ${theme}: A=${av}, B=${bv} (${align})`);
+  for (const q of detailed.perQuestion) {
+    const labelA = (q.a && QUESTION_OPTIONS[q.q]?.[q.a]) || q.a || '—';
+    const labelB = (q.b && QUESTION_OPTIONS[q.q]?.[q.b]) || q.b || '—';
+    const qNum = q.q.slice(1);
+    lines.push(`- Q${qNum} ${q.theme}: ${q.score}/4 (A: ${labelA}, B: ${labelB})`);
   }
+  const catLines = Object.entries(detailed.categoryBreakdown).map(([cat, c]: any) =>
+    `- ${cat}: ${c.sum}/${c.max} raw (${c.pct}%)`);
   return `You are a compatibility analyst for Nina Purple, a conscious dating community.
-Two members have been matched based on 21 introspective questions across four categories.
-
-Category alignment: Values & Beliefs ${categoryScores.values_beliefs ?? 0}%, Relationship Goals ${categoryScores.relationship_goals ?? 0}%, Personality ${categoryScores.personality ?? 0}%, Shared Interests ${categoryScores.shared_interests ?? 0}%.
+Two members have been matched. Compatibility is computed by a weighted pairwise scoring engine: each of 21 questions scores the two members' answer-pair from 1 to 4, grouped into four weighted categories (Values & Beliefs 35%, Relationship Goals 30%, Personality 20%, Shared Interests 15%).
 
 Member A — Archetype: ${pa.dating_archetype || 'unspecified'}, City: ${pa.city || 'unknown'}
 Member B — Archetype: ${pb.dating_archetype || 'unspecified'}, City: ${pb.city || 'unknown'}
 
-Per-question answers (a/b/c/d choice letters):
+Category breakdown (raw / max):
+${catLines.join('\n')}
+
+Per-question pairwise scores (X out of 4):
 ${lines.join('\n')}
 
-Produce a balanced, constructive analysis:
-- "strengths": 2-4 areas where their answers align well.
-- "friction_points": 2-4 areas where they differ and may need to navigate carefully — frame as growth opportunities, not red flags.
+Produce a balanced, constructive analysis GROUNDED in these exact scores:
+- "strengths": 2-4 areas where the pair scored high. Cite the question and the answer combination, e.g. "Q11 Core values: 4/4 (honesty + compassion)".
+- "friction_points": 2-4 areas where the pair scored low. Cite the question and combination, and frame as growth opportunities to navigate carefully — not red flags.
 
 Do not reference phone, address, payment, or any data outside the answers provided.`;
 }

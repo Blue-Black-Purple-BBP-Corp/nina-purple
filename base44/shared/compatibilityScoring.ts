@@ -107,3 +107,51 @@ export function mapStoredAnswers(stored: Record<string, any>): Record<string, st
 export function computeScoreFromStored(storedA: Record<string, any>, storedB: Record<string, any>) {
   return computeScore(mapStoredAnswers(storedA), mapStoredAnswers(storedB));
 }
+
+// Human-readable option labels per question (a/b/c/d), from the matching algorithm spec.
+export const QUESTION_OPTIONS: Record<string, Record<string, string>> = {
+  q11: { a: 'Honesty and integrity', b: 'Compassion and empathy', c: 'Ambition and achievement', d: 'Adventure and spontaneity' },
+  q12: { a: 'Financial stability and career advancement', b: 'Personal fulfillment and happiness', c: 'Making a positive impact on others', d: 'Continuous growth and self-improvement' },
+  q13: { a: 'Open communication and compromise', b: 'Taking time to cool off', c: 'Seeking a win-win solution', d: 'Avoiding conflicts altogether' },
+  q14: { a: 'Central part of life and decision-making', b: 'Provides guidance and moral compass', c: 'Not important personally', d: 'Still exploring and defining beliefs' },
+  q15: { a: 'Extremely important; always seeking self-improvement', b: 'Somewhat important; own pace', c: "Not a priority; content with who I am", d: 'Unsure; still figuring out approach' },
+  q16: { a: 'Regular exercise and self-care', b: 'Seek support from loved ones/professionals', c: 'Immersed in hobbies I enjoy', d: 'Struggle with managing stress' },
+  q17: { a: 'Urban city life', b: 'Peaceful suburban/rural setting', c: 'A mix of both', d: 'Flexible and open' },
+  q18: { a: 'Family is top priority', b: 'Family important, but so are personal goals', c: 'Neutral; value independence', d: 'Not a priority; different definition of family' },
+  q19: { a: 'Strive for a healthy balance', b: 'Work is a top priority', c: 'Personal life is more important', d: 'Struggle to maintain balance' },
+  q20: { a: 'Companionship and building a life together', b: 'Marriage and starting a family', c: 'Exploring non-traditional/open relationship', d: 'Uncertain about long-term goals' },
+  q21: { a: 'Budgeting and saving', b: 'Comfortable spending', c: 'Not focused on finances', d: 'Struggle with money management' },
+  q22: { a: 'Embrace traditional gender roles', b: 'Prefer egalitarian approach', c: 'Open to discussing and finding balance', d: 'Unsure; still exploring views' },
+  q23: { a: 'Physical activities and outdoors', b: 'Creative hobbies and arts', c: 'Relaxing at home', d: 'Socializing and exploring new places' },
+  q24: { a: 'Active listening and expressing thoughts openly', b: 'Keeping emotions in check', c: 'Non-verbal cues and body language', d: 'Struggle with effective communication' },
+  q25: { a: 'Extremely important; seek mental stimulation', b: 'Moderately important', c: 'Not a priority; focus on emotional connection', d: 'Unsure; still figuring out preference' },
+  q26: { a: 'Communicate boundaries clearly and respect others', b: 'Adapt to others without asserting own', c: 'Struggle to establish and maintain boundaries', d: 'Still learning about boundaries' },
+  q27: { a: 'Embrace change as growth opportunity', b: 'Uncomfortable but try to adapt', c: 'Prefer stability and resist change', d: 'Difficult to handle change; need support' },
+  q28: { a: 'Respect and appreciate different perspectives', b: 'Engage in healthy debates', c: 'Avoid discussing sensitive topics', d: 'Struggle to accept differing opinions' },
+  q29: { a: 'Actively involved in social causes', b: 'Supportive but not actively engaged', c: 'Not a priority; focus on personal matters', d: 'Still exploring views and involvement' },
+  q30: { a: 'Openly express emotions; safe space for vulnerability', b: 'Comfortable with emotional self-sufficiency', c: 'Emotional intimacy develops slowly', d: 'Struggle with emotional intimacy' },
+  q31: { a: 'Encourage and support growth for both', b: 'Focus on own growth, expect same from partner', c: "Growth is individual; respect partner's choices", d: 'Unsure; still figuring out approach' },
+};
+
+// Detailed breakdown: per-question pairwise score (X/4) + category sums, for
+// grounding the Matchmaker admin prompt in the actual scoring mechanism.
+export function computeDetailed(mappedA: Record<string, string>, mappedB: Record<string, string>) {
+  const perQuestion: any[] = [];
+  for (const [short, theme] of Object.entries(QUESTION_THEMES)) {
+    const a = mappedA[short];
+    const b = mappedB[short];
+    const score = scorePair(short, a, b);
+    perQuestion.push({ q: short, theme, a: a || null, b: b || null, score, max: 4 });
+  }
+  const categoryBreakdown: Record<string, any> = {};
+  for (const [cat, questions] of Object.entries(CATEGORIES)) {
+    let sum = 0, count = 0;
+    for (const q of questions) {
+      const s = scorePair(q, mappedA[q], mappedB[q]);
+      if (s !== null) { sum += s; count++; }
+    }
+    categoryBreakdown[cat] = { sum, max: count * 4, count, pct: count > 0 ? Math.round((sum / (count * 4)) * 100) : 0 };
+  }
+  const { overall, categoryScores } = computeScore(mappedA, mappedB);
+  return { overall, categoryScores, categoryBreakdown, perQuestion };
+}

@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.36';
-import { computeScore } from '../../shared/compatibilityScoring.ts';
+import { computeScoreFromStored } from '../../shared/compatibilityScoring.ts';
 
 // Matching-pool generator. Creates Connection records for a single user against
 // other SINGLE users with completed onboarding + compatibility answers.
@@ -54,7 +54,11 @@ Deno.serve(async (req) => {
       p.user_id !== targetUserId &&
       p.profile_type !== 'couple' &&
       p.onboarding_complete &&
-      !existingToIds.has(p.user_id)
+      !existingToIds.has(p.user_id) &&
+      // Pre-filter (Question 4): sexual orientation must be an exact match.
+      // Only enforced when both users have a orientation set, so missing data
+      // never blocks matching.
+      (!myProfile.sexual_orientation || !p.sexual_orientation || p.sexual_orientation === myProfile.sexual_orientation)
     );
 
     const scored = [];
@@ -62,7 +66,7 @@ Deno.serve(async (req) => {
       const theirAnswersArr = await base44.asServiceRole.entities.MatchingAnswers.filter({ user_id: p.user_id });
       const theirAnswers = theirAnswersArr[0];
       if (!theirAnswers) continue;
-      const { overall } = computeScore(myAnswers, theirAnswers);
+      const { overall } = computeScoreFromStored(myAnswers, theirAnswers);
       scored.push({ profile: p, score: overall });
     }
 
