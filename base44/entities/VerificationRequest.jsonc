@@ -1,0 +1,121 @@
+{
+  "name": "VerificationRequest",
+  "type": "object",
+  "properties": {
+    "verification_request_id": {
+      "type": "string",
+      "description": "Stable request identifier."
+    },
+    "native_user_id": {
+      "type": "string",
+      "description": "Platform user ID of the member being verified."
+    },
+    "verification_type": {
+      "type": "string",
+      "enum": [
+        "phone",
+        "email",
+        "account_review",
+        "profile_completion",
+        "community_orientation",
+        "event_attendance",
+        "experience_attendance",
+        "mutual_meetup_confirmation",
+        "staff_exception"
+      ],
+      "description": "Operational verification types only. Government ID / photo ID / biometric types are intentionally excluded from scope."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "pending",
+        "in_progress",
+        "approved",
+        "rejected",
+        "expired",
+        "cancelled",
+        "under_review"
+      ],
+      "default": "pending"
+    },
+    "requested_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "requested_by_type": {
+      "type": "string",
+      "enum": [
+        "member",
+        "system",
+        "staff"
+      ],
+      "default": "member"
+    },
+    "requested_by_id": {
+      "type": "string"
+    },
+    "evidence_reference": {
+      "type": "string",
+      "description": "Reference to evidence only. Never embed sensitive evidence content."
+    },
+    "result_code": {
+      "type": "string"
+    },
+    "member_safe_result": {
+      "type": "string",
+      "description": "Neutral, non-accusatory description shown to the member."
+    },
+    "staff_reason": {
+      "type": "string"
+    },
+    "reviewed_by_id": {
+      "type": "string"
+    },
+    "reviewed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "policy_version": {
+      "type": "string"
+    },
+    "rejection_reason": {
+      "type": "string",
+      "description": "Required when status is rejected."
+    }
+  },
+  "required": [
+    "native_user_id",
+    "verification_type"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

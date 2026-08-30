@@ -1,0 +1,81 @@
+{
+  "name": "ModerationItem",
+  "type": "object",
+  "properties": {
+    "item_type": {
+      "type": "string",
+      "enum": [
+        "reported_profile",
+        "reported_message",
+        "reported_photo"
+      ]
+    },
+    "reported_by_user_id": {
+      "type": "string",
+      "description": "The user who submitted the report."
+    },
+    "target_user_id": {
+      "type": "string",
+      "description": "The user being reported."
+    },
+    "reason": {
+      "type": "string",
+      "description": "The reporting user's stated reason."
+    },
+    "content_snapshot": {
+      "type": "string",
+      "description": "Copy of the reported content at time of report, so it remains reviewable even if later edited or deleted."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "actioned",
+        "dismissed"
+      ],
+      "default": "pending"
+    },
+    "reviewed_by_admin_id": {
+      "type": "string"
+    },
+    "reviewed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "action_taken": {
+      "type": "string",
+      "description": "e.g. 'warning issued', 'account suspended', 'no action'."
+    },
+    "priority": {
+      "type": "number",
+      "default": 0,
+      "description": "Report count against the same target user. Higher values surface first (repeat-offender targets)."
+    }
+  },
+  "required": [
+    "item_type",
+    "target_user_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

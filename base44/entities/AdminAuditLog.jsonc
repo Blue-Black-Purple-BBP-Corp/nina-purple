@@ -1,0 +1,56 @@
+{
+  "name": "AdminAuditLog",
+  "type": "object",
+  "properties": {
+    "audit_event_id": {
+      "type": "string"
+    },
+    "actor_admin_id": {
+      "type": "string",
+      "description": "Platform user ID of the staff member who performed the action."
+    },
+    "actor_role": {
+      "type": "string",
+      "description": "Role captured at time of action (not looked up later). e.g. admin, super_admin."
+    },
+    "action": {
+      "type": "string",
+      "description": "Stable machine-readable action name, e.g. 'verification.approve', 'moderation.suspend', 'coupon.generate', 'founding_member.grant'."
+    },
+    "target_type": {
+      "type": "string",
+      "description": "Entity type of the target, e.g. User, VerificationRequest, ModerationItem, SpecialCode."
+    },
+    "target_id": {
+      "type": "string"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Free-text justification. Required for any action that affects another user."
+    },
+    "changes": {
+      "type": "string",
+      "description": "JSON snapshot of before/after state."
+    }
+  },
+  "required": [
+    "actor_admin_id",
+    "actor_role",
+    "action",
+    "target_type"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "super_admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "super_admin"
+      }
+    },
+    "update": false,
+    "delete": false
+  }
+}
