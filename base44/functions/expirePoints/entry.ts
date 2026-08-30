@@ -8,13 +8,15 @@ export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
 
-    // This is a scheduled function — verify admin or service invocation
+    // Scheduled job — must be invoked by an authenticated admin or the
+    // platform scheduler. Reject all anonymous (unauthenticated) requests.
     const isAuthed = await base44.auth.isAuthenticated();
-    if (isAuthed) {
-      const user = await base44.auth.me();
-      if (user && user.role !== 'admin') {
-        return Response.json({ error: 'Forbidden' }, { status: 403 });
-      }
+    if (!isAuthed) {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    const user = await base44.auth.me();
+    if (!user || user.role !== 'admin') {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const result = await expireAvailablePoints(base44);
