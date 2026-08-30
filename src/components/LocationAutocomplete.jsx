@@ -87,15 +87,25 @@ export default function LocationAutocomplete({
       if (!autocompleteRef.current) return;
       setLoading(true);
       try {
-        const results = await autocompleteRef.current.getPlacePredictions({
-          input: val,
-          types: ['(cities)'],
-        });
+        // Race against a timeout — Google Maps API can hang silently on
+        // ApiNotActivatedMapError without ever resolving or rejecting.
+        const results = await Promise.race([
+          autocompleteRef.current.getPlacePredictions({
+            input: val,
+            types: ['(cities)'],
+          }),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('timeout')), 5000)
+          ),
+        ]);
         setPredictions(results.predictions || []);
         setOpen(true);
+        setApiError(false);
       } catch (err) {
         console.error('Autocomplete error:', err);
         setPredictions([]);
+        setOpen(false);
+        setApiError(true);
       } finally {
         setLoading(false);
       }
