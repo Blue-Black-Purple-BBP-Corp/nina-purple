@@ -303,6 +303,11 @@ export default function Landing() {
             {lang === 'fr' ? 'Couples' : 'Couples'}
           </button>
         </div>
+        {planType === 'couple' && (
+          <p className="text-center text-[#F0E6FF]/40 text-sm mb-6">
+            {lang === 'fr' ? 'Même prix — chaque membre a son propre compte.' : 'Same price — each member has their own account.'}
+          </p>
+        )}
 
         <div className="max-w-md mx-auto mb-8">
           <motion.div
