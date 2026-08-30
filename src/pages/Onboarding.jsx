@@ -19,7 +19,9 @@ import MicrosoftIcon from '@/components/MicrosoftIcon';
 import { ninaIcon, ninaCharacter } from '@/lib/images';
 
 // Steps: age → guidelines → segmentation → profile → archetype → photos → questions → subscription → register → complete
-const STEPS = ['age', 'guidelines', 'segmentation', 'profile', 'archetype', 'photos', 'questions', 'subscription', 'register', 'complete'];
+const STEPS = ['age', 'guidelines', 'segmentation', 'profile', 'archetype', 'photos', 'questions', 'orientation', 'subscription', 'register', 'complete'];
+
+const ORIENTATION_VERSION = '1.0';
 
 export const QUESTIONS_21 = [
   { key: 'q11_core_values', en: 'What are your core values?', fr: 'Quelles sont vos valeurs fondamentales ?', options_en: ['a) Honesty and integrity', 'b) Compassion and empathy', 'c) Ambition and achievement', 'd) Adventure and spontaneity'], options_fr: ['a) Honnêteté et intégrité', 'b) Compassion et empathie', 'c) Ambition et réussite', 'd) Aventure et spontanéité'], opt_keys: ['a','b','c','d'] },
@@ -73,6 +75,7 @@ export default function Onboarding() {
   const [profileType, setProfileType] = useState('');
   const [partnerEmail, setPartnerEmail] = useState('');
   const [partnerLinkSent, setPartnerLinkSent] = useState(false);
+  const [orientationAccepted, setOrientationAccepted] = useState(false);
 
   // Registration state
   const [regEmail, setRegEmail] = useState('');
@@ -274,6 +277,22 @@ export default function Onboarding() {
       await base44.entities.MatchingAnswers.update(existingAnswers[0].id, answersPayload);
     } else {
       await base44.entities.MatchingAnswers.create({ user_id: user.id, ...answersPayload });
+    }
+
+    // ── Engagement layer: ensure profile, evaluate completion, record orientation ──
+    // These are best-effort — onboarding should not fail if the engagement layer errors.
+    try {
+      await base44.functions.invoke('ensureMemberEngagementProfile', {});
+      await base44.functions.invoke('evaluateProfileCompletion', {});
+      if (orientationAccepted) {
+        await base44.functions.invoke('recordPolicyAcknowledgement', {
+          policy_type: 'community_orientation',
+          policy_version: ORIENTATION_VERSION,
+          locale: lang,
+        });
+      }
+    } catch (engErr) {
+      console.warn('Engagement layer setup failed (non-blocking):', engErr.message);
     }
 
     // If couple, send partner link-up request or invite
@@ -855,6 +874,49 @@ export default function Onboarding() {
                   </button>
                 )}
               </div>
+            </motion.div>
+          )}
+
+          {/* ── ORIENTATION ── */}
+          {currentStep === 'orientation' && (
+            <motion.div key="orientation" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.6 }}
+              className="w-full space-y-6">
+              <NinaSpeech message={lang === 'fr' ? 'Bienvenue dans la communauté Nina Purple. Prenons un moment pour partager nos valeurs.' : 'Welcome to the Nina Purple community. Let\'s take a moment to share our values.'} />
+              <h2 className="font-serif text-2xl text-foreground">
+                {lang === 'fr' ? 'Orientation Communautaire' : 'Community Orientation'}
+              </h2>
+              <div className="space-y-3">
+                {[
+                  { fr: 'Nina Purple favorise les connexions intentionnelles et respectueuses.', en: 'Nina Purple supports intentional, respectful connection.' },
+                  { fr: 'Les membres décident s\'ils se rencontrent en personne, et quand.', en: 'Members decide if and when they meet offline.' },
+                  { fr: 'Ne partagez pas de conversations privées, captures d\'écran, adresses ou informations sensibles sans consentement.', en: 'Do not share private conversations, screenshots, addresses, or sensitive information without consent.' },
+                  { fr: 'Privilégiez les lieux publics et informez un contact de confiance lors d\'une première rencontre.', en: 'Consider public venues and trusted-contact planning when meeting someone new.' },
+                  { fr: 'Utilisez les outils de blocage et de signalement si quelque chose ne va pas.', en: 'Use current block/report tools if something feels wrong.' },
+                  { fr: 'La position communautaire reflète la participation; ce n\'est pas une vérification d\'identité, une garantie de sécurité ou une approbation.', en: 'Community Standing reflects participation; it is not legal identity verification, a safety guarantee, or endorsement of a member.' },
+                ].map((item, i) => (
+                  <div key={i} className="glass-card rounded-2xl p-4 flex items-start gap-3 border-[rgba(245,168,0,0.15)]">
+                    <div className="w-6 h-6 rounded-full bg-[rgba(245,168,0,0.15)] flex items-center justify-center mt-0.5 shrink-0">
+                      <Check className="w-3.5 h-3.5 text-[#F5A800]" />
+                    </div>
+                    <p className="text-foreground/80 text-sm leading-relaxed">
+                      {lang === 'fr' ? item.fr : item.en}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <label className="glass-card rounded-2xl p-4 flex items-start gap-3 cursor-pointer border-[rgba(123,47,190,0.2)]">
+                <input type="checkbox" checked={orientationAccepted} onChange={e => setOrientationAccepted(e.target.checked)}
+                  className="mt-1 w-4 h-4 accent-[#F5A800] shrink-0" />
+                <span className="text-foreground/70 text-xs leading-relaxed">
+                  {lang === 'fr'
+                    ? "J'ai lu et je comprends l'orientation communautaire de Nina Purple. Je comprends que la position communautaire n'est pas une vérification d'identité ni une garantie de sécurité."
+                    : "I have read and understand the Nina Purple community orientation. I understand that Community Standing is not identity verification or a safety guarantee."}
+                </span>
+              </label>
+              <button onClick={goNext} disabled={!orientationAccepted}
+                className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+                {t('onboarding.accept_guidelines')}
+              </button>
             </motion.div>
           )}
 
