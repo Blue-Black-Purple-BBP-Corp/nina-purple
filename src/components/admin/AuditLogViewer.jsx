@@ -3,15 +3,15 @@ import { Loader2, ScrollText, Lock, ChevronRight } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import DateRangeSelector from './DateRangeSelector';
 
-// Append-only audit log viewer. Super_admin only — a non-super_admin caller
+// Append-only audit log viewer. Admin or super_admin — a non-admin caller
 // gets a clear access-restricted state rather than an empty list.
-export default function AuditLogViewer({ isSuperAdmin, dateRange, onDateChange }) {
+export default function AuditLogViewer({ canView, dateRange, onDateChange }) {
   const [entries, setEntries] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(null);
 
-  useEffect(() => { if (isSuperAdmin) load(); }, [isSuperAdmin, dateRange.from, dateRange.to]);
+  useEffect(() => { if (canView) load(); }, [canView, dateRange.from, dateRange.to]);
 
   const load = async () => {
     setLoading(true);
@@ -30,13 +30,13 @@ export default function AuditLogViewer({ isSuperAdmin, dateRange, onDateChange }
     }
   };
 
-  if (!isSuperAdmin) {
+  if (!canView) {
     return (
       <div className="glass-card rounded-2xl p-8 text-center">
         <Lock className="w-8 h-8 mx-auto mb-3 text-[#F0E6FF]/30" />
         <h3 className="font-serif text-lg text-[#F0E6FF]">Audit log restricted</h3>
         <p className="text-[#F0E6FF]/40 text-sm mt-1 max-w-sm mx-auto">
-          The audit log is visible to super admins only. Admins can act on verifications and moderation without reading the trail.
+          The audit log is visible to admins only.
         </p>
       </div>
     );

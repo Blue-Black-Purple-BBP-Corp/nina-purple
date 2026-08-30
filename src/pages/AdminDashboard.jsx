@@ -120,7 +120,7 @@ export default function AdminDashboard() {
       <div className="flex gap-2 flex-wrap">
         {tabs.map(t => {
           const Icon = t.icon;
-          if (t.superOnly && !isSuperAdmin) return null;
+          if (t.superOnly && !isAdminish) return null;
           return (
             <button key={t.id} onClick={() => setTab(t.id)}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${tab === t.id ? 'bg-[#F5A800] text-[#0B0510]' : 'glass-card text-[#F0E6FF]/60'}`}>
@@ -144,8 +144,8 @@ export default function AdminDashboard() {
         {tab === 'moderation' && (
           <ModerationQueue items={data?.moderation || []} onResolved={loadData} />
         )}
-        {tab === 'audit' && isSuperAdmin && (
-          <AuditLogViewer isSuperAdmin={isSuperAdmin} dateRange={dateRange} onDateChange={setDateRange} />
+        {tab === 'audit' && isAdminish && (
+          <AuditLogViewer canView={isAdminish} dateRange={dateRange} onDateChange={setDateRange} />
         )}
       </div>
     </div>

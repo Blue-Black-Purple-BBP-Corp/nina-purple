@@ -29,6 +29,14 @@ export default function AppLayout() {
         setGateState('ready');
         return;
       }
+      // Incomplete — admins bypass member onboarding so they can reach the dashboard
+      try {
+        const me = await base44.auth.me();
+        if (me && (me.role === 'admin' || me.role === 'super_admin')) {
+          setGateState('ready');
+          return;
+        }
+      } catch {}
       // Incomplete — redirect to onboarding via SPA navigate (no full reload)
       navigate('/onboarding', { replace: true });
     } catch (e) {
