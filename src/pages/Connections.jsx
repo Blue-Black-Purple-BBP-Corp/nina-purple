@@ -5,6 +5,7 @@ import { useLang } from '@/lib/LanguageContext';
 import { useTranslation, getPricingForCompatibility } from '@/lib/i18n';
 import PricingModal from '@/components/PricingModal';
 import FoundingMemberBadge from '@/components/FoundingMemberBadge';
+import IncomingConnections from '@/components/IncomingConnections';
 import { base44 } from '@/api/base44Client';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
 
@@ -32,6 +33,7 @@ export default function Connections() {
   const [pricingOpen, setPricingOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [limitError, setLimitError] = useState('');
+  const [view, setView] = useState('outgoing');
   const { data: limitsData, refresh: refreshLimits } = usePlanLimits();
 
   useEffect(() => {
@@ -179,6 +181,22 @@ export default function Connections() {
         )}
       </motion.div>
 
+      {/* View toggle */}
+      <div className="flex gap-2 mb-4">
+        <button onClick={() => setView('outgoing')}
+          className={`flex-1 py-2 rounded-full text-sm font-medium transition-all ${view === 'outgoing' ? 'bg-[#F5A800] text-[#0B0510]' : 'glass-card text-[#F0E6FF]/60 hover:text-[#F0E6FF]/80'}`}>
+          {lang === 'fr' ? 'Vos correspondances' : 'Your Matches'}
+        </button>
+        <button onClick={() => setView('incoming')}
+          className={`flex-1 py-2 rounded-full text-sm font-medium transition-all ${view === 'incoming' ? 'bg-[#7B2FBE] text-white' : 'glass-card text-[#F0E6FF]/60 hover:text-[#F0E6FF]/80'}`}>
+          {lang === 'fr' ? 'Intérêt entrant' : 'Incoming Interest'}
+        </button>
+      </div>
+
+      {view === 'incoming' ? (
+        <IncomingConnections lang={lang} />
+      ) : (
+      <>
       {/* Filter tabs */}
       <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
         {tabs.map(tab => (
@@ -312,6 +330,8 @@ export default function Connections() {
             );
           })}
         </div>
+      )}
+      </>
       )}
 
       {/* Unlock Modal */}

@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import MigrationForm from '@/components/admin/MigrationForm';
 import SpecialCodeAdminTable from '@/components/admin/SpecialCodeAdminTable';
 import ProgramSettingsPanel from '@/components/admin/ProgramSettingsPanel';
+import MatchmakerPanel from '@/components/admin/MatchmakerPanel';
 import StaffRewardsConsole from '@/components/bbp/StaffRewardsConsole';
 // TEMP: import AmbassadorManager from '@/components/admin/AmbassadorManager';
 import { Loader2, Search, Phone, Shield, UserCheck, UserX, Ban, CheckCircle, XCircle, Mail, MapPin, Crown, Filter, ChevronDown, MessageSquare, Bell, BellOff, Copy, Award } from 'lucide-react';
@@ -168,6 +169,7 @@ export default function Admin() {
           { id: 'rewards', label: 'Rewards' },
           { id: 'special_codes', label: 'Special Codes' },
           { id: 'program', label: 'Program Settings' },
+          { id: 'matchmaker', label: 'Matchmaker' },
           { id: 'notifications', label: `Notifications${notifications.filter(n => !n.is_read).length ? ` (${notifications.filter(n => !n.is_read).length})` : ''}` },
         ].map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
@@ -395,6 +397,11 @@ export default function Admin() {
       {/* Program Settings Tab */}
       {tab === 'program' && (
         <ProgramSettingsPanel />
+      )}
+
+      {/* Matchmaker Tab */}
+      {tab === 'matchmaker' && (
+        <MatchmakerPanel />
       )}
 
       {/* Ambassadors Tab — temporarily disabled for debugging */}

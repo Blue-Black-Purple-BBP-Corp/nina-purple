@@ -1,0 +1,79 @@
+{
+  "name": "ConnectionBrief",
+  "type": "object",
+  "properties": {
+    "connection_id": {
+      "type": "string",
+      "description": "The Connection this brief belongs to."
+    },
+    "user_a_id": {
+      "type": "string",
+      "description": "from_user of the connection (the matcher)."
+    },
+    "user_b_id": {
+      "type": "string",
+      "description": "to_user of the connection (the matched person)."
+    },
+    "critical": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Foundational conversation-starter questions."
+    },
+    "moderate": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Meaningful but less urgent questions."
+    },
+    "light": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Low-stakes icebreaker questions."
+    }
+  },
+  "required": [
+    "connection_id",
+    "user_a_id",
+    "user_b_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_a_id": "{{user.id}}"
+        },
+        {
+          "data.user_b_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

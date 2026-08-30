@@ -7,6 +7,7 @@ import { useTranslation, getPricingForCompatibility, NINA_QUESTIONS } from '@/li
 import { base44 } from '@/api/base44Client';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
 import CardStack from '@/components/cards/CardStack';
+import ConnectionBriefCard from '@/components/ConnectionBriefCard';
 import { GOING_DEEPER, DEEP_CONNECTION, DEEP_CONNECTION_GATE } from '@/lib/connectionCardContent';
 
 const ARCHETYPE_COLORS = { blue: '#60A5FA', black: '#9CA3AF', purple: '#A855F7' };
@@ -124,6 +125,8 @@ export default function Messages() {
             <div className="text-[#F0E6FF]/30 text-[10px]">{t('messages.cost_per_msg')}</div>
           </div>
         </div>
+
+        <ConnectionBriefCard connectionId={activeConvId} lang={lang} />
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">

@@ -1,0 +1,57 @@
+{
+  "name": "MatchAnalysis",
+  "type": "object",
+  "properties": {
+    "user_a_id": {
+      "type": "string"
+    },
+    "user_b_id": {
+      "type": "string"
+    },
+    "answer_hash": {
+      "type": "string",
+      "description": "Hash of both users' answers at generation time; used to detect stale cache."
+    },
+    "strengths": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "friction_points": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    }
+  },
+  "required": [
+    "user_a_id",
+    "user_b_id",
+    "answer_hash"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -75,3 +75,35 @@ export function computeScore(answersA, answersB) {
   const overall = totalWeight > 0 ? Math.round(totalWeighted / totalWeight) : 0;
   return { overall, categoryScores };
 }
+
+// ── Stored-answer mapping ──
+// MatchingAnswers stores long keys (q11_core_values); computeScore uses short keys (q11).
+const STORED_KEY_MAP: Record<string, string> = {
+  q11_core_values: 'q11', q12_success: 'q12', q13_conflict: 'q13', q14_spirituality: 'q14',
+  q15_personal_growth: 'q15', q16_stress: 'q16', q17_living_env: 'q17', q18_family: 'q18',
+  q19_work_life: 'q19', q20_relationship_goal: 'q20', q21_money: 'q21', q22_gender_roles: 'q22',
+  q23_leisure: 'q23', q24_communication: 'q24', q25_intellectual: 'q25', q26_boundaries: 'q26',
+  q27_change: 'q27', q28_diversity: 'q28', q29_activism: 'q29', q30_emotional_intimacy: 'q30',
+  q31_partner_growth: 'q31',
+};
+
+export const QUESTION_THEMES: Record<string, string> = {
+  q11: 'Core values', q12: 'Definition of success', q13: 'Conflict style', q14: 'Spirituality',
+  q15: 'Personal growth', q16: 'Stress response', q17: 'Living environment', q18: 'Family',
+  q19: 'Work-life balance', q20: 'Relationship goals', q21: 'Money & finances', q22: 'Gender roles',
+  q23: 'Leisure', q24: 'Communication', q25: 'Intellectual interests', q26: 'Boundaries',
+  q27: 'Attitude toward change', q28: 'Diversity', q29: 'Activism & social engagement',
+  q30: 'Emotional intimacy', q31: 'Partner growth',
+};
+
+export function mapStoredAnswers(stored: Record<string, any>): Record<string, string> {
+  const mapped: Record<string, string> = {};
+  for (const [longKey, shortKey] of Object.entries(STORED_KEY_MAP)) {
+    if (stored[longKey]) mapped[shortKey] = stored[longKey];
+  }
+  return mapped;
+}
+
+export function computeScoreFromStored(storedA: Record<string, any>, storedB: Record<string, any>) {
+  return computeScore(mapStoredAnswers(storedA), mapStoredAnswers(storedB));
+}
