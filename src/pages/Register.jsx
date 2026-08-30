@@ -33,6 +33,14 @@ export default function Register() {
       }
     })();
   }, []);
+
+  // Capture referral code from ?ref= query param (stored for createProfile to attribute the signup).
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('ref');
+    if (ref) sessionStorage.setItem('referral_code', ref.trim().toUpperCase());
+  }, []);
+
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");

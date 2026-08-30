@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.36';
 import { generateBbpMemberId } from '../../shared/bbpRules.ts';
+import { processReferralSignup } from '../../shared/referral.ts';
 import { sendAdminEmail } from '../../shared/adminEmail.ts';
 
 // Creates a UserProfile for the authenticated caller.
@@ -13,6 +14,7 @@ const ALLOWED_FIELDS = new Set([
   'language', 'onboarding_complete', 'age_verified', 'guidelines_accepted',
   'profile_type', 'paired_status', 'partner_email',
   'onboarding_status', 'onboarding_completed_at', 'onboarding_version', 'onboarding_step',
+  'referred_by_code',
   ]);
 
 Deno.serve(async (req) => {
@@ -86,6 +88,17 @@ Deno.serve(async (req) => {
       if (profileData.onboarding_version) updateData.onboarding_version = profileData.onboarding_version;
       if ('onboarding_complete' in profileData) updateData.onboarding_complete = profileData.onboarding_complete;
       const updated = await base44.asServiceRole.entities.UserProfile.update(existing[0].id, updateData);
+
+      // ── Referral signup reward (onboarding complete + referred_by_code present) ──
+      // Idempotent: processReferralSignup skips if a Referral or ledger entry already exists.
+      if (profileData.onboarding_status === 'complete') {
+        const refCode = updated.referred_by_code || existing[0].referred_by_code || body.referred_by_code;
+        if (refCode) {
+          try { await processReferralSignup(base44, user.id, refCode); }
+          catch (e) { console.error('Referral processing failed:', e.message); }
+        }
+      }
+
       return Response.json({ success: true, profile: updated, updated: true });
     }
 
@@ -219,6 +232,13 @@ Deno.serve(async (req) => {
       }
     } catch (engErr) {
       console.error('Engagement profile creation failed:', engErr.message);
+    }
+
+    // ── Referral signup reward (onboarding complete + referred_by_code present) ──
+    // Idempotent: processReferralSignup skips if a Referral or ledger entry already exists.
+    if (profileData.onboarding_status === 'complete' && created.referred_by_code) {
+      try { await processReferralSignup(base44, user.id, created.referred_by_code); }
+      catch (e) { console.error('Referral processing failed:', e.message); }
     }
 
     return Response.json({ success: true, profile: created });

@@ -223,6 +223,7 @@ export default function Onboarding() {
         profile_type: profileType || 'individual',
         paired_status: profileType === 'couple' ? 'pending' : 'single',
         partner_email: profileType === 'couple' ? partnerEmail.toLowerCase() : null,
+        referred_by_code: sessionStorage.getItem('referral_code') || null,
       });
       // Save answers if any
       const answersPayload = { ...answers, questions_answered: Object.keys(answers).filter(k => answers[k]).length };
@@ -398,6 +399,7 @@ export default function Onboarding() {
       profile_type: profileType || 'individual',
       paired_status: profileType === 'couple' ? 'pending' : 'single',
       partner_email: profileType === 'couple' ? partnerEmail.toLowerCase() : null,
+      referred_by_code: sessionStorage.getItem('referral_code') || null,
     });
 
     // ── Engagement layer: ensure profile, evaluate completion, record orientation ──

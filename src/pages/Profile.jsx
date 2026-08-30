@@ -201,7 +201,7 @@ export default function Profile() {
     {
       icon: Users,
       label: t('profile.refer'),
-      sub: lang === 'fr' ? 'Gagnez 50 BBP par invitation' : 'Earn 50 BBP per referral',
+      sub: lang === 'fr' ? 'Gagnez 5 BBP ($5) par invitation' : 'Earn 5 BBP ($5) per referral',
       action: lang === 'fr' ? 'Inviter' : 'Invite',
       onClick: () => setReferralOpen(true),
     },

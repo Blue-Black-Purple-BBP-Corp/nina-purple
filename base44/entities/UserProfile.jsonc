@@ -320,6 +320,14 @@
       },
       "default": [],
       "description": "Self-declared record of the sign-in methods the member has authenticated with, captured at login. Used by the privileged-mode step-up flow to show only methods the member has actually used. NOT platform-verified: Base44 does not expose linked identities, so this is a best-effort approximation. Passkey/passwordless methods are not representable here because the platform does not support them."
+    },
+    "referral_code": {
+      "type": "string",
+      "description": "This member's unique shareable referral code (alphanumeric, conscious-relationship themed: a curated word + a random suffix, e.g. AURA7K3). Generated server-side by getReferralCode/ensureReferralCode. Used as the ?ref= value in the share link."
+    },
+    "referred_by_code": {
+      "type": "string",
+      "description": "The referral code of the member who referred this user, captured at signup from the ?ref= query param. Stored on the first createProfile call; drives the $5 BBP referral reward to the referrer when this member completes onboarding."
     }
   },
   "required": [
