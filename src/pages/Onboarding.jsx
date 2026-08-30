@@ -661,7 +661,7 @@ export default function Onboarding() {
 
               <div>
                 <label className="block text-foreground/60 text-sm mb-2">
-                  {lang === 'fr' ? 'Téléphone' : 'Phone'} <span className="text-[#F5A800]">*</span>
+                  {lang === 'fr' ? 'Numéro de téléphone (avec indicatif pays)' : 'Phone Number (with country code)'} <span className="text-[#F5A800]">*</span>
                 </label>
                 <PhoneInput value={phone} onChange={setPhone} onValidityChange={setPhoneValid} lang={lang} />
               </div>
