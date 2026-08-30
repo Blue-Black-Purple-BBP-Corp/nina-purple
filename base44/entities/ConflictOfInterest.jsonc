@@ -1,0 +1,131 @@
+{
+  "name": "ConflictOfInterest",
+  "type": "object",
+  "properties": {
+    "conflict_id": {
+      "type": "string",
+      "description": "Stable conflict identifier."
+    },
+    "staff_bbp_member_id": {
+      "type": "string",
+      "description": "BBP member ID of the staff member."
+    },
+    "staff_native_user_id": {
+      "type": "string",
+      "description": "Platform user ID of the staff member (for RLS and lookup)."
+    },
+    "related_bbp_member_id": {
+      "type": "string",
+      "description": "BBP member ID of the related member."
+    },
+    "related_native_user_id": {
+      "type": "string",
+      "description": "Platform user ID of the related member (for lookup)."
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "declared",
+        "connection",
+        "match",
+        "conversation",
+        "manual"
+      ],
+      "description": "How the conflict was detected or declared."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "resolved",
+        "waived"
+      ],
+      "default": "active"
+    },
+    "declared_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "resolved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "resolution_owner": {
+      "type": "string",
+      "description": "Admin user ID who resolved or waived the conflict."
+    },
+    "notes_restricted": {
+      "type": "string",
+      "description": "Restricted notes visible to admins only."
+    }
+  },
+  "required": [
+    "staff_native_user_id",
+    "related_native_user_id",
+    "source"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.staff_native_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.staff_native_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    }
+  }
+}

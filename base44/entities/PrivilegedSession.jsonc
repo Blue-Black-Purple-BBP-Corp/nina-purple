@@ -1,0 +1,129 @@
+{
+  "name": "PrivilegedSession",
+  "type": "object",
+  "properties": {
+    "privileged_session_id": {
+      "type": "string",
+      "description": "Stable session identifier."
+    },
+    "native_user_id": {
+      "type": "string",
+      "description": "Platform user ID of the staff member operating in privileged mode."
+    },
+    "active_role": {
+      "type": "string",
+      "description": "Role active for this session, from the UserRoleAssignment used to activate."
+    },
+    "operating_context": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "trust_safety",
+        "rewards_finance",
+        "engineering_operations"
+      ],
+      "description": "The privileged context. Member mode is the absence of an active session."
+    },
+    "activated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Hard expiry (activated_at + max lifetime)."
+    },
+    "last_activity_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Updated on each privileged action. Inactivity expiry is measured from this."
+    },
+    "reauthenticated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp the user re-authenticated (password) before activation."
+    },
+    "ended_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Null while session is active."
+    },
+    "end_reason": {
+      "type": "string",
+      "description": "manual_exit | expired_inactivity | expired_hard_limit | role_revoked | forced"
+    }
+  },
+  "required": [
+    "native_user_id",
+    "active_role",
+    "operating_context",
+    "activated_at"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.native_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.native_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.native_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    }
+  }
+}
