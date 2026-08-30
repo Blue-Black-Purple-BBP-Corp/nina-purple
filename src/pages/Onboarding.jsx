@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, ChevronLeft, Upload, Mail, Lock, Eye, EyeOff, Loader2, X, Shield, Heart } from 'lucide-react';
+import { Check, ChevronLeft, Upload, Mail, Lock, Eye, EyeOff, Loader2, X, Shield, Heart, AlertCircle, RefreshCw } from 'lucide-react';
 import NinaSpeech from '@/components/NinaSpeech';
 import LocationAutocomplete from '@/components/LocationAutocomplete';
 import PhoneInput from '@/components/PhoneInput';
@@ -19,7 +19,7 @@ import MicrosoftIcon from '@/components/MicrosoftIcon';
 import { ninaIcon, ninaCharacter } from '@/lib/images';
 
 // Steps: age → guidelines → segmentation → profile → archetype → photos → questions → subscription → register → complete
-const STEPS = ['age', 'guidelines', 'segmentation', 'profile', 'archetype', 'photos', 'questions', 'orientation', 'subscription', 'register', 'complete'];
+const STEPS = ['age', 'guidelines', 'segmentation', 'profile', 'archetype', 'photos', 'questions', 'orientation', 'subscription', 'complete'];
 
 const ORIENTATION_VERSION = '1.0';
 
@@ -76,7 +76,8 @@ export default function Onboarding() {
   const [partnerEmail, setPartnerEmail] = useState('');
   const [partnerLinkSent, setPartnerLinkSent] = useState(false);
   const [orientationAccepted, setOrientationAccepted] = useState(false);
-  const [isAuthed, setIsAuthed] = useState(false);
+  const [isAuthed, setIsAuthed] = useState(true);
+  const [guardState, setGuardState] = useState('loading'); // 'loading' | 'show' | 'error'
 
   // Registration state
   const [regEmail, setRegEmail] = useState('');
@@ -91,29 +92,74 @@ export default function Onboarding() {
   useEffect(() => {
     (async () => {
       try {
+        const authed = await base44.auth.isAuthenticated();
+        if (!authed) {
+          navigate('/register?next=/onboarding', { replace: true });
+          return;
+        }
         const me = await base44.auth.me();
-        if (!me) return;
         setIsAuthed(true);
+
+        // Check onboarding status — redirect completed users to /home
+        try {
+          const statusRes = await base44.functions.invoke('getOnboardingStatus', {});
+          if (statusRes.data?.onboarding_status === 'complete') {
+            navigate('/home', { replace: true });
+            return;
+          }
+        } catch (statusErr) {
+          console.warn('Onboarding status check failed:', statusErr.message);
+        }
+
+        // Pre-fill from existing profile (resume progress)
         const existing = await base44.entities.UserProfile.filter({ user_id: me.id });
-        if (!existing.length) return;
-        const p = existing[0];
-        const nameParts = (p.full_name || '').split(' ').filter(Boolean);
-        setProfile(prev => ({
-          ...prev,
-          first_name: prev.first_name || nameParts[0] || '',
-          middle_name: prev.middle_name || (nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : ''),
-          last_name: prev.last_name || (nameParts.length > 1 ? nameParts[nameParts.length - 1] : ''),
-          display_name: prev.display_name || p.display_name || '',
-          city: prev.city || p.city || '',
-          birthdate: prev.birthdate || p.birthdate || '',
-          sexual_orientation: prev.sexual_orientation || '',
-          gender_pronoun: prev.gender_pronoun || '',
-          relationship_status: prev.relationship_status || '',
-        }));
-        if (p.dating_archetype) setArchetype(a => a || p.dating_archetype);
-        if (p.phone) setPhone(v => v || p.phone);
+        if (existing.length) {
+          const p = existing[0];
+          const nameParts = (p.full_name || '').split(' ').filter(Boolean);
+          setProfile(prev => ({
+            ...prev,
+            first_name: prev.first_name || nameParts[0] || '',
+            middle_name: prev.middle_name || (nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : ''),
+            last_name: prev.last_name || (nameParts.length > 1 ? nameParts[nameParts.length - 1] : ''),
+            display_name: prev.display_name || p.display_name || '',
+            city: prev.city || p.city || '',
+            country: prev.country || p.country || '',
+            birthdate: prev.birthdate || p.birthdate || '',
+            sexual_orientation: prev.sexual_orientation || '',
+            gender_pronoun: prev.gender_pronoun || '',
+            relationship_status: prev.relationship_status || '',
+          }));
+          if (p.dating_archetype) setArchetype(a => a || p.dating_archetype);
+          if (p.phone) setPhone(v => v || p.phone);
+          if (p.profile_type) setProfileType(p.profile_type);
+          if (p.partner_email) setPartnerEmail(p.partner_email);
+
+          // Pre-fill photos
+          if (p.photos && p.photos.length) {
+            setPhotos(prev => {
+              const next = [...prev];
+              p.photos.forEach((url, i) => { if (i < 6) next[i] = url; });
+              return next;
+            });
+          }
+
+          // Pre-fill answers
+          const existingAnswers = await base44.entities.MatchingAnswers.filter({ user_id: me.id });
+          if (existingAnswers.length) {
+            setAnswers(prev => ({ ...prev, ...existingAnswers[0] }));
+          }
+
+          // Restore step
+          if (p.onboarding_step) {
+            const stepIndex = STEPS.indexOf(p.onboarding_step);
+            if (stepIndex > 0) setStep(stepIndex);
+          }
+        }
+
+        setGuardState('show');
       } catch (e) {
-        // ignore — fresh onboarding if no existing profile or not logged in
+        console.error('Onboarding guard failed:', e);
+        setGuardState('error');
       }
     })();
   }, []);
@@ -130,11 +176,58 @@ export default function Onboarding() {
     return age > 18 || (age === 18 && (m > 0 || (m === 0 && today.getDate() >= dob.getDate())));
   };
 
-  const goNext = () => setStep(s => Math.min(s + 1, STEPS.length - 1));
+  const goNext = () => {
+    // Save progress at key data-entry steps
+    if (['profile', 'archetype', 'photos', 'questions', 'orientation'].includes(currentStep)) {
+      saveProgress(STEPS[Math.min(step + 1, STEPS.length - 1)]);
+    }
+    setStep(s => Math.min(s + 1, STEPS.length - 1));
+  };
   const goPrev = () => setStep(s => Math.max(s - 1, 0));
   const allQuestionsAnswered = QUESTIONS_21.every(q => answers[q.key]);
 
   const handleAnswer = (key, value) => setAnswers(prev => ({ ...prev, [key]: value }));
+
+  // Save partial progress so refresh or connection loss doesn't erase work.
+  // Fire-and-forget — non-blocking, errors are logged but never break the flow.
+  const saveProgress = async (stepName) => {
+    try {
+      const user = await base44.auth.me();
+      const composedFullName = [profile.first_name, profile.middle_name, profile.last_name].filter(Boolean).join(' ').trim();
+      await base44.functions.invoke('createProfile', {
+        full_name: composedFullName,
+        display_name: profile.display_name.trim() || composedFullName || user.full_name,
+        city: profile.city,
+        country: profile.country,
+        birthdate: profile.birthdate,
+        phone: phone,
+        sexual_orientation: profile.sexual_orientation,
+        gender_pronoun: profile.gender_pronoun,
+        relationship_status: profile.relationship_status,
+        dating_archetype: archetype,
+        photos: photos.filter(Boolean),
+        onboarding_status: 'in_progress',
+        onboarding_complete: false,
+        onboarding_step: stepName || currentStep,
+        age_verified: true,
+        guidelines_accepted: true,
+        language: lang,
+        profile_type: profileType || 'individual',
+        paired_status: profileType === 'couple' ? 'pending' : 'single',
+        partner_email: profileType === 'couple' ? partnerEmail.toLowerCase() : null,
+      });
+      // Save answers if any
+      const answersPayload = { ...answers, questions_answered: Object.keys(answers).filter(k => answers[k]).length };
+      const existingAnswers = await base44.entities.MatchingAnswers.filter({ user_id: user.id });
+      if (existingAnswers.length > 0) {
+        await base44.entities.MatchingAnswers.update(existingAnswers[0].id, answersPayload);
+      } else if (Object.keys(answers).length > 0) {
+        await base44.entities.MatchingAnswers.create({ user_id: user.id, ...answersPayload });
+      }
+    } catch (e) {
+      console.warn('Progress save failed (non-blocking):', e.message);
+    }
+  };
 
   // ── Registration handlers ──
   const handleRegister = async (e) => {
@@ -250,6 +343,18 @@ export default function Onboarding() {
     const profileCompleteness = Math.min(100, compScore);
 
     const composedFullName = [profile.first_name, profile.middle_name, profile.last_name].filter(Boolean).join(' ').trim();
+    // Save answers first so createProfile can validate them when marking complete
+    const existingAnswers = await base44.entities.MatchingAnswers.filter({ user_id: user.id });
+    const answersPayload = {
+      ...answers,
+      questions_answered: Object.keys(answers).filter(k => answers[k]).length,
+    };
+    if (existingAnswers.length > 0) {
+      await base44.entities.MatchingAnswers.update(existingAnswers[0].id, answersPayload);
+    } else {
+      await base44.entities.MatchingAnswers.create({ user_id: user.id, ...answersPayload });
+    }
+
     await base44.functions.invoke('createProfile', {
       full_name: composedFullName,
       display_name: profile.display_name.trim() || composedFullName || user.full_name,
@@ -262,7 +367,9 @@ export default function Onboarding() {
       relationship_status: profile.relationship_status,
       dating_archetype: archetype,
       photos: photos.filter(Boolean),
+      onboarding_status: 'complete',
       onboarding_complete: true,
+      onboarding_step: null,
       age_verified: true,
       guidelines_accepted: true,
       language: lang,
@@ -271,17 +378,6 @@ export default function Onboarding() {
       paired_status: profileType === 'couple' ? 'pending' : 'single',
       partner_email: profileType === 'couple' ? partnerEmail.toLowerCase() : null,
     });
-
-    const existingAnswers = await base44.entities.MatchingAnswers.filter({ user_id: user.id });
-    const answersPayload = {
-      ...answers,
-      questions_answered: Object.keys(answers).filter(k => answers[k]).length,
-    };
-    if (existingAnswers.length > 0) {
-      await base44.entities.MatchingAnswers.update(existingAnswers[0].id, answersPayload);
-    } else {
-      await base44.entities.MatchingAnswers.create({ user_id: user.id, ...answersPayload });
-    }
 
     // ── Engagement layer: ensure profile, evaluate completion, record orientation ──
     // These are best-effort — onboarding should not fail if the engagement layer errors.
@@ -383,6 +479,33 @@ export default function Onboarding() {
     exit: { opacity: 0, x: -40 },
   };
 
+  if (guardState === 'loading') {
+    return (
+      <div className="min-h-screen bg-[#0B0510] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-[#F5A800] animate-spin" />
+      </div>
+    );
+  }
+
+  if (guardState === 'error') {
+    return (
+      <div className="min-h-screen bg-[#0B0510] flex flex-col items-center justify-center gap-4 px-6">
+        <div className="fixed top-4 right-4 z-[100] flex items-center gap-2">
+          <ThemeToggle />
+          <LanguageToggle />
+        </div>
+        <AlertCircle className="w-10 h-10 text-red-400" />
+        <p className="text-[#F0E6FF]/60 text-sm text-center max-w-xs">
+          {lang === 'fr' ? 'Une erreur est survenue lors du chargement de votre parcours.' : 'Something went wrong while loading your journey.'}
+        </p>
+        <button onClick={() => window.location.reload()} className="px-6 py-3 glass-card rounded-full text-[#F0E6FF] flex items-center gap-2 hover:border-[rgba(245,168,0,0.3)] transition-all">
+          <RefreshCw className="w-4 h-4" />
+          {lang === 'fr' ? 'Réessayer' : 'Retry'}
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#0B0510] flex flex-col">
       {/* Top toggles — always visible */}
@@ -400,182 +523,6 @@ export default function Onboarding() {
 
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 max-w-xl mx-auto w-full">
         <AnimatePresence mode="wait">
-
-          {/* ── REGISTER ── */}
-          {currentStep === 'register' && (
-            <motion.div key="register" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.6 }}
-              className="w-full space-y-6">
-              <div className="text-center mb-2">
-                <img src={ninaIcon}
-                  alt="Nina" className="w-16 h-16 mx-auto mb-4 object-contain drop-shadow-[0_0_20px_rgba(123,47,190,0.5)]" />
-                <h1 className="font-serif text-3xl text-foreground">
-                  {lang === 'fr' ? 'Créez votre compte' : 'Create your account'}
-                </h1>
-                <p className="text-foreground/50 text-sm mt-1">
-                  {lang === 'fr' ? 'Dernière étape — sauvegardez votre profil' : 'Last step — save your profile'}
-                </p>
-              </div>
-
-              {!showOtp ? (
-                <>
-                  {/* Cybersecurity privacy note */}
-                  <div className="mb-4 p-3 rounded-xl bg-[rgba(123,47,190,0.08)] border border-[rgba(123,47,190,0.2)] text-xs leading-relaxed"
-                    style={{ color: 'var(--starlight-dim, rgba(240,230,255,0.6))' }}>
-                    <div className="flex items-start gap-2">
-                      <Shield className="w-3.5 h-3.5 text-[#7B2FBE] shrink-0 mt-0.5" />
-                      <div>
-                        <span className="font-semibold" style={{ color: 'var(--starlight, #F0E6FF)' }}>
-                          {lang === 'fr' ? 'Une note sur votre vie privée' : 'A note on your privacy'}
-                        </span>
-                        <p className="mt-1">
-                          {lang === 'fr'
-                            ? "Nous recommandons de créer une adresse courriel dédiée pour votre compte Nina Purple (p. ex. nom.ninapurple@gmail.com). Bien que nous appliquions des mesures de sécurité rigoureuses pour protéger vos données, aucune plateforme sur Internet n'est à l'abri des violations. Utiliser un courriel distinct limite l'exposition : en cas de fuite, seules les informations liées à ce compte sont à risque — pas votre identité sur d'autres services."
-                            : "We recommend creating a dedicated email address for your Nina Purple account (e.g. name.ninapurple@gmail.com). While we apply rigorous security measures to protect your data, no platform on the internet is immune to breaches. Using a separate email limits exposure: if a leak occurs, only the information tied to this account is at risk — not your identity across other services."}
-                        </p>
-                        <p className="mt-1 opacity-70">
-                          {lang === 'fr'
-                            ? "C'est de l'hygiène numérique de base. Cela prend deux minutes et réduit considérablement votre surface d'attaque."
-                            : 'This is standard digital hygiene. It takes two minutes and significantly reduces your attack surface.'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Social login buttons */}
-                  <div className="flex gap-2 mb-2">
-                    <button
-                      type="button"
-                      onClick={() => base44.auth.loginWithProvider("google", "/home")}
-                      className="flex-1 py-3 glass-card rounded-xl flex items-center justify-center hover:border-[rgba(245,168,0,0.3)] transition-all">
-                      <svg className="w-5 h-5" viewBox="0 0 24 24">
-                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
-                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-                      </svg>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => base44.auth.loginWithProvider("apple", "/home")}
-                      className="flex-1 py-3 glass-card rounded-xl flex items-center justify-center hover:border-[rgba(245,168,0,0.3)] transition-all">
-                      <AppleIcon className="w-5 h-5 text-foreground" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => base44.auth.loginWithProvider("microsoft", "/home")}
-                      className="flex-1 py-3 glass-card rounded-xl flex items-center justify-center hover:border-[rgba(245,168,0,0.3)] transition-all">
-                      <MicrosoftIcon className="w-5 h-5" />
-                    </button>
-                  </div>
-                  <div className="flex items-center gap-3 my-1">
-                    <div className="flex-1 border-t border-[rgba(240,230,255,0.08)]" />
-                    <span className="text-foreground/30 text-xs">{lang === 'fr' ? 'ou' : 'or'}</span>
-                    <div className="flex-1 border-t border-[rgba(240,230,255,0.08)]" />
-                  </div>
-                  <form onSubmit={handleRegister} className="space-y-4">
-                  {formError && (
-                    <div className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
-                      {formError}
-                    </div>
-                  )}
-                  <div>
-                    <label className="block text-foreground/60 text-sm mb-2">
-                      {lang === 'fr' ? 'Adresse courriel' : 'Email address'} <span className="text-[#F5A800]">*</span>
-                    </label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/30 pointer-events-none" />
-                      <input
-                        type="email"
-                        required
-                        value={regEmail}
-                        onChange={e => setRegEmail(e.target.value)}
-                        placeholder="you@example.com"
-                        className="w-full glass-card rounded-xl pl-10 pr-4 py-3 text-foreground outline-none focus:border-[rgba(245,168,0,0.4)] transition-all bg-transparent"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-foreground/60 text-sm mb-2">
-                      {lang === 'fr' ? 'Mot de passe' : 'Password'} <span className="text-[#F5A800]">*</span>
-                    </label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/30 pointer-events-none" />
-                      <input
-                        type={showPassword ? 'text' : 'password'}
-                        required
-                        value={regPassword}
-                        onChange={e => setRegPassword(e.target.value)}
-                        placeholder="••••••••"
-                        className="w-full glass-card rounded-xl pl-10 pr-10 py-3 text-foreground outline-none focus:border-[rgba(245,168,0,0.4)] transition-all bg-transparent"
-                      />
-                      <button type="button" onClick={() => setShowPassword(v => !v)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/30 hover:text-foreground/60">
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-foreground/60 text-sm mb-2">
-                      {lang === 'fr' ? 'Confirmer le mot de passe' : 'Confirm password'} <span className="text-[#F5A800]">*</span>
-                    </label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/30 pointer-events-none" />
-                      <input
-                        type={showPassword ? 'text' : 'password'}
-                        required
-                        value={regConfirm}
-                        onChange={e => setRegConfirm(e.target.value)}
-                        placeholder="••••••••"
-                        className="w-full glass-card rounded-xl pl-10 pr-4 py-3 text-foreground outline-none focus:border-[rgba(245,168,0,0.4)] transition-all bg-transparent"
-                      />
-                    </div>
-                  </div>
-                  <button type="submit" disabled={loading || !regEmail || !regPassword || !regConfirm}
-                    className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all shadow-[0_0_30px_rgba(245,168,0,0.3)] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-                    {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> {lang === 'fr' ? 'Création...' : 'Creating...'}</> : (lang === 'fr' ? 'Créer mon compte' : 'Create my account')}
-                  </button>
-                  <p className="text-center text-foreground/40 text-sm">
-                    {lang === 'fr' ? 'Déjà membre ? ' : 'Already a member? '}
-                    <a href="/login" className="text-[#F5A800] hover:underline">
-                      {lang === 'fr' ? 'Se connecter' : 'Log in'}
-                    </a>
-                  </p>
-                </form>
-                </>
-              ) : (
-                <div className="space-y-6">
-                  <NinaSpeech message={lang === 'fr' ? `Un code de vérification a été envoyé à ${regEmail}` : `A verification code was sent to ${regEmail}`} />
-                  {formError && (
-                    <div className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
-                      {formError}
-                    </div>
-                  )}
-                  <div className="flex justify-center">
-                    <InputOTP maxLength={6} value={otpCode} onChange={setOtpCode} autoFocus>
-                      <InputOTPGroup>
-                        <InputOTPSlot index={0} />
-                        <InputOTPSlot index={1} />
-                        <InputOTPSlot index={2} />
-                        <InputOTPSlot index={3} />
-                        <InputOTPSlot index={4} />
-                        <InputOTPSlot index={5} />
-                      </InputOTPGroup>
-                    </InputOTP>
-                  </div>
-                  <button onClick={handleVerifyOtp} disabled={loading || otpCode.length < 6}
-                    className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-                    {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> {lang === 'fr' ? 'Vérification...' : 'Verifying...'}</> : (lang === 'fr' ? 'Vérifier mon courriel' : 'Verify my email')}
-                  </button>
-                  <p className="text-center text-foreground/40 text-sm">
-                    {lang === 'fr' ? 'Pas reçu ? ' : "Didn't receive it? "}
-                    <button onClick={handleResendOtp} className="text-[#F5A800] hover:underline">
-                      {lang === 'fr' ? 'Renvoyer' : 'Resend'}
-                    </button>
-                  </p>
-                </div>
-              )}
-            </motion.div>
-          )}
 
           {/* ── AGE ── */}
           {currentStep === 'age' && (
@@ -1053,7 +1000,7 @@ export default function Onboarding() {
                 );
               })}
 
-              <button onClick={() => isAuthed ? handleComplete() : goNext()} disabled={loading}
+              <button onClick={() => handleComplete()} disabled={loading}
                 className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all mt-2 shadow-[0_0_30px_rgba(245,168,0,0.25)] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                 {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> {lang === 'fr' ? 'Sauvegarde...' : 'Saving...'}</> : t('onboarding.continue')}
               </button>

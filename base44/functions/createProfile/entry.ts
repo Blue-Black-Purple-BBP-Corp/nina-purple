@@ -11,7 +11,8 @@ const ALLOWED_FIELDS = new Set([
   'show_in_listings', 'allow_messages_all', 'profile_completeness',
   'language', 'onboarding_complete', 'age_verified', 'guidelines_accepted',
   'profile_type', 'paired_status', 'partner_email',
-]);
+  'onboarding_status', 'onboarding_completed_at', 'onboarding_version', 'onboarding_step',
+  ]);
 
 Deno.serve(async (req) => {
   try {
@@ -31,6 +32,42 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'display_name is required' }, { status: 400 });
     }
 
+    // If marking onboarding as complete, validate all required fields server-side
+    if (profileData.onboarding_status === 'complete') {
+      const requiredFields = [
+        !!profileData.display_name,
+        !!profileData.city,
+        !!profileData.birthdate,
+        !!profileData.sexual_orientation,
+        !!profileData.gender_pronoun,
+        !!profileData.relationship_status,
+        !!profileData.dating_archetype,
+      ];
+      const photosCount = (profileData.photos || []).length;
+      if (!requiredFields.every(f => f) || photosCount < 3) {
+        return Response.json({ error: 'Required profile fields or photos missing for onboarding completion' }, { status: 400 });
+      }
+      // Check 21 compatibility questions
+      const answers = await base44.asServiceRole.entities.MatchingAnswers.filter({ user_id: user.id });
+      const questionKeys = [
+        'q11_core_values', 'q12_success', 'q13_conflict', 'q14_spirituality',
+        'q15_personal_growth', 'q16_stress', 'q17_living_env', 'q18_family',
+        'q19_work_life', 'q20_relationship_goal', 'q21_money', 'q22_gender_roles',
+        'q23_leisure', 'q24_communication', 'q25_intellectual', 'q26_boundaries',
+        'q27_change', 'q28_diversity', 'q29_activism', 'q30_emotional_intimacy',
+        'q31_partner_growth',
+      ];
+      const answeredCount = questionKeys.filter(k => answers[0]?.[k]).length;
+      if (answeredCount < 21) {
+        return Response.json({ error: 'Not all compatibility questions answered' }, { status: 400 });
+      }
+      profileData.onboarding_completed_at = new Date().toISOString();
+      profileData.onboarding_version = '1.0';
+      profileData.onboarding_complete = true;
+    } else if (profileData.onboarding_status === 'in_progress') {
+      profileData.onboarding_complete = false;
+    }
+
     // Upsert: if a profile already exists (e.g. admin-migrated account), update it
     // with the onboarding data instead of rejecting. Billing fields are not
     // overwritten on update — only the ALLOWED_FIELDS from the request body.
@@ -40,6 +77,10 @@ Deno.serve(async (req) => {
       for (const [key, value] of Object.entries(body)) {
         if (ALLOWED_FIELDS.has(key)) updateData[key] = value;
       }
+      // Include server-computed completion fields not present in the request body
+      if (profileData.onboarding_completed_at) updateData.onboarding_completed_at = profileData.onboarding_completed_at;
+      if (profileData.onboarding_version) updateData.onboarding_version = profileData.onboarding_version;
+      if ('onboarding_complete' in profileData) updateData.onboarding_complete = profileData.onboarding_complete;
       const updated = await base44.asServiceRole.entities.UserProfile.update(existing[0].id, updateData);
       return Response.json({ success: true, profile: updated, updated: true });
     }

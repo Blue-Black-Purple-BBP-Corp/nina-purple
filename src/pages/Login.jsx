@@ -25,6 +25,15 @@ export default function Login() {
     setLoading(true);
     try {
       await base44.auth.loginViaEmailPassword(email, password);
+      try {
+        const res = await base44.functions.invoke('getOnboardingStatus', {});
+        if (res.data?.onboarding_status !== 'complete') {
+          window.location.href = '/onboarding';
+          return;
+        }
+      } catch {
+        // If status check fails, fall through to nextUrl (AppLayout gate will catch it)
+      }
       window.location.href = nextUrl;
     } catch (err) {
       setError(err.message || "Invalid email or password");

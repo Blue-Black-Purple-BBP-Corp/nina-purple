@@ -118,6 +118,26 @@
       "type": "boolean",
       "default": false
     },
+    "onboarding_status": {
+      "type": "string",
+      "enum": [
+        "not_started",
+        "in_progress",
+        "complete"
+      ],
+      "default": "not_started"
+    },
+    "onboarding_completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "onboarding_version": {
+      "type": "string"
+    },
+    "onboarding_step": {
+      "type": "string",
+      "description": "Last onboarding step reached, for resume functionality."
+    },
     "age_verified": {
       "type": "boolean",
       "default": false

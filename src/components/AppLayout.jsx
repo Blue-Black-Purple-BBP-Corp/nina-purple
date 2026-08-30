@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Home, Users, MessageCircle, Calendar, User, Star, LogIn, Loader2, Heart } from 'lucide-react';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Home, Users, MessageCircle, Calendar, User, Star, LogIn, Loader2, Heart, AlertCircle, RefreshCw } from 'lucide-react';
 import LanguageToggle from './LanguageToggle';
 import ThemeToggle from './ThemeToggle';
 import NinaAvatar from './NinaAvatar';
@@ -11,33 +11,34 @@ import { base44 } from '@/api/base44Client';
 
 export default function AppLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { lang } = useLang();
   const { t } = useTranslation(lang);
-  const [authChecked, setAuthChecked] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [checkingOnboarding, setCheckingOnboarding] = useState(false);
+  const [gateState, setGateState] = useState('loading'); // 'loading' | 'error' | 'unauthenticated' | 'ready'
+
+  const checkGate = async () => {
+    setGateState('loading');
+    try {
+      const res = await base44.functions.invoke('getOnboardingStatus', {});
+      const data = res.data;
+      if (!data?.authenticated) {
+        setGateState('unauthenticated');
+        return;
+      }
+      if (data.onboarding_status === 'complete') {
+        setGateState('ready');
+        return;
+      }
+      // Incomplete — redirect to onboarding via SPA navigate (no full reload)
+      navigate('/onboarding', { replace: true });
+    } catch (e) {
+      console.error('Onboarding gate check failed:', e);
+      setGateState('error');
+    }
+  };
 
   useEffect(() => {
-    base44.auth.isAuthenticated().then(async (auth) => {
-      setIsAuthenticated(auth);
-      setAuthChecked(true);
-      if (!auth) return;
-      // Onboarding gate: any authenticated user without a completed profile
-      // must go through onboarding. This closes the Google/OAuth signup bypass.
-      setCheckingOnboarding(true);
-      try {
-        const user = await base44.auth.me();
-        const profiles = await base44.entities.UserProfile.filter({ user_id: user.id });
-        const profile = profiles[0];
-        if (!profile || !profile.onboarding_complete) {
-          window.location.href = '/onboarding';
-          return;
-        }
-      } catch (e) {
-        console.error('Onboarding gate check failed:', e);
-      }
-      setCheckingOnboarding(false);
-    });
+    checkGate();
   }, []);
 
   const navItems = [
@@ -52,7 +53,7 @@ export default function AppLayout() {
 
   const isActive = (path) => location.pathname === path;
 
-  if (!authChecked || (isAuthenticated && checkingOnboarding)) {
+  if (gateState === 'loading') {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-[#0B0510]">
         <Loader2 className="w-8 h-8 text-[#F5A800] animate-spin" />
@@ -60,7 +61,22 @@ export default function AppLayout() {
     );
   }
 
-  if (!isAuthenticated) {
+  if (gateState === 'error') {
+    return (
+      <div className="fixed inset-0 flex flex-col items-center justify-center bg-[#0B0510] gap-4">
+        <AlertCircle className="w-10 h-10 text-red-400" />
+        <p className="text-[#F0E6FF]/60 text-sm text-center max-w-xs">
+          {lang === 'fr' ? 'Une erreur est survenue lors du chargement.' : 'Something went wrong while loading.'}
+        </p>
+        <button onClick={checkGate} className="px-6 py-3 glass-card rounded-full text-[#F0E6FF] flex items-center gap-2 hover:border-[rgba(245,168,0,0.3)] transition-all">
+          <RefreshCw className="w-4 h-4" />
+          {lang === 'fr' ? 'Réessayer' : 'Retry'}
+        </button>
+      </div>
+    );
+  }
+
+  if (gateState === 'unauthenticated') {
     return (
       <div className="min-h-screen bg-[#0B0510] flex flex-col items-center justify-center px-6 gap-8 text-center">
         <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
@@ -85,10 +101,10 @@ export default function AppLayout() {
             <LogIn className="w-5 h-5" />
             {lang === 'fr' ? 'Se connecter' : 'Sign In'}
           </Link>
-          <a href="/onboarding"
+          <Link to="/register"
             className="block w-full py-3 glass-card rounded-full text-[#F0E6FF]/60 text-sm hover:text-[#F5A800] transition-colors">
             {lang === 'fr' ? 'Pas encore membre ? Commencer' : "New here? Begin your journey"}
-          </a>
+          </Link>
           <a href="/"
             className="block text-[#F0E6FF]/20 text-xs hover:text-[#F0E6FF]/40 transition-colors pt-1">
             {lang === 'fr' ? '← Retour à l\'accueil' : '← Back to home'}

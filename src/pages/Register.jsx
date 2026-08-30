@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,24 @@ import { toast } from "@/components/ui/use-toast";
 
 export default function Register() {
   const [email, setEmail] = useState("");
+  const [authChecking, setAuthChecking] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const authed = await base44.auth.isAuthenticated();
+        if (!authed) { setAuthChecking(false); return; }
+        const res = await base44.functions.invoke('getOnboardingStatus', {});
+        if (res.data?.onboarding_status === 'complete') {
+          window.location.href = '/home';
+        } else {
+          window.location.href = '/onboarding';
+        }
+      } catch {
+        setAuthChecking(false);
+      }
+    })();
+  }, []);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
@@ -48,7 +66,16 @@ export default function Register() {
       if (result?.access_token) {
         base44.auth.setToken(result.access_token);
       }
-      window.location.href = "/onboarding";
+      try {
+        const res = await base44.functions.invoke('getOnboardingStatus', {});
+        if (res.data?.onboarding_status === 'complete') {
+          window.location.href = '/home';
+        } else {
+          window.location.href = '/onboarding';
+        }
+      } catch {
+        window.location.href = '/onboarding';
+      }
     } catch (err) {
       setError(err.message || "Invalid verification code");
     } finally {
@@ -80,6 +107,14 @@ export default function Register() {
   const handleMicrosoft = () => {
     base44.auth.loginWithProvider("microsoft", "/onboarding");
   };
+
+  if (authChecking) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-[#0B0510]">
+        <Loader2 className="w-8 h-8 text-[#F5A800] animate-spin" />
+      </div>
+    );
+  }
 
   if (showOtp) {
     return (
