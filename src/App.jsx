@@ -12,6 +12,7 @@ import Experiences from '@/pages/Experiences';
 import Terms from '@/pages/Terms';
 import About from '@/pages/About';
 import Contact from '@/pages/Contact';
+import BBPRewards from '@/pages/BBPRewards';
 import CookieConsent from '@/components/CookieConsent';
 import WhatsAppFloat from '@/components/WhatsAppFloat';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
@@ -79,6 +80,7 @@ const AuthenticatedApp = () => {
       <Route path="/terms" element={<Terms />} />
       <Route path="/about" element={<About />} />
       <Route path="/contact" element={<Contact />} />
+      <Route path="/bbp-rewards" element={<BBPRewards />} />
 
       {/* App routes with shared layout */}
       <Route element={<AppLayout />}>
