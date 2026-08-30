@@ -20,6 +20,7 @@ export default function AdminDashboard() {
   const [loadingData, setLoadingData] = useState(false);
   const [tab, setTab] = useState('verification');
   const [dateRange, setDateRange] = useState({ from: null, to: null });
+  const { currentContext } = useStaffSession();
 
   useEffect(() => {
     (async () => {
@@ -76,7 +77,6 @@ export default function AdminDashboard() {
     );
   }
 
-  const { currentContext } = useStaffSession();
   const tabs = [
     { id: 'verification', label: 'Verification', icon: ShieldCheck, count: data?.verifications?.length || 0 },
     ...(currentContext === 'trust_safety' ? [{ id: 'moderation', label: 'Moderation', icon: AlertTriangle, count: data?.moderation?.length || 0 }] : []),
