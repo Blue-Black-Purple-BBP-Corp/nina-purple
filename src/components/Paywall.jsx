@@ -54,13 +54,13 @@ export default function Paywall({ entitlement, lang }) {
     'Découvrir des profils compatibles',
     'Déverrouiller des connexions avec vos Crédits d’Interaction',
     'Envoyer un message initial pour démarrer une conversation',
-    'Révéler des photos (avantage Galactic ou crédits)',
+    'Révéler des photos avec vos crédits',
     'Accéder à la Communauté et aux Événements',
   ] : [
     'Discover compatible profiles',
     'Unlock connections with your Interaction Credits',
     'Send an initial message to start a conversation',
-    'Reveal photos (Galactic perk or credits)',
+    'Reveal photos with your credits',
     'Access Community and Events',
   ];
 

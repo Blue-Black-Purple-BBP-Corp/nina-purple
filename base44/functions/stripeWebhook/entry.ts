@@ -1,5 +1,6 @@
 import Stripe from 'npm:stripe@14';
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.36';
+import { setViewerEntitlementsStatus, reactivateViewerEntitlements } from '../../shared/photoAccess.ts';
 
 const CREDIT_AMOUNTS = {
   wallet_5: 5,
@@ -141,6 +142,14 @@ Deno.serve(async (req) => {
             await base44.asServiceRole.entities.UserProfile.update(p.id, { subscription_tier: 'solar' });
             console.info('[stripeWebhook] Downgraded user to solar tier:', subUserId);
           }
+
+          // ── Expire all active photo-reveal entitlements for this viewer ──
+          try {
+            const n = await setViewerEntitlementsStatus(base44, subUserId, 'expired', 'subscription_ended');
+            if (n) console.info('[stripeWebhook] Entitlements expired for user:', subUserId, 'count:', n);
+          } catch (entErr) {
+            console.warn('[stripeWebhook] Entitlement expire failed:', entErr.message);
+          }
         }
       } else {
         console.warn('[stripeWebhook] subscription.deleted: no user_id in metadata:', subscription.id);
@@ -179,6 +188,22 @@ Deno.serve(async (req) => {
               subscription_renewal_date: renewalDate,
             });
             console.info('[stripeWebhook] subscription.updated →', newStatus, 'for user:', subUserId);
+
+            // ── Proactive photo-reveal entitlement status sync (decision 5) ──
+            // past_due/cancelled_expired → inactive (zero-day grace). active/
+            // trial_active → reactivate any previously-inactive entitlements.
+            // cancelled_active_until_period_end stays entitled through period end.
+            try {
+              if (newStatus === 'past_due' || newStatus === 'cancelled_expired' || newStatus === 'lapsed') {
+                const n = await setViewerEntitlementsStatus(base44, subUserId, 'inactive_due_to_membership', 'membership_inactive');
+                if (n) console.info('[stripeWebhook] Entitlements inactivated for user:', subUserId, 'count:', n);
+              } else if (newStatus === 'active' || newStatus === 'trial_active') {
+                const n = await reactivateViewerEntitlements(base44, subUserId);
+                if (n) console.info('[stripeWebhook] Entitlements reactivated for user:', subUserId, 'count:', n);
+              }
+            } catch (entErr) {
+              console.warn('[stripeWebhook] Entitlement sync failed:', entErr.message);
+            }
           }
         } catch (e) {
           console.error('[stripeWebhook] subscription.updated handler error:', e.message);
@@ -259,6 +284,18 @@ Deno.serve(async (req) => {
         });
       } catch (notifErr) {
         console.error('[stripeWebhook] refund notification failed:', notifErr.message);
+      }
+      // ── Mark the charge owner's active entitlements as refunded ──
+      // The charge metadata carries the user_id (set at checkout). Refunds
+      // revoke that viewer's active reveal entitlements.
+      try {
+        const chargeUserId = charge.metadata?.user_id;
+        if (chargeUserId) {
+          const n = await setViewerEntitlementsStatus(base44, chargeUserId, 'refunded', 'refund_or_chargeback');
+          if (n) console.info('[stripeWebhook] Entitlements refunded for user:', chargeUserId, 'count:', n);
+        }
+      } catch (entErr) {
+        console.warn('[stripeWebhook] Refund entitlement sync failed:', entErr.message);
       }
     }
 

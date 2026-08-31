@@ -135,14 +135,16 @@ export function computeMembershipStatus(profile, foundingBenefit, gracePeriodDay
   }
 }
 
-// Member-safe plan label.
+// Member-safe plan label. Legacy subscribers (lunar/stellar/galactic) are shown
+// a single neutral label in member-facing UI; the original tier names are
+// retained only for invoices/receipts and internal billing/audit/support
+// records (not rendered here).
 export function planLabel(profile, lang = 'en') {
   if (profile?.subscription_tier === 'nina_membership') {
     return lang === 'fr' ? 'Adhésion Nina Purple' : 'Nina Purple Membership';
   }
   if (['lunar', 'stellar', 'galactic'].includes(profile?.subscription_tier)) {
-    const labels = { lunar: 'Lunar', stellar: 'Stellar', galactic: 'Galactic' };
-    return labels[profile.subscription_tier];
+    return lang === 'fr' ? 'Adhésion Nina Purple (ancienne)' : 'Nina Purple Membership (legacy)';
   }
   return lang === 'fr' ? 'Aucune adhésion' : 'No membership';
 }
@@ -209,7 +211,7 @@ function buildFeatureMatrix(membership_status, profile, walletBalance) {
     allowed.push({ feature: 'browse_compatible_profiles', requirement: 'active_membership' });
     allowed.push({ feature: 'unlock_connection', requirement: 'active_membership + credits', credit_note: 'cost scales with compatibility' });
     allowed.push({ feature: 'send_initial_message', requirement: 'active_membership + credits', credit_note: 'one credit per new conversation; replies are free' });
-    allowed.push({ feature: 'reveal_photos', requirement: 'active_membership + credits or Galactic perk' });
+    allowed.push({ feature: 'reveal_photos', requirement: 'active_membership + credits' });
     allowed.push({ feature: 'community', requirement: 'active_membership' });
     allowed.push({ feature: 'events', requirement: 'active_membership' });
   } else {

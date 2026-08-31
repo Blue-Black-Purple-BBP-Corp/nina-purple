@@ -13,26 +13,16 @@ const TABS = [
   { id: 'guarantee',   en: 'Value Guarantee',  fr: 'Garantie de valeur' },
 ];
 
+// Single flat paid interaction (decision 1): one credit to start a
+// conversation. Replies in an established conversation are free. No per-
+// message, per-reply, per-view, or per-keystroke charges.
 const MICRO_ROWS = (lang) => [
   {
-    action: lang === 'fr' ? 'Message — Haute Compatibilité' : 'Messaging — High Match',
-    cond:   lang === 'fr' ? 'Profil déverrouillé, 90%+ compatibilité' : 'Unlocked profile, 90%+ compatibility',
-    cost:   '$0.01 / msg',
-  },
-  {
-    action: lang === 'fr' ? 'Message — Faible Compatibilité' : 'Messaging — Low Match',
-    cond:   lang === 'fr' ? 'Profil déverrouillé, <20% compatibilité' : 'Unlocked profile, <20% compatibility',
-    cost:   '$0.09 / msg',
-  },
-  {
-    action: lang === 'fr' ? 'Message Froid' : 'Cold Message',
-    cond:   lang === 'fr' ? 'Correspondance pas encore déverrouillée' : 'Match not yet unlocked',
-    cost:   '$1.00 / msg',
-  },
-  {
-    action: lang === 'fr' ? 'Déverrouillage Galerie' : 'Gallery Unlock',
-    cond:   lang === 'fr' ? 'Profil non entièrement déverrouillé' : 'Profile not fully unlocked',
-    cost:   lang === 'fr' ? '$10.00 (gratuit si déjà déverrouillé)' : '$10.00 (free if already unlocked)',
+    action: lang === 'fr' ? 'Démarrer une conversation' : 'Start a conversation',
+    cond:   lang === 'fr'
+      ? 'Nouveau message payant pour entamer une conversation. Les réponses dans une conversation établie sont gratuites.'
+      : 'New paid message to start a conversation. Replies in an established conversation are free.',
+    cost:   '1 BBP Credit',
   },
 ];
 
@@ -103,12 +93,11 @@ export default function PricingModal({ isOpen, onClose }) {
                     </div>
                     <div className="text-right shrink-0 ml-4">
                       <div className="text-[#F5A800] font-bold text-base">${row.unlock}</div>
-                      <div className="text-[#F0E6FF]/40 text-xs">${row.msg.toFixed(2)} / msg</div>
                     </div>
                   </div>
                 ))}
                 <p className="text-[#F0E6FF]/30 text-xs text-center pt-2 px-2">
-                  {lang === 'fr' ? 'Coût déverrouillage · Coût par message' : 'Unlock cost · Cost per message'}
+                  {lang === 'fr' ? 'Coût de déverrouillage selon la compatibilité' : 'Unlock cost by compatibility'}
                 </p>
               </div>
             )}

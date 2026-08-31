@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.36';
-import { PLAN_LIMITS } from '../../shared/planLimits.ts';
+import { PLAN_LIMITS, getBillingCycleStart } from '../../shared/planLimits.ts';
 
 Deno.serve(async (req) => {
   try {
@@ -16,15 +16,18 @@ Deno.serve(async (req) => {
     const tier = profile?.subscription_tier || 'solar';
     const limits = PLAN_LIMITS[tier] || PLAN_LIMITS.solar;
 
-    // Calculate the start of the current month
+    // Calculate the billing-cycle start: nina_membership uses the member's
+    // subscription_renewal_date; legacy tiers fall back to calendar month start.
     const now = new Date();
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const cycleStart = (profile?.subscription_tier === 'nina_membership')
+      ? getBillingCycleStart(profile)
+      : new Date(now.getFullYear(), now.getMonth(), 1);
 
     // Count unlocks this month (Connection records unlocked this month)
     let unlocksUsed = 0;
     try {
       const myConns = await base44.entities.Connection.filter({ from_user_id: user.id });
-      unlocksUsed = myConns.filter(c => c.is_unlocked && c.unlock_cost_paid > 0 && new Date(c.updated_date || c.created_date) >= monthStart).length;
+      unlocksUsed = myConns.filter(c => c.is_unlocked && c.unlock_cost_paid > 0 && new Date(c.updated_date || c.created_date) >= cycleStart).length;
     } catch (e) {
       console.error('Error counting unlocks:', e.message);
     }
@@ -33,7 +36,7 @@ Deno.serve(async (req) => {
     let directMessages = 0;
     try {
       const sentMsgs = await base44.entities.Message.filter({ from_user_id: user.id });
-      directMessages = sentMsgs.filter(m => new Date(m.created_date) >= monthStart).length;
+      directMessages = sentMsgs.filter(m => new Date(m.created_date) >= cycleStart).length;
     } catch (e) {
       console.error('Error counting messages:', e.message);
     }
@@ -49,7 +52,7 @@ Deno.serve(async (req) => {
         const rooms = await base44.entities.ChatRoom.filter({ id: rid });
         if (rooms[0] && rooms[0].created_by_id === user.id) ownedRoomIds.add(rid);
       }));
-      communityPosts = myPosts.filter(p => !ownedRoomIds.has(p.room_id) && new Date(p.created_date) >= monthStart).length;
+      communityPosts = myPosts.filter(p => !ownedRoomIds.has(p.room_id) && new Date(p.created_date) >= cycleStart).length;
     } catch (e) {
       console.error('Error counting community posts:', e.message);
     }

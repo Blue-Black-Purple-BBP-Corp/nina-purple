@@ -146,8 +146,8 @@ export default function BBPWallet() {
         </div>
         <p className="text-foreground/50 text-xs leading-relaxed">
           {isFr
-            ? 'L’accès aux photos d’un autre membre est accordé par déverrouillage de connexion (crédits) ou par l’avantage Galactic. Ce n’est pas un solde en espèces.'
-            : 'Access to another member’s photos is granted by connection unlock (credits) or the Galactic perk. This is not a cash balance.'}
+            ? 'L’accès aux photos d’un autre membre est accordé par déverrouillage de connexion avec vos crédits. Ce n’est pas un solde en espèces.'
+            : 'Access to another member’s photos is granted by connection unlock with your credits. This is not a cash balance.'}
         </p>
       </section>
 

@@ -55,14 +55,16 @@
       "enum": [
         "pending",
         "active",
+        "inactive_due_to_membership",
         "revoked",
-        "expired",
         "refunded",
         "blocked",
+        "expired",
+        "under_review",
         "superseded"
       ],
       "default": "pending",
-      "description": "Only one active entitlement per viewer\u2192owner pair. superseded = replaced by a higher-tier entitlement (e.g. paid_credit replaces subscription_perk)."
+      "description": "Only one active entitlement per viewer\u2192owner pair. inactive_due_to_membership = viewer's membership lapsed (access-time check denies delivery; reactivates when membership restores). under_review = moderation hold. superseded = replaced by a higher-tier entitlement. Entitlement history is never deleted."
     },
     "granted_at": {
       "type": "string",
@@ -80,7 +82,7 @@
     },
     "revocation_reason": {
       "type": "string",
-      "description": "refund | block | moderation | staff_action | superseded | fraud_hold."
+      "description": "refund | block | moderation | staff_action | superseded | fraud_hold | membership_inactive | subscription_ended | reactivated."
     }
   },
   "required": [

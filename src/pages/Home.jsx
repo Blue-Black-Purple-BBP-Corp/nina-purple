@@ -16,8 +16,6 @@ import { usePhotoAccess, primaryPhotoUrl } from '@/hooks/usePhotoAccess';
 
 const ARCHETYPE_COLORS = { blue: '#60A5FA', black: '#9CA3AF', purple: '#A855F7' };
 
-const TIER_COLORS = { solar: '#9CA3AF', lunar: '#7B2FBE', stellar: '#A855F7', galactic: '#F5A800', nina_membership: '#F5A800' };
-
 function CompatibilityOrb({ score }) {
   const color = score >= 90 ? '#F5A800' : score >= 75 ? '#A855F7' : score >= 60 ? '#7B2FBE' : '#6B7280';
   return (
@@ -110,11 +108,8 @@ export default function Home() {
   }
 
   const displayName = userProfile?.full_name || userProfile?.display_name || authUser?.full_name || (lang === 'fr' ? 'Bienvenue' : 'Welcome');
-  const tier = userProfile?.subscription_tier || 'solar';
   const credits = userProfile?.credit_balance ?? 0;
   const completeness = userProfile?.profile_completeness ?? 0;
-  const tierColor = TIER_COLORS[tier] || '#F0E6FF';
-  const tierLabel = { solar: t('plans.solar'), lunar: t('plans.lunar'), stellar: t('plans.stellar'), galactic: t('plans.galactic'), nina_membership: (lang === 'fr' ? 'Adhésion' : 'Membership') }[tier] || (lang === 'fr' ? 'Adhésion' : 'Membership');
 
   return (
     <div className="px-4 py-6 max-w-lg mx-auto space-y-6">

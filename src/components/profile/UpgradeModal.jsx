@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import CheckoutButton from '@/components/CheckoutButton';
-import { ALL_PLANS, INDIVIDUAL_PLANS, COUPLE_PLANS } from '@/lib/plans';
+import { ALL_PLANS, INDIVIDUAL_PLANS, COUPLE_PLANS, NINA_MEMBERSHIP } from '@/lib/plans';
 import { base44 } from '@/api/base44Client';
 
 const PLANS = ALL_PLANS.filter(p => p.key !== 'solar');
@@ -43,24 +43,15 @@ export default function UpgradeModal({ isOpen, onClose, lang, currentTier }) {
             <button onClick={onClose} className="text-[#F0E6FF]/40 hover:text-[#F0E6FF]"><X className="w-5 h-5" /></button>
           </div>
 
-          {/* Plan selector — all 4 tiers */}
-          <div className="grid grid-cols-4 gap-1.5">
-            {plans.map(plan => {
-              const isSel = selectedPlan === plan.key;
-              return (
-                <button key={plan.key}
-                  onClick={() => { setSelectedPlan(plan.key); if (plan.durations.length) setSelectedDuration(plan.durations[0].key); }}
-                  className="py-2 rounded-xl text-xs font-semibold transition-all flex flex-col items-center gap-0.5"
-                  style={{
-                    background: isSel ? plan.color : 'rgba(240,230,255,0.05)',
-                    color: isSel ? '#0B0510' : plan.color,
-                    border: `1.5px solid ${isSel ? plan.color : 'rgba(240,230,255,0.08)'}`,
-                  }}>
-                  <span>{plan.icon}</span>
-                  <span>{lang === 'fr' ? plan.label_fr : plan.label_en}</span>
-                </button>
-              );
-            })}
+          {/* Single current membership */}
+          <div className="flex items-center gap-3 px-1 py-1">
+            <span className="text-2xl">{NINA_MEMBERSHIP.icon}</span>
+            <div>
+              <p className="font-serif text-base font-semibold" style={{ color: NINA_MEMBERSHIP.color }}>
+                {lang === 'fr' ? NINA_MEMBERSHIP.label_fr : NINA_MEMBERSHIP.label_en}
+              </p>
+              <p className="text-[#F0E6FF]/50 text-xs">{lang === 'fr' ? NINA_MEMBERSHIP.price_fr : NINA_MEMBERSHIP.price_en}</p>
+            </div>
           </div>
 
           {profileType === 'couple' && (
@@ -125,21 +116,13 @@ export default function UpgradeModal({ isOpen, onClose, lang, currentTier }) {
             </div>
           )}
 
-          {activePlan?.key === 'solar' ? (
-            <button onClick={onClose}
-              className="w-full py-4 rounded-full font-bold text-sm text-[#0B0510] hover:opacity-90 transition-all"
-              style={{ background: '#A78BFA' }}>
-              {lang === 'fr' ? 'Continuer avec Solaire (Gratuit)' : 'Continue with Solar (Free)'}
-            </button>
-          ) : (
-            <CheckoutButton
-              priceKey={`${selectedPlan}_${selectedDuration}`}
-              userId={userId}
-              className="w-full py-4 rounded-full font-bold text-sm text-[#0B0510] hover:opacity-90 transition-all shadow-[0_0_20px_rgba(245,168,0,0.2)]"
-              style={{ background: activePlan?.color || '#F5A800' }}>
-              {lang === 'fr' ? 'Continuer vers le paiement' : 'Continue to Payment'}
-            </CheckoutButton>
-          )}
+          <CheckoutButton
+            priceKey="nina_membership_1m"
+            userId={userId}
+            className="w-full py-4 rounded-full font-bold text-sm text-[#0B0510] hover:opacity-90 transition-all shadow-[0_0_20px_rgba(245,168,0,0.2)]"
+            style={{ background: '#F5A800' }}>
+            {lang === 'fr' ? 'Continuer vers le paiement' : 'Continue to Payment'}
+          </CheckoutButton>
         </div>
       </div>
     </>

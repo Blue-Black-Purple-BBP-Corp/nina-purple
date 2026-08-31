@@ -111,7 +111,7 @@ export async function grantEntitlement(
 export async function revokeEntitlement(base44: any, viewer_id: string, owner_id: string, reason: string, correlation_id?: string) {
   const ent = await getActiveEntitlement(base44, viewer_id, owner_id);
   if (!ent) return null;
-  const status = reason === "refund" ? "refunded" : reason === "block" ? "blocked" : "revoked";
+  const status = reason === "refund" ? "refunded" : reason === "block" ? "blocked" : reason === "moderation" ? "under_review" : "revoked";
   await base44.asServiceRole.entities.PhotoRevealEntitlement.update(ent.id, {
     status,
     revoked_at: new Date().toISOString(),
@@ -126,6 +126,49 @@ export async function revokeEntitlement(base44: any, viewer_id: string, owner_id
     correlation_id: correlation_id || ent.entitlement_id,
   });
   return ent;
+}
+
+// Bulk-update a viewer's active entitlements to a given status. Used by
+// webhook-driven membership state changes (past_due, expiry, cancellation,
+// suspension, refund, chargeback, block, moderation). Never deletes
+// entitlement history — only transitions the status of currently-active rows.
+export async function setViewerEntitlementsStatus(base44: any, viewer_id: string, newStatus: string, reason: string) {
+  try {
+    const ents = await base44.asServiceRole.entities.PhotoRevealEntitlement.filter({ viewer_native_user_id: viewer_id });
+    const active = ents.filter((e) => e.status === "active");
+    for (const e of active) {
+      await base44.asServiceRole.entities.PhotoRevealEntitlement.update(e.id, {
+        status: newStatus,
+        revoked_at: new Date().toISOString(),
+        revocation_reason: reason,
+      });
+    }
+    return active.length;
+  } catch (e) {
+    console.error("[photoAccess] setViewerEntitlementsStatus error:", e?.message || e);
+    return 0;
+  }
+}
+
+// Reactivate entitlements that were inactive_due_to_membership (on membership
+// restore / reactivation / trial start). Only restores rows whose status is
+// inactive_due_to_membership — never touches revoked/refunded/blocked/expired.
+export async function reactivateViewerEntitlements(base44: any, viewer_id: string) {
+  try {
+    const ents = await base44.asServiceRole.entities.PhotoRevealEntitlement.filter({ viewer_native_user_id: viewer_id });
+    const inactive = ents.filter((e) => e.status === "inactive_due_to_membership");
+    for (const e of inactive) {
+      await base44.asServiceRole.entities.PhotoRevealEntitlement.update(e.id, {
+        status: "active",
+        revoked_at: null,
+        revocation_reason: "reactivated",
+      });
+    }
+    return inactive.length;
+  } catch (e) {
+    console.error("[photoAccess] reactivateViewerEntitlements error:", e?.message || e);
+    return 0;
+  }
 }
 
 // Writes a PhotoAccessAudit record. Never logs URLs, content, tokens, or codes.
