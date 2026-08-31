@@ -7,6 +7,18 @@ import { expirePhotoRevealRequest } from '../../shared/photoAccess.ts';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+
+    // Scheduled job — must be invoked by an authenticated admin or the
+    // platform scheduler. Reject all anonymous (unauthenticated) requests.
+    const isAuthed = await base44.auth.isAuthenticated();
+    if (!isAuthed) {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    const user = await base44.auth.me();
+    if (!user || user.role !== 'admin') {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const now = new Date().toISOString();
 
     // Find all requests still pending past their expires_at.

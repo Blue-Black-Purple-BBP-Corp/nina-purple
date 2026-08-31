@@ -1,7 +1,8 @@
 // Exposes non-secret public configuration to the browser.
-// The Google Maps API key is HTTP-referrer-restricted (not server-IP-restricted),
-// so it is safe to expose client-side — it only works from authorized domains.
+// Only returns a boolean indicating whether Google Places is configured — the
+// API key itself is never exposed. All Places requests go through the
+// server-side placesAutocomplete function, which holds the key.
 Deno.serve(async () => {
-  const googleMapsApiKey = Deno.env.get('GOOGLE_PLACES_API_KEY') || null;
-  return Response.json({ googleMapsApiKey });
+  const googleMapsEnabled = !!Deno.env.get('GOOGLE_PLACES_API_KEY');
+  return Response.json({ googleMapsEnabled });
 });
