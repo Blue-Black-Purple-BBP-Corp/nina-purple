@@ -143,6 +143,24 @@ Deno.serve(async (req) => {
       },
     });
 
+    // For Nina Purple Membership checkout, set the pending-confirmation state
+    // so the member is not redirected back to /onboarding after Stripe success.
+    // The webhook will flip this to active + onboarding complete.
+    if (price_key === 'nina_membership_1m') {
+      const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_id: user.id });
+      if (profiles[0]) {
+        const deadline = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+        await base44.asServiceRole.entities.UserProfile.update(profiles[0].id, {
+          membership_selection_status: 'awaiting_payment_confirmation',
+          membership_checkout_reference: session.id,
+          membership_checkout_started_at: new Date().toISOString(),
+          membership_confirmation_deadline: deadline,
+          onboarding_status: profiles[0].onboarding_status === 'complete' ? 'complete' : 'awaiting_payment_confirmation',
+          membership_last_error_code_member_safe: null,
+        });
+      }
+    }
+
     console.info('[createCheckout] Session created:', session.id, 'price_key:', price_key, 'user:', user.id, 'ip:', ip);
     return Response.json({ url: session.url, session_id: session.id });
   } catch (error) {

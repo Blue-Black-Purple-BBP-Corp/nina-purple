@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, Navigate, useNavigate } from 'react-router-dom';
 import { Shield, Lock, Loader2 } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 import { useStaffSession } from '@/lib/StaffSessionContext';
@@ -13,6 +13,9 @@ import { CONTEXT_LABELS } from './PrivilegedModeBanner';
 // explicitly switch context and re-authenticate. Server-side functions re-check
 // the session independently, so this guard is defense-in-depth, not the
 // enforcement boundary.
+//
+// Uses declarative <Navigate> for unauthenticated redirects — never calls
+// navigate() as a side effect during render.
 export default function PrivilegedRoute({ context }) {
   const { isAuthenticated, isLoadingAuth } = useAuth();
   const { activeSession, authorizedContexts, loading: sessionLoading, pendingActivationError, clearPendingActivationError } = useStaffSession();
@@ -28,8 +31,7 @@ export default function PrivilegedRoute({ context }) {
   }
 
   if (!isAuthenticated) {
-    navigate('/login');
-    return null;
+    return <Navigate to="/login" replace />;
   }
 
   const authorized = authorizedContexts.includes(context);

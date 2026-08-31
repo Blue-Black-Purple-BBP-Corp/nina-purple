@@ -91,6 +91,7 @@ export default function Onboarding() {
   const [partnerLinkSent, setPartnerLinkSent] = useState(false);
   const [orientationAccepted, setOrientationAccepted] = useState(false);
   const [foundingEligibility, setFoundingEligibility] = useState(null);
+  const [membershipOffer, setMembershipOffer] = useState(null);
   const [isAuthed, setIsAuthed] = useState(true);
   const [guardState, setGuardState] = useState('loading'); // 'loading' | 'show' | 'error'
 
@@ -190,6 +191,14 @@ export default function Onboarding() {
         } catch (eligErr) {
           console.warn('Founding eligibility fetch failed:', eligErr.message);
           setFoundingEligibility({ eligibility_status: 'ineligible' });
+        }
+
+        // Fetch the authoritative membership offer (server-side decision).
+        try {
+          const offerRes = await base44.functions.invoke('getMembershipOfferForMember', {});
+          setMembershipOffer(offerRes.data || null);
+        } catch (offerErr) {
+          console.warn('Membership offer fetch failed:', offerErr.message);
         }
 
         setGuardState('show');
@@ -483,6 +492,7 @@ export default function Onboarding() {
     }
 
     // ── Membership checkout ──
+    // Use the authoritative server-side offer function to decide the path.
     if (window.self !== window.top) {
       alert(lang === 'fr'
         ? "Le paiement fonctionne uniquement depuis l'application publiée, pas dans l'aperçu."
@@ -493,25 +503,35 @@ export default function Onboarding() {
     }
     const origin = window.location.origin;
 
-    // Re-check Founding Member eligibility server-side before deciding the path.
-    let elig = foundingEligibility;
+    let offer = null;
     try {
-      const eligRes = await base44.functions.invoke('getFoundingMemberEligibility', {});
-      elig = eligRes.data;
-      setFoundingEligibility(elig);
-    } catch (e) { console.warn('Eligibility re-check failed:', e.message); }
+      const offerRes = await base44.functions.invoke('getMembershipOfferForMember', {});
+      offer = offerRes.data;
+    } catch (e) {
+      console.warn('Offer fetch failed:', e.message);
+    }
 
-    if (elig?.eligibility_status === 'eligible') {
+    // If already active or awaiting confirmation, no checkout needed.
+    if (offer?.offer_type === 'already_active') {
+      setLoading(false);
+      goNext();
+      return;
+    }
+    if (offer?.offer_type === 'awaiting_payment_confirmation') {
+      // Don't create a duplicate checkout — the pending state is already set.
+      setLoading(false);
+      goNext();
+      return;
+    }
+
+    if (offer?.offer_type === 'founding_member_trial' && offer.checkout_action_allowed) {
       // Founding Member trial path — 3 months free, then $20/month.
       try {
         const res = await base44.functions.invoke('startFoundingMemberTrial', {
           success_url: `${origin}/home?payment=success`,
-          cancel_url: `${origin}/onboarding`,
+          cancel_url: `${origin}/onboarding?payment=cancelled`,
         });
         if (res.data?.url) {
-          await base44.functions.invoke('saveOnboardingStep', {
-            membership_selection_status: 'trial_started',
-          }).catch(() => {});
           window.location.href = res.data.url;
           return;
         }
@@ -520,24 +540,32 @@ export default function Onboarding() {
         setLoading(false);
         return;
       }
-    } else if (elig?.eligibility_status === 'active') {
-      // Trial already active — no checkout needed.
-      setLoading(false);
-      goNext();
-      return;
-    } else if (selectedPlan !== 'solar') {
-      // Standard paid path.
+    } else if (offer?.offer_type === 'standard_membership' && offer.checkout_action_allowed) {
+      // Standard $20/month membership path.
       try {
         const res = await base44.functions.invoke('createCheckout', {
-          price_key: getPriceKey(selectedPlan, selectedDuration),
+          price_key: 'nina_membership_1m',
           success_url: `${origin}/home?payment=success`,
-          cancel_url: `${origin}/onboarding`,
-          user_id: user.id,
+          cancel_url: `${origin}/onboarding?payment=cancelled`,
         });
         if (res.data?.url) {
-          await base44.functions.invoke('saveOnboardingStep', {
-            membership_selection_status: 'standard_started',
-          }).catch(() => {});
+          window.location.href = res.data.url;
+          return;
+        }
+      } catch (e) {
+        setFormError(e.message || (lang === 'fr' ? 'Échec du paiement.' : 'Checkout failed.'));
+        setLoading(false);
+        return;
+      }
+    } else if (offer?.offer_type === 'membership_reactivation' && offer.checkout_action_allowed) {
+      // Reactivation path — same $20/month price.
+      try {
+        const res = await base44.functions.invoke('createCheckout', {
+          price_key: 'nina_membership_1m',
+          success_url: `${origin}/home?payment=success`,
+          cancel_url: `${origin}/membership?payment=cancelled`,
+        });
+        if (res.data?.url) {
           window.location.href = res.data.url;
           return;
         }
@@ -1072,88 +1100,63 @@ export default function Onboarding() {
                   {formError}
                 </div>
               )}
-              {(foundingEligibility?.eligibility_status === 'eligible' || foundingEligibility?.eligibility_status === 'active') ? (
+              {/* Payment cancelled message — preserves onboarding progress */}
+              {new URLSearchParams(window.location.search).get('payment') === 'cancelled' && (
+                <div className="px-4 py-3 rounded-xl bg-[rgba(245,168,0,0.08)] border border-[rgba(245,168,0,0.25)] text-[#F5A800] text-sm text-center">
+                  {lang === 'fr'
+                    ? 'Le paiement n\'a pas été complété. Votre progression a été sauvegardée.'
+                    : 'Payment was not completed. Your profile progress has been saved.'}
+                </div>
+              )}
+              {(membershipOffer?.offer_type === 'founding_member_trial' || foundingEligibility?.eligibility_status === 'eligible' || foundingEligibility?.eligibility_status === 'active') ? (
                 <FoundingMemberOffer
-                  status={foundingEligibility.eligibility_status}
-                  trialEndsAt={foundingEligibility.trial_ends_at}
+                  status={foundingEligibility?.eligibility_status || (membershipOffer?.offer_type === 'founding_member_trial' ? 'eligible' : 'active')}
+                  trialEndsAt={foundingEligibility?.trial_ends_at}
                   lang={lang}
                   loading={loading}
                   onStart={() => handleComplete()}
                   onContinue={() => { setLoading(false); goNext(); }}
                 />
+              ) : membershipOffer?.offer_type === 'awaiting_payment_confirmation' ? (
+                <div className="w-full space-y-5 text-center">
+                  <Loader2 className="w-8 h-8 text-[#F5A800] animate-spin mx-auto" />
+                  <h2 className="font-serif text-2xl text-foreground">
+                    {lang === 'fr' ? 'Nous confirmons votre adhésion' : 'We are confirming your membership'}
+                  </h2>
+                  <p className="text-foreground/50 text-sm leading-relaxed">
+                    {lang === 'fr'
+                      ? 'Cela peut prendre un moment. Votre progression a été sauvegardée.'
+                      : 'This can take a moment. Your profile progress has been saved.'}
+                  </p>
+                  <button onClick={() => goNext()} className="w-full py-3 glass-card rounded-full text-foreground/60 text-sm font-medium hover:text-[#F5A800] transition-colors">
+                    {lang === 'fr' ? 'Continuer' : 'Continue'}
+                  </button>
+                </div>
               ) : (
-                <>
-              <NinaSpeech message={t('onboarding.subscription_intro')} />
-              <h2 className="font-serif text-3xl text-foreground">{t('onboarding.subscription_title')}</h2>
-              <p className="text-foreground/50 text-sm">{lang === 'fr' ? 'Vous pouvez changer de plan à tout moment.' : 'You can change your plan anytime.'}</p>
-
-              {plans.map(plan => {
-                const isSelected = selectedPlan === plan.id;
-                return (
-                  <div key={plan.id}
-                    className="rounded-2xl overflow-hidden transition-all duration-300"
-                    style={{
-                      border: `1.5px solid ${isSelected ? plan.color : isLight ? 'rgba(123,47,190,0.12)' : 'rgba(240,230,255,0.1)'}`,
-                      boxShadow: isSelected ? `0 0 24px ${plan.color}25` : 'none',
-                      background: isSelected && !isLight ? `linear-gradient(135deg, rgba(${plan.id === 'solar' ? '167,139,250' : plan.id === 'lunar' ? '123,47,190' : plan.id === 'stellar' ? '168,85,247' : '245,168,0'},0.1) 0%, rgba(31,16,38,0.95) 100%)` : isSelected && isLight ? `linear-gradient(135deg, rgba(${plan.id === 'solar' ? '167,139,250' : plan.id === 'lunar' ? '123,47,190' : plan.id === 'stellar' ? '168,85,247' : '245,168,0'},0.08) 0%, rgba(255,255,255,0.92) 100%)` : isLight ? 'rgba(255,255,255,0.85)' : 'rgba(31,16,38,0.7)',
-                    }}>
-
-                    {/* Plan header row */}
-                    <button
-                      onClick={() => { setSelectedPlan(plan.id); if (plan.durations.length) setSelectedDuration(plan.durations[0].key); }}
-                      className="w-full p-4 text-left flex items-center justify-between"
-                    >
-                      <div className="flex items-center gap-3">
-                        {/* Radio indicator */}
-                        <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all"
-                          style={{ borderColor: plan.color, background: isSelected ? plan.color : 'transparent' }}>
-                          {isSelected && <div className="w-2 h-2 rounded-full bg-[#0B0510]" />}
-                        </div>
-                        <div>
-                          <div className="font-serif text-lg font-semibold" style={{ color: plan.color }}>{plan.name}</div>
-                          <div className="text-foreground/50 text-xs mt-0.5">{plan.desc}</div>
-                        </div>
-                      </div>
-                      {/* Price indicator — always visible */}
-                      <div className="text-right shrink-0 ml-3">
-                        {isSelected && plan.durations.length > 0 && getSelectedPrice()
-                          ? <div className="text-xl font-bold text-foreground">{getSelectedPrice().price}</div>
-                          : <div className="text-base font-semibold" style={{ color: plan.color }}>{plan.startingPrice}</div>
-                        }
-                      </div>
-                    </button>
-
-                    {/* Duration selector — always visible for paid plans, expanded when selected */}
-                    {plan.durations.length > 0 && (
-                      <div className={`px-4 pb-4 transition-all duration-300 ${isSelected ? 'opacity-100' : 'opacity-50'}`}>
-                        <div className="flex flex-wrap gap-2">
-                          {plan.durations.map(dur => {
-                            const isDurSelected = isSelected && selectedDuration === dur.key;
-                            return (
-                              <button key={dur.key}
-                                onClick={() => { setSelectedPlan(plan.id); setSelectedDuration(dur.key); }}
-                                className="px-3 py-1.5 rounded-full text-xs font-medium transition-all"
-                                style={{
-                                  background: isDurSelected ? plan.color : isLight ? 'rgba(123,47,190,0.07)' : 'rgba(240,230,255,0.06)',
-                                  color: isDurSelected ? '#0B0510' : isLight ? 'rgba(26,10,46,0.65)' : 'rgba(240,230,255,0.65)',
-                                  border: `1px solid ${isDurSelected ? plan.color : isLight ? 'rgba(123,47,190,0.18)' : 'rgba(240,230,255,0.12)'}`,
-                                }}>
-                                {dur.label} · {dur.price}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
+                // Standard $20/month membership — simplified, no legacy plan/duration selector
+                <div className="w-full space-y-5">
+                  <div className="text-center space-y-2">
+                    <h2 className="font-serif text-3xl text-foreground">
+                      {lang === 'fr' ? 'Adhésion Nina Purple' : 'Nina Purple Membership'}
+                    </h2>
                   </div>
-                );
-              })}
-
-              <button onClick={() => handleComplete()} disabled={loading}
-                className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all mt-2 shadow-[0_0_30px_rgba(245,168,0,0.25)] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-                {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> {lang === 'fr' ? 'Sauvegarde...' : 'Saving...'}</> : t('onboarding.continue')}
-              </button>
-                </>
+                  <div className="glass-card-gold rounded-2xl p-6 space-y-4 text-center">
+                    <div className="text-4xl font-serif font-bold text-[#F5A800]">$20<span className="text-lg font-body font-normal text-foreground/50">/{lang === 'fr' ? 'mois' : 'month'}</span></div>
+                    <p className="text-foreground/70 text-sm leading-relaxed">
+                      {lang === 'fr' ? 'Accès membre complet' : 'Full member access'}
+                    </p>
+                    <p className="text-foreground/50 text-xs">
+                      {lang === 'fr' ? 'Annulez à tout moment' : 'Cancel anytime'}
+                    </p>
+                  </div>
+                  <button onClick={() => handleComplete()} disabled={loading}
+                    className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all shadow-[0_0_30px_rgba(245,168,0,0.25)] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                    {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> {lang === 'fr' ? 'Sauvegarde...' : 'Saving...'}</> : (lang === 'fr' ? 'Continuer le paiement' : 'Continue to payment')}
+                  </button>
+                  <button onClick={goPrev} className="w-full py-2 text-foreground/40 text-sm hover:text-foreground/60 transition-colors">
+                    {lang === 'fr' ? 'Retour' : 'Back'}
+                  </button>
+                </div>
               )}
             </motion.div>
           )}

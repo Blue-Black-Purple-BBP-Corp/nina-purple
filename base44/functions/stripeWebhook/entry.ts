@@ -96,11 +96,28 @@ Deno.serve(async (req) => {
           const validTiers = ['lunar', 'stellar', 'galactic'];
 
           if (price_key === 'nina_membership_1m') {
-            await base44.asServiceRole.entities.UserProfile.update(profile.id, {
+            // Complete onboarding if all prerequisites are satisfied; clear the
+            // pending-confirmation state set at checkout creation.
+            const answers = await base44.asServiceRole.entities.MatchingAnswers.filter({ user_id });
+            const { evaluateOnboardingCompletion } = await import('../../shared/onboardingState.ts');
+            const completion = await evaluateOnboardingCompletion(base44, user_id, profile, answers[0]);
+            const updateData = {
               subscription_tier: 'nina_membership',
               subscription_status: 'active',
-            });
-            console.info('[stripeWebhook] Activated Nina Purple Membership for user:', user_id);
+              membership_selection_status: 'membership_active',
+              membership_checkout_reference: null,
+              membership_confirmation_deadline: null,
+              membership_subscription_reference: session.subscription || null,
+            };
+            if (completion.isComplete && profile.onboarding_status !== 'complete') {
+              updateData.onboarding_status = 'complete';
+              updateData.onboarding_complete = true;
+              updateData.onboarding_completed_at = new Date().toISOString();
+              updateData.onboarding_step = null;
+              updateData.onboarding_current_step = 'completion';
+            }
+            await base44.asServiceRole.entities.UserProfile.update(profile.id, updateData);
+            console.info('[stripeWebhook] Activated Nina Purple Membership for user:', user_id, 'onboarding_complete:', completion.isComplete);
           } else if (validTiers.includes(tier)) {
             await base44.asServiceRole.entities.UserProfile.update(profile.id, { subscription_tier: tier });
             console.info('[stripeWebhook] Updated subscription to', tier, 'for user:', user_id);
@@ -183,11 +200,24 @@ Deno.serve(async (req) => {
             const p = profiles[0];
             const newStatus = mapStripeSubStatus(sub, p);
             const renewalDate = sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : p.subscription_renewal_date;
+
+            // Preserve trial_active during the trial period — do not let a
+            // subscription.updated event override it with 'active' while the
+            // FoundingMemberBenefit is still active and the trial hasn't ended.
+            let finalStatus = newStatus;
+            if (newStatus === 'active' && p.subscription_status === 'trial_active') {
+              const benefits = await base44.asServiceRole.entities.FoundingMemberBenefit.filter({ native_user_id: subUserId, eligibility_status: 'active' });
+              const benefit = benefits[0];
+              if (benefit?.trial_ends_at && new Date(benefit.trial_ends_at) > new Date()) {
+                finalStatus = 'trial_active';
+              }
+            }
+
             await base44.asServiceRole.entities.UserProfile.update(p.id, {
-              subscription_status: newStatus,
+              subscription_status: finalStatus,
               subscription_renewal_date: renewalDate,
             });
-            console.info('[stripeWebhook] subscription.updated →', newStatus, 'for user:', subUserId);
+            console.info('[stripeWebhook] subscription.updated →', finalStatus, 'for user:', subUserId);
 
             // ── Proactive photo-reveal entitlement status sync (decision 5) ──
             // past_due/cancelled_expired → inactive (zero-day grace). active/
@@ -223,13 +253,21 @@ Deno.serve(async (req) => {
             const renewalDate = new Date(sub.current_period_end * 1000).toISOString();
             const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_id: subUserId });
             if (profiles.length) {
-              await base44.asServiceRole.entities.UserProfile.update(profiles[0].id, {
+              // Preserve trial_active during the trial period — the first paid
+              // invoice marks the benefit 'redeemed' but the subscription_status
+              // is set by the subscription.updated event, not forced to 'active' here.
+              const currentStatus = profiles[0].subscription_status;
+              const updateData = {
                 subscription_renewal_date: renewalDate,
                 free_profile_unlocks_used: 0,
                 free_messages_used: 0,
-                subscription_status: 'active',
-              });
-              console.info('[stripeWebhook] Renewal — reset counters for user:', subUserId, 'next renewal:', renewalDate);
+              };
+              // Only set subscription_status to 'active' if not currently in trial
+              if (currentStatus !== 'trial_active') {
+                updateData.subscription_status = 'active';
+              }
+              await base44.asServiceRole.entities.UserProfile.update(profiles[0].id, updateData);
+              console.info('[stripeWebhook] Renewal — reset counters for user:', subUserId, 'next renewal:', renewalDate, 'status:', currentStatus === 'trial_active' ? 'trial_active (preserved)' : 'active');
 
               // ── Founding Member trial: first paid invoice (post-trial) → redeemed ──
               if (sub.metadata?.founding_member_trial === 'true' && sub.metadata?.benefit_id && (invoice.amount_paid || 0) > 0) {

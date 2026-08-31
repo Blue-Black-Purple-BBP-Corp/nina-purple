@@ -117,10 +117,12 @@ export async function activateFoundingTrial(base44, user_id, session, benefit_id
     const completion = await evaluateOnboardingCompletion(base44, user_id, profile, answers[0]);
     const updateData = {
       subscription_tier: 'nina_membership',
-      subscription_status: 'active',
+      subscription_status: 'trial_active',
       subscription_renewal_date: trialEnds,
-      membership_selection_status: 'trial_started',
+      membership_selection_status: 'trial_active',
       membership_subscription_reference: subscriptionId,
+      membership_checkout_reference: null,
+      membership_confirmation_deadline: null,
     };
     if (completion.isComplete && profile.onboarding_status !== 'complete') {
       updateData.onboarding_status = 'complete';

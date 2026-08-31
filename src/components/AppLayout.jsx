@@ -10,6 +10,7 @@ import { useLang } from '@/lib/LanguageContext';
 import { useTranslation } from '@/lib/i18n';
 import { base44 } from '@/api/base44Client';
 import Paywall from '@/components/Paywall';
+import MembershipPendingConfirmation from '@/components/MembershipPendingConfirmation';
 
 // Routes that require an active membership/trial entitlement. Account-
 // maintenance routes (/profile, /compatibility-profile, /wallet, /membership,
@@ -21,7 +22,7 @@ export default function AppLayout() {
   const navigate = useNavigate();
   const { lang } = useLang();
   const { t } = useTranslation(lang);
-  const [gateState, setGateState] = useState('loading'); // 'loading' | 'error' | 'unauthenticated' | 'ready'
+  const [gateState, setGateState] = useState('loading'); // 'loading' | 'error' | 'unauthenticated' | 'ready' | 'pending_confirmation'
   const [entitlement, setEntitlement] = useState(null);
 
   const checkGate = async () => {
@@ -44,6 +45,14 @@ export default function AppLayout() {
         }
         return;
       }
+
+      // ── Pending payment confirmation: show the pending screen, never redirect to /onboarding ──
+      // This is the critical state that prevents the redirect loop after Stripe checkout success.
+      if (data.onboarding_status === 'awaiting_payment_confirmation') {
+        setGateState('pending_confirmation');
+        return;
+      }
+
       // Incomplete — admins and staff bypass member onboarding so they can reach privileged workspaces
       try {
         const me = await base44.auth.me();
@@ -120,6 +129,28 @@ export default function AppLayout() {
           <RefreshCw className="w-4 h-4" />
           {lang === 'fr' ? 'Réessayer' : 'Retry'}
         </button>
+      </div>
+    );
+  }
+
+  if (gateState === 'pending_confirmation') {
+    return (
+      <div className="min-h-screen bg-[#0B0510]">
+        <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+          <ThemeToggle />
+          <LanguageToggle />
+        </div>
+        <MembershipPendingConfirmation
+          lang={lang}
+          onConfirmed={() => {
+            // Webhook confirmed — re-check the gate to transition to 'ready'
+            checkGate();
+          }}
+          onReturnToMembership={() => {
+            // Return to the onboarding membership step
+            navigate('/onboarding', { replace: true });
+          }}
+        />
       </div>
     );
   }

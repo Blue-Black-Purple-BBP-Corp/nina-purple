@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Crown, Check, Lock, Unlock, MessageCircle, Camera, Users, Calendar, Star, ArrowRight, CreditCard, Loader2, Sparkles } from 'lucide-react';
+import { Crown, Check, Lock, Unlock, MessageCircle, Camera, Users, Calendar, Star, ArrowRight, CreditCard, Loader2, Sparkles, RefreshCw } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LanguageContext';
 
@@ -14,21 +14,53 @@ export default function MembershipAndAccess() {
   const { lang } = useLang();
   const isFr = lang === 'fr';
   const [entitlement, setEntitlement] = useState(null);
+  const [offer, setOffer] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [checkoutError, setCheckoutError] = useState('');
 
   useEffect(() => {
     (async () => {
       try {
-        const res = await base44.functions.invoke('getMemberAccessEntitlement', {});
-        if (res.data?.data) setEntitlement(res.data.data);
-        else if (res.data) setEntitlement(res.data);
+        const [entRes, offerRes] = await Promise.all([
+          base44.functions.invoke('getMemberAccessEntitlement', {}),
+          base44.functions.invoke('getMembershipOfferForMember', {}),
+        ]);
+        if (entRes.data?.data) setEntitlement(entRes.data.data);
+        else if (entRes.data) setEntitlement(entRes.data);
+        if (offerRes.data) setOffer(offerRes.data);
       } catch (e) {
-        console.warn('getMemberAccessEntitlement failed:', e.message);
+        console.warn('Membership access load failed:', e.message);
       } finally {
         setLoading(false);
       }
     })();
   }, []);
+
+  const startReactivationCheckout = async () => {
+    setCheckoutLoading(true);
+    setCheckoutError('');
+    try {
+      if (window.self !== window.top) {
+        alert(isFr ? 'Le paiement fonctionne uniquement depuis l\'application publiée.' : 'Payment only works from the published app.');
+        setCheckoutLoading(false);
+        return;
+      }
+      const origin = window.location.origin;
+      const res = await base44.functions.invoke('createCheckout', {
+        price_key: 'nina_membership_1m',
+        success_url: `${origin}/home?payment=success`,
+        cancel_url: `${origin}/membership?payment=cancelled`,
+      });
+      if (res.data?.url) {
+        window.location.href = res.data.url;
+      }
+    } catch (e) {
+      setCheckoutError(e.message || (isFr ? 'Échec du paiement.' : 'Checkout failed.'));
+    } finally {
+      setCheckoutLoading(false);
+    }
+  };
 
   if (loading) {
     return (

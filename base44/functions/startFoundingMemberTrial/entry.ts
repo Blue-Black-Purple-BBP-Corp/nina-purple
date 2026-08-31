@@ -83,6 +83,22 @@ Deno.serve(async (req) => {
       },
     }, { idempotencyKey: `fmt_${benefit.benefit_id}` });
 
+    // Set the pending-confirmation state on the profile so the member is not
+    // redirected back to /onboarding after Stripe success. The webhook will
+    // flip this to trial_active + onboarding complete.
+    const deadline = new Date(Date.now() + 30 * 60 * 1000).toISOString(); // 30-min confirmation window
+    const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_id: user.id });
+    if (profiles[0]) {
+      await base44.asServiceRole.entities.UserProfile.update(profiles[0].id, {
+        membership_selection_status: 'awaiting_payment_confirmation',
+        membership_checkout_reference: session.id,
+        membership_checkout_started_at: new Date().toISOString(),
+        membership_confirmation_deadline: deadline,
+        onboarding_status: 'awaiting_payment_confirmation',
+        membership_last_error_code_member_safe: null,
+      });
+    }
+
     await writeStaffAuditLog(base44, {
       actor_native_user_id: user.id,
       action_type: 'founding_member.trial_started',

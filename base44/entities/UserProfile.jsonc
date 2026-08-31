@@ -174,10 +174,11 @@
         "not_started",
         "in_progress",
         "awaiting_membership",
+        "awaiting_payment_confirmation",
         "complete"
       ],
       "default": "not_started",
-      "description": "awaiting_membership = profile + compatibility complete but membership selection pending; restored to the membership step on re-entry."
+      "description": "awaiting_membership = profile + compatibility complete but membership selection pending; awaiting_payment_confirmation = Stripe checkout created but webhook not yet confirmed; restored safely on re-entry \u2014 never redirected to /onboarding or age step while pending."
     },
     "onboarding_completed_at": {
       "type": "string",
@@ -217,15 +218,38 @@
       "type": "string",
       "enum": [
         "pending",
-        "trial_started",
-        "standard_started",
-        "active"
+        "founding_trial_checkout_created",
+        "standard_membership_checkout_created",
+        "awaiting_payment_confirmation",
+        "trial_active",
+        "membership_active",
+        "checkout_cancelled",
+        "checkout_failed"
       ],
-      "description": "Tracks membership selection at the membership step."
+      "default": "pending",
+      "description": "Tracks the membership selection lifecycle. pending = not yet selected; founding_trial_checkout_created / standard_membership_checkout_created = Stripe checkout session created; awaiting_payment_confirmation = checkout completed, webhook pending; trial_active / membership_active = webhook confirmed; checkout_cancelled = member cancelled at Stripe; checkout_failed = checkout expired or failed."
     },
     "membership_subscription_reference": {
       "type": "string",
       "description": "Stripe subscription/checkout reference for the membership selected at onboarding."
+    },
+    "membership_checkout_reference": {
+      "type": "string",
+      "description": "Stripe Checkout Session ID for the most recent membership checkout initiation. Used to detect and prevent duplicate checkout sessions on retry/refresh/back-forward."
+    },
+    "membership_checkout_started_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the most recent Stripe checkout session was created. Used to detect stale/abandoned checkouts."
+    },
+    "membership_confirmation_deadline": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Deadline for the webhook to confirm the checkout. After this, the pending state is treated as failed and the member is returned to the membership step."
+    },
+    "membership_last_error_code_member_safe": {
+      "type": "string",
+      "description": "Neutral, member-safe error code from the last checkout/confirmation attempt (e.g., checkout_cancelled, confirmation_timeout). Never contains Stripe or technical details."
     },
     "age_verified": {
       "type": "boolean",
