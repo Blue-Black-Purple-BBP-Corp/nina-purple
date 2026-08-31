@@ -83,6 +83,17 @@ export default async function(req) {
 
     const created = await base44.asServiceRole.entities.UserProfile.create(profileData);
 
+    // Assign signup_sequence_number (same scheme as createProfile) so migrated
+    // accounts are eligible for Founding Member grants based on join order.
+    try {
+      const allProfiles = await base44.asServiceRole.entities.UserProfile.list();
+      await base44.asServiceRole.entities.UserProfile.update(created.id, {
+        signup_sequence_number: allProfiles.length,
+      });
+    } catch (seqErr) {
+      console.error('Sequence number assignment failed:', seqErr.message);
+    }
+
     // Best-effort branded confirmation email (the platform invite email carries the setup link)
     const lang = profileData.language === 'fr' ? 'fr' : 'en';
     const safeName = escapeHtml(profileData.display_name);

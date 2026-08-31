@@ -158,6 +158,52 @@ export default function MembershipAndAccess() {
         )}
       </motion.div>
 
+      {/* Reactivation / Payment update / Cancelled message */}
+      {new URLSearchParams(window.location.search).get('payment') === 'cancelled' && (
+        <div className="px-4 py-3 rounded-xl bg-[rgba(245,168,0,0.08)] border border-[rgba(245,168,0,0.25)] text-[#F5A800] text-sm text-center">
+          {isFr ? 'Le paiement n\'a pas été complété. Votre profil a été sauvegardé.' : 'Payment was not completed. Your profile has been saved.'}
+        </div>
+      )}
+      {offer?.offer_type === 'membership_reactivation' && (
+        <div className="glass-card-gold rounded-2xl p-5 space-y-4">
+          <div className="text-center space-y-1">
+            <h2 className="font-serif text-xl text-foreground">{isFr ? 'Réactiver l\'adhésion Nina Purple' : 'Reactivate Nina Purple Membership'}</h2>
+            <div className="text-3xl font-serif font-bold text-[#F5A800]">$20<span className="text-base font-body font-normal text-foreground/50">/{isFr ? 'mois' : 'month'}</span></div>
+            <p className="text-foreground/50 text-xs">{isFr ? 'Restaurez votre accès membre complet' : 'Restore full member access'}</p>
+          </div>
+          {checkoutError && <p className="text-red-400 text-xs text-center">{checkoutError}</p>}
+          <button onClick={startReactivationCheckout} disabled={checkoutLoading}
+            className="w-full py-3 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+            {checkoutLoading ? <><Loader2 className="w-4 h-4 animate-spin" /> {isFr ? 'Traitement…' : 'Processing…'}</> : <><RefreshCw className="w-4 h-4" /> {isFr ? 'Continuer le paiement' : 'Continue to payment'}</>}
+          </button>
+        </div>
+      )}
+      {offer?.offer_type === 'payment_update_required' && (
+        <div className="glass-card-gold rounded-2xl p-5 space-y-4">
+          <div className="text-center space-y-1">
+            <h2 className="font-serif text-xl text-foreground">{isFr ? 'Votre paiement nécessite votre attention' : 'Your membership payment needs attention'}</h2>
+            <p className="text-foreground/50 text-sm leading-relaxed">
+              {isFr ? 'Mettez à jour votre méthode de paiement pour restaurer votre accès membre complet.' : 'Update your payment method to restore full member access.'}
+            </p>
+          </div>
+          {checkoutError && <p className="text-red-400 text-xs text-center">{checkoutError}</p>}
+          <button onClick={startReactivationCheckout} disabled={checkoutLoading}
+            className="w-full py-3 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+            {checkoutLoading ? <><Loader2 className="w-4 h-4 animate-spin" /> {isFr ? 'Traitement…' : 'Processing…'}</> : <><CreditCard className="w-4 h-4" /> {isFr ? 'Mettre à jour' : 'Update payment'}</>}
+          </button>
+        </div>
+      )}
+      {offer?.offer_type === 'awaiting_payment_confirmation' && (
+        <div className="glass-card-gold rounded-2xl p-5 space-y-3 text-center">
+          <Loader2 className="w-6 h-6 text-[#F5A800] animate-spin mx-auto" />
+          <h2 className="font-serif text-lg text-foreground">{isFr ? 'Confirmation en cours' : 'Confirming membership'}</h2>
+          <p className="text-foreground/50 text-sm">{isFr ? 'Cela peut prendre un moment.' : 'This can take a moment.'}</p>
+          <button onClick={() => window.location.reload()} className="text-[#F5A800] text-xs font-semibold hover:underline">
+            {isFr ? 'Vérifier le statut' : 'Check status'}
+          </button>
+        </div>
+      )}
+
       {/* Wallet snapshot */}
       <div className="glass-card rounded-2xl p-4 flex items-center justify-between">
         <div>

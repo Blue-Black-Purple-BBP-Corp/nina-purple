@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.36';
-import { requirePrivilegedContext, checkConflictOfInterest, writeStaffAuditLog } from '../../shared/staffAuth.ts';
+import { requirePrivilegedContext, checkConflictOfInterest, writeStaffAuditLog, requireFreshStepUp } from '../../shared/staffAuth.ts';
 
 // Act on a ModerationItem. Supports three actions:
 //   - dismiss:  no account change; item marked dismissed.
@@ -26,6 +26,19 @@ Deno.serve(async (req) => {
     }
     if (!reason || !reason.trim()) {
       return Response.json({ error: 'reason is required' }, { status: 400 });
+    }
+
+    // Suspension is a high-impact action (locks the member out of paid access).
+    // Require a fresh step-up within the last 5 minutes, in addition to the
+    // active trust_safety privileged session already enforced above.
+    if (action === 'suspend') {
+      const fresh = requireFreshStepUp(session);
+      if (!fresh.fresh) {
+        return Response.json({
+          error: 'A fresh step-up verification is required to suspend a member. Please re-authenticate and retry.',
+          code: 'fresh_step_up_required',
+        }, { status: 419 });
+      }
     }
 
     const items = await base44.asServiceRole.entities.ModerationItem.filter({ id: item_id });

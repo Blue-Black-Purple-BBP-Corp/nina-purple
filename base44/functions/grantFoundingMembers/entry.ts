@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.36';
 import { writeAuditLog, isAdminRole } from '../../shared/adminAudit.ts';
+import { requirePrivilegedContext, requireFreshStepUp } from '../../shared/staffAuth.ts';
 
 // Grants Founding Member status + 3 free months to every user whose
 // signup_sequence_number <= founding_member_cutoff (stored in AppSetting).
@@ -21,6 +22,21 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const dryRun = body.dry_run !== false; // default to dry-run for safety
+
+    // dry_run is a read-only preview and needs no step-up. The apply path is a
+    // high-impact financial grant (permanent badge + 3 free months), so it
+    // requires an active admin privileged session with a fresh step-up.
+    if (!dryRun) {
+      const guard = await requirePrivilegedContext(base44, user, 'admin');
+      if (guard.errorResponse) return guard.errorResponse;
+      const fresh = requireFreshStepUp(guard.session);
+      if (!fresh.fresh) {
+        return Response.json({
+          error: 'A fresh step-up verification is required to grant Founding Member status. Please re-authenticate and retry.',
+          code: 'fresh_step_up_required',
+        }, { status: 419 });
+      }
+    }
 
     // Read the admin-editable cutoff from AppSetting
     const settings = await base44.asServiceRole.entities.AppSetting.filter({ key: 'founding_member_cutoff' });
