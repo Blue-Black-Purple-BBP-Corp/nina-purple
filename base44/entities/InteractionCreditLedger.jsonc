@@ -1,6 +1,7 @@
 {
   "name": "InteractionCreditLedger",
   "type": "object",
+  "description": "Append-only BBP Credit ledger. The authoritative source of truth for a member's prepaid BBP Credit wallet (1 BBP = $1 toward eligible Nina Purple purchases). UserProfile.credit_balance is a denormalized cache updated atomically with each ledger entry; the ledger itself is the source of truth and the audit record. BBP Credits can NEVER pay for Nina Purple Membership.",
   "properties": {
     "ledger_id": {
       "type": "string",
@@ -17,19 +18,21 @@
         "debit_unlock",
         "debit_outreach",
         "debit_reveal",
+        "hold",
+        "release",
         "reversal",
         "staff_adjustment",
         "expiry"
       ],
-      "description": "credit_purchase = Stripe top-up; debit_unlock = profile unlock; debit_outreach = initial paid message (new conversation); debit_reveal = photo reveal; reversal = refund/chargeback/staff reversal compensating a prior debit; staff_adjustment = manual staff credit/debit; expiry = expired credit."
+      "description": "credit_purchase = Stripe top-up; debit_unlock = profile unlock (messaging); debit_outreach = initial paid message; debit_reveal = photo reveal (owner-approved); hold = reserved for pending photo-reveal request (not yet debited); release = hold released (decline/expiry/cancel); reversal = refund/chargeback/staff reversal; staff_adjustment = manual; expiry = expired credit."
     },
     "amount_delta": {
       "type": "number",
-      "description": "Positive for credits, negative for debits. In USD."
+      "description": "Positive for credits, negative for debits/holds. In USD (= BBP Credits). Holds are negative and status='pending'; they reduce available balance but not total balance."
     },
     "balance_after": {
       "type": "number",
-      "description": "Wallet balance immediately after this entry applied. Audit snapshot; the authoritative balance is the sum of completed entries."
+      "description": "Total balance immediately after this entry applied (sum of completed entries). Audit snapshot; available balance = total - reserved holds."
     },
     "source_type": {
       "type": "string",
@@ -38,6 +41,8 @@
         "unlock",
         "outreach",
         "reveal",
+        "photo_reveal_hold",
+        "photo_reveal_release",
         "refund_reversal",
         "staff_adjustment",
         "expiry"
@@ -45,11 +50,11 @@
     },
     "source_reference": {
       "type": "string",
-      "description": "Stripe charge/checkout ID, Connection ID, Message ID, or entitlement ID that gave rise to this entry."
+      "description": "Stripe charge/checkout ID, Connection ID, Message ID, PhotoRevealRequest ID, or reservation ID that gave rise to this entry."
     },
     "idempotency_key": {
       "type": "string",
-      "description": "Unique per logical operation per user. Prevents duplicate debits/credits on retry, refresh, double-click, or webhook redelivery."
+      "description": "Unique per logical operation per user. Prevents duplicate debits/credits/holds on retry, refresh, double-click, or webhook redelivery."
     },
     "status": {
       "type": "string",
@@ -57,9 +62,31 @@
         "completed",
         "pending",
         "reversed",
+        "expired",
         "failed"
       ],
-      "default": "completed"
+      "default": "completed",
+      "description": "pending = hold reserved (not yet debited); expired = hold released without debit; completed = finalized; reversed = compensating entry applied."
+    },
+    "reservation_id": {
+      "type": "string",
+      "description": "For hold/release entries: the reservation identifier linking a hold to its release or conversion. Null for non-hold entries."
+    },
+    "reserved_for_type": {
+      "type": "string",
+      "enum": [
+        "photo_reveal"
+      ],
+      "description": "What the hold is reserved for. photo_reveal = pending owner-approval photo reveal request."
+    },
+    "reserved_for_id": {
+      "type": "string",
+      "description": "The PhotoRevealRequest ID this hold is reserved for."
+    },
+    "hold_expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the hold auto-releases if not converted or explicitly released. For photo reveals = request expiry (7 days)."
     },
     "description_member_safe": {
       "type": "string",
@@ -71,7 +98,7 @@
     },
     "correlation_id": {
       "type": "string",
-      "description": "Correlates a debit with its reversal or a top-up with its Stripe event."
+      "description": "Correlates a debit with its reversal, a top-up with its Stripe event, or a hold with its release/conversion."
     }
   },
   "required": [

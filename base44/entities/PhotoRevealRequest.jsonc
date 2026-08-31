@@ -1,0 +1,156 @@
+{
+  "name": "PhotoRevealRequest",
+  "type": "object",
+  "description": "Viewer-initiated, owner-approved photo reveal request. A viewer with active membership and sufficient BBP Credits requests to reveal an owner's private photos. BBP Credits are RESERVED (held, not debited) until the owner approves. On approval, the hold converts to a debit and a viewer-specific PhotoRevealEntitlement is created. On decline, expiry (7 days), or cancellation, the hold is released and no entitlement is created. A 30-day cooldown applies after decline/expiry/cancellation for the same viewer->owner pair.",
+  "properties": {
+    "request_id": {
+      "type": "string",
+      "description": "Stable request identifier (ULID)."
+    },
+    "viewer_native_user_id": {
+      "type": "string",
+      "description": "Platform user ID of the viewer requesting the reveal."
+    },
+    "viewer_bbp_member_id": {
+      "type": "string"
+    },
+    "owner_native_user_id": {
+      "type": "string",
+      "description": "Platform user ID of the photo owner."
+    },
+    "owner_bbp_member_id": {
+      "type": "string"
+    },
+    "profile_id": {
+      "type": "string",
+      "description": "The owner's UserProfile ID being revealed."
+    },
+    "request_status": {
+      "type": "string",
+      "enum": [
+        "initiated",
+        "payment_authorized",
+        "pending_owner_approval",
+        "approved",
+        "declined",
+        "cancelled",
+        "expired",
+        "refunded",
+        "blocked",
+        "under_review"
+      ],
+      "default": "initiated",
+      "description": "initiated = request created; payment_authorized = credits reserved; pending_owner_approval = awaiting owner; approved = owner approved, entitlement created; declined = owner declined; cancelled = viewer cancelled; expired = 7-day timeout; refunded = post-approval revocation; blocked = safety block; under_review = moderation hold."
+    },
+    "quoted_price_bbp_credits": {
+      "type": "number",
+      "description": "The BBP Credit price quoted and reserved at request time."
+    },
+    "reservation_id": {
+      "type": "string",
+      "description": "The InteractionCreditLedger reservation_id for the held credits."
+    },
+    "ledger_hold_id": {
+      "type": "string",
+      "description": "The ledger_id of the hold entry."
+    },
+    "ledger_debit_id": {
+      "type": "string",
+      "description": "The ledger_id of the converted debit entry (after approval). Null until approved."
+    },
+    "entitlement_id": {
+      "type": "string",
+      "description": "The PhotoRevealEntitlement ID created on approval. Null until approved."
+    },
+    "approval_policy_version": {
+      "type": "string",
+      "enum": [
+        "owner_approval_required"
+      ],
+      "default": "owner_approval_required"
+    },
+    "requested_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "7 days after requested_at. If no owner response, request expires and hold releases."
+    },
+    "owner_responded_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "approved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "declined_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "cancelled_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expired_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "cooldown_until": {
+      "type": "string",
+      "format": "date-time",
+      "description": "30 days after decline/expiry/cancellation. A new request for the same pair is blocked until this passes."
+    },
+    "revocation_reason": {
+      "type": "string"
+    },
+    "correlation_id": {
+      "type": "string",
+      "description": "Correlates request/reserve/approve/decline/expire/release audit events."
+    }
+  },
+  "required": [
+    "request_id",
+    "viewer_native_user_id",
+    "owner_native_user_id",
+    "request_status",
+    "quoted_price_bbp_credits"
+  ],
+  "rls": {
+    "create": {
+      "data.viewer_native_user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.viewer_native_user_id": "{{user.id}}"
+        },
+        {
+          "data.owner_native_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
