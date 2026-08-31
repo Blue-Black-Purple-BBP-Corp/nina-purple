@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Calendar, MessageCircle, Star, Coins, Users, Loader2, Heart, User, Sparkles, ChevronRight as ChevronRightIcon } from 'lucide-react';
+import { Calendar, MessageCircle, Star, Coins, Users, Loader2, Heart, User, Sparkles, ChevronRight as ChevronRightIcon, Edit3, Eye } from 'lucide-react';
 import { useLang } from '@/lib/LanguageContext';
 import { useTranslation } from '@/lib/i18n';
 import PricingModal from '@/components/PricingModal';
@@ -11,6 +11,9 @@ import DailyInsightCard from '@/components/DailyInsightCard';
 import ProfileProgressPanel from '@/components/dashboard/ProfileProgressPanel';
 import EditProfileModal from '@/components/profile/EditProfileModal';
 import ManagePhotosModal from '@/components/profile/ManagePhotosModal';
+import WalletSummaryCard from '@/components/profile/WalletSummaryCard';
+import NextStepCard from '@/components/dashboard/NextStepCard';
+import FoundingMemberBadge from '@/components/FoundingMemberBadge';
 import { base44 } from '@/api/base44Client';
 import { usePhotoAccess, primaryPhotoUrl } from '@/hooks/usePhotoAccess';
 
@@ -113,6 +116,9 @@ export default function Home() {
 
   return (
     <div className="px-4 py-6 max-w-lg mx-auto space-y-6">
+      {/* Urgent next-step prompt — shows only when an urgent state exists */}
+      <NextStepCard userProfile={userProfile} />
+
       {/* Partner link notifications — shown for all users */}
       <PartnerLinkNotifications onResolved={() => loadData()} />
 
@@ -126,6 +132,7 @@ export default function Home() {
             <Link to="/membership" className="text-xs font-semibold px-2 py-0.5 rounded-full glass-card text-[#F0E6FF]/70 hover:border-[rgba(245,168,0,0.3)] transition-all">
               {lang === 'fr' ? 'Adhésion' : 'Membership'}
             </Link>
+            {userProfile?.is_founding_member && <FoundingMemberBadge variant="icon" />}
             {isCouple && (
               <span className="text-xs font-semibold px-2 py-0.5 rounded-full flex items-center gap-1" style={{ background: 'rgba(123,47,190,0.15)', color: '#7B2FBE', border: '1px solid rgba(123,47,190,0.3)' }}>
                 <Heart className="w-3 h-3" />
@@ -143,6 +150,22 @@ export default function Home() {
         </Link>
       </motion.div>
 
+      {/* Edit profile + Preview — primary member actions */}
+      <motion.div {...fadeUp(0.02)}>
+        <div className="flex gap-2">
+          <button onClick={() => setEditOpen(true)}
+            className="flex-1 py-3 bg-[#F5A800] text-[#0B0510] rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-yellow-400 transition-all shadow-[0_0_20px_rgba(245,168,0,0.15)] focus:outline-none focus:ring-2 focus:ring-[#F5A800]/40">
+            <Edit3 className="w-4 h-4" />
+            {lang === 'fr' ? 'Modifier le profil' : 'Edit profile'}
+          </button>
+          <Link to="/profile/preview"
+            className="flex-1 py-3 glass-card rounded-xl text-[#F0E6FF]/70 text-sm font-medium flex items-center justify-center gap-2 hover:border-[rgba(245,168,0,0.3)] hover:text-[#F5A800] transition-all focus:outline-none focus:ring-2 focus:ring-[#F5A800]/30">
+            <Eye className="w-4 h-4" />
+            {lang === 'fr' ? 'Aperçu' : 'Preview'}
+          </Link>
+        </div>
+      </motion.div>
+
       {/* Daily Insight — personalized to the Compatibility Profile */}
       <DailyInsightCard profile={userProfile} lang={lang} />
 
@@ -158,6 +181,11 @@ export default function Home() {
           </div>
           <ChevronRightIcon className="w-4 h-4 text-[#F0E6FF]/30 group-hover:text-[#7B2FBE] transition-colors" />
         </Link>
+      </motion.div>
+
+      {/* Wallet & Credits summary — membership status + BBP Credits */}
+      <motion.div {...fadeUp(0.08)}>
+        <WalletSummaryCard onRecharge={() => navigate('/wallet')} />
       </motion.div>
 
       {/* Couple journey banner */}
