@@ -52,13 +52,13 @@ export default function Paywall({ entitlement, lang }) {
 
   const perks = isFr ? [
     'Découvrir des profils compatibles',
-    'Déverrouiller des connexions avec vos Crédits d’Interaction',
+    'Déverrouiller des connexions avec vos Crédits BBP',
     'Envoyer un message initial pour démarrer une conversation',
     'Révéler des photos avec vos crédits',
     'Accéder à la Communauté et aux Événements',
   ] : [
     'Discover compatible profiles',
-    'Unlock connections with your Interaction Credits',
+    'Unlock connections with your BBP Credits',
     'Send an initial message to start a conversation',
     'Reveal photos with your credits',
     'Access Community and Events',

@@ -293,6 +293,30 @@ Deno.serve(async (req) => {
         if (chargeUserId) {
           const n = await setViewerEntitlementsStatus(base44, chargeUserId, 'refunded', 'refund_or_chargeback');
           if (n) console.info('[stripeWebhook] Entitlements refunded for user:', chargeUserId, 'count:', n);
+
+          // ── Release any pending photo-reveal holds + cancel pending requests ──
+          try {
+            const pendingReqs = await base44.asServiceRole.entities.PhotoRevealRequest.filter({
+              viewer_native_user_id: chargeUserId,
+              request_status: 'pending_owner_approval',
+            });
+            const { releaseHold } = await import('../../shared/interactionCredits.ts');
+            for (const r of pendingReqs) {
+              await releaseHold(base44, {
+                native_user_id: chargeUserId,
+                reservation_id: r.reservation_id,
+                reason: 'refund_or_chargeback',
+                idempotency_key: `release-refund-${r.request_id}`,
+                correlation_id: r.correlation_id || r.request_id,
+              });
+              await base44.asServiceRole.entities.PhotoRevealRequest.update(r.id, {
+                request_status: 'refunded',
+                revoked_at: new Date().toISOString(),
+              });
+            }
+          } catch (relErr) {
+            console.warn('[stripeWebhook] Pending reveal release failed:', relErr.message);
+          }
         }
       } catch (entErr) {
         console.warn('[stripeWebhook] Refund entitlement sync failed:', entErr.message);

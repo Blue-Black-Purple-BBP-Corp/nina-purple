@@ -189,8 +189,8 @@ export default function Profile() {
     },
     {
       icon: Coins,
-      label: t('profile.credits'),
-      sub: `$${credits.toFixed(2)} USD`,
+      label: lang === 'fr' ? 'Crédits BBP' : 'BBP Credits',
+      sub: `${credits.toFixed(2)} BBP`,
       action: lang === 'fr' ? 'Ajouter' : 'Add',
       onClick: () => setCreditsOpen(true),
     },

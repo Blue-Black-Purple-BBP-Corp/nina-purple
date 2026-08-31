@@ -1,0 +1,41 @@
+{
+  "name": "Expire Photo Reveal Requests",
+  "description": "Daily expiry of photo-reveal requests whose 7-day owner-approval window has passed. Releases reserved BBP Credits and sets a 30-day cooldown for each expired pair.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 4 * * *",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "expire_photo_reveal_requests",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "expirePhotoRevealRequests",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

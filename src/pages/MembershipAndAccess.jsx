@@ -129,8 +129,8 @@ export default function MembershipAndAccess() {
       {/* Wallet snapshot */}
       <div className="glass-card rounded-2xl p-4 flex items-center justify-between">
         <div>
-          <p className="text-foreground/50 text-xs">{isFr ? 'Crédits d’Interaction' : 'Interaction Credits'}</p>
-          <p className="text-[#F5A800] font-serif text-2xl font-bold">${(entitlement.wallet_credit_balance || 0).toFixed(2)}</p>
+          <p className="text-foreground/50 text-xs">{isFr ? 'Crédits BBP' : 'BBP Credits'}</p>
+          <p className="text-[#F5A800] font-serif text-2xl font-bold">{(entitlement.wallet_available_balance ?? entitlement.wallet_credit_balance ?? 0).toFixed(2)} BBP</p>
         </div>
         <Link to="/wallet" className="px-4 py-2 glass-card-gold rounded-full text-[#F5A800] text-xs font-semibold hover:opacity-80 transition-opacity flex items-center gap-1.5">
           <CreditCard className="w-3.5 h-3.5" /> {isFr ? 'Recharger' : 'Recharge'}

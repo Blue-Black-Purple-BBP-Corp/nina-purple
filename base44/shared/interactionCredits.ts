@@ -1,7 +1,10 @@
-// Append-only Interaction Credit ledger. The authoritative source of truth for
-// a member's prepaid USD wallet (decision 2). credit_balance on UserProfile is
-// a denormalized cache updated atomically with each ledger entry; the ledger
-// itself is the source of truth and the audit record.
+// Append-only BBP Credit ledger. The authoritative source of truth for
+// a member's prepaid BBP Credit wallet (1 BBP = $1 toward eligible Nina Purple
+// purchases). credit_balance on UserProfile is a denormalized cache updated
+// atomically with each ledger entry; the ledger itself is the source of truth
+// and the audit record.
+//
+// BBP Credits can NEVER pay for Nina Purple Membership or renewals.
 //
 // INVARIANTS:
 //   - Every balance change is a ledger entry. No direct UserProfile.credit_balance
@@ -9,13 +12,22 @@
 //   - Debits are created only after: (1) active membership/trial entitlement,
 //     (2) confirmed interaction price, (3) sufficient available balance,
 //     (4) no existing valid entitlement (for unlock/reveal), (5) idempotency.
-//   - The debit ledger entry and the entitlement/action are created together;
-//     if the entitlement creation fails, the debit is reversed.
+//   - Photo reveals use a RESERVE (hold) → owner-approval → CONVERT (debit) flow.
+//     Credits are held (not debited) until the owner approves. Decline, expiry,
+//     cancellation, or block releases the hold without debiting.
 //   - Refunds, reversals, chargebacks, and staff adjustments create compensating
 //     ledger entries — never a direct unlogged balance mutation.
 //   - Idempotency: each logical operation carries an idempotency_key unique per
-//     user. A repeat call with the same key returns the original result without
-//     creating a duplicate entry or charging twice.
+//     user. A repeat call with the same key returns the original result.
+//
+// BALANCE MODEL:
+//   - total_balance    = sum of completed entries' amount_delta
+//   - reserved_balance = -sum of pending 'hold' entries' amount_delta (positive)
+//   - available_balance = total_balance - reserved_balance
+//   A hold entry (status='pending', entry_type='hold', amount_delta=-amount)
+//   reduces available but not total. On convert, the hold becomes a completed
+//   debit (total drops). On release, the hold becomes 'expired' (excluded from
+//   reserved) and a zero-delta 'release' audit entry is written.
 
 const LEDGER_ENTITY = 'InteractionCreditLedger';
 
@@ -23,8 +35,7 @@ function newId() {
   return (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : Math.random().toString(36).slice(2);
 }
 
-// Read the current authoritative balance from the ledger (sum of completed
-// entries). Falls back to the cached credit_balance if the ledger read fails.
+// Total balance = sum of completed entries.
 export async function getCreditBalance(base44, native_user_id) {
   try {
     const entries = await base44.asServiceRole.entities[LEDGER_ENTITY].filter({ native_user_id });
@@ -33,7 +44,6 @@ export async function getCreditBalance(base44, native_user_id) {
     return Math.round(sum * 100) / 100;
   } catch (e) {
     console.error('[interactionCredits] getCreditBalance failed:', e?.message || e);
-    // Fallback: read cached balance from profile
     try {
       const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_id: native_user_id });
       return profiles[0]?.credit_balance ?? 0;
@@ -43,8 +53,29 @@ export async function getCreditBalance(base44, native_user_id) {
   }
 }
 
-// Check whether an idempotency_key has already been used for this user. Returns
-// the existing entry if so (so the caller can return the original result).
+// Reserved balance = sum of pending holds (as a positive number).
+export async function getReservedBalance(base44, native_user_id) {
+  try {
+    const entries = await base44.asServiceRole.entities[LEDGER_ENTITY].filter({ native_user_id });
+    const holds = entries.filter((e) => e.status === 'pending' && e.entry_type === 'hold');
+    const sum = holds.reduce((acc, e) => acc + Math.abs(e.amount_delta || 0), 0);
+    return Math.round(sum * 100) / 100;
+  } catch (e) {
+    console.error('[interactionCredits] getReservedBalance failed:', e?.message || e);
+    return 0;
+  }
+}
+
+// Available balance = total - reserved.
+export async function getAvailableBalance(base44, native_user_id) {
+  const [total, reserved] = await Promise.all([
+    getCreditBalance(base44, native_user_id),
+    getReservedBalance(base44, native_user_id),
+  ]);
+  return Math.round((total - reserved) * 100) / 100;
+}
+
+// Check whether an idempotency_key has already been used for this user.
 async function findIdempotent(base44, native_user_id, idempotency_key) {
   try {
     const existing = await base44.asServiceRole.entities[LEDGER_ENTITY].filter({
@@ -81,19 +112,17 @@ export async function creditFromTopup(base44, opts) {
     source_reference,
     idempotency_key,
     status: 'completed',
-    description_member_safe: description || `Added $${amount.toFixed(2)} to your wallet`,
+    description_member_safe: description || `Added ${amount} BBP Credits to your wallet`,
     correlation_id: correlation_id || ledger_id,
   });
 
-  // Update cached balance on the profile.
   await syncCachedBalance(base44, native_user_id, balanceAfter);
-
   return { success: true, ledger_id, balance_after: balanceAfter };
 }
 
-// Debit the wallet for a paid interaction. Returns {success, balance_after} or
-// {success:false, reason}. Idempotent on (user, idempotency_key). Does NOT check
-// membership entitlement — the caller must verify that first.
+// Debit the wallet for a paid interaction (unlock, outreach). Returns
+// {success, balance_after} or {success:false, reason}. Idempotent on
+// (user, idempotency_key). Does NOT check membership entitlement — caller must.
 export async function debitInteraction(base44, opts) {
   const {
     native_user_id, amount, entry_type, source_type, source_reference,
@@ -112,16 +141,17 @@ export async function debitInteraction(base44, opts) {
     };
   }
 
-  const balanceBefore = await getCreditBalance(base44, native_user_id);
-  if (balanceBefore < amount) {
+  const available = await getAvailableBalance(base44, native_user_id);
+  if (available < amount) {
     return {
       success: false,
       reason: 'insufficient_credits',
-      balance: balanceBefore,
+      balance: available,
       required: amount,
     };
   }
 
+  const balanceBefore = await getCreditBalance(base44, native_user_id);
   const balanceAfter = Math.round((balanceBefore - amount) * 100) / 100;
   const ledger_id = newId();
 
@@ -135,13 +165,171 @@ export async function debitInteraction(base44, opts) {
     source_reference,
     idempotency_key,
     status: 'completed',
-    description_member_safe: description || `Spent $${amount.toFixed(2)}`,
+    description_member_safe: description || `Spent ${amount} BBP Credits`,
     correlation_id: correlation_id || ledger_id,
   });
 
   await syncCachedBalance(base44, native_user_id, balanceAfter);
-
   return { success: true, ledger_id, balance_after: balanceAfter };
+}
+
+// ── HOLD / RELEASE / CONVERT (photo reveal owner-approval flow) ──
+
+// Reserve (hold) BBP Credits for a pending photo-reveal request. The credits
+// are NOT debited — they are reserved against the available balance until the
+// owner approves (convert) or the request is declined/expired/cancelled
+// (release). Idempotent on (user, idempotency_key).
+export async function holdCredits(base44, opts) {
+  const {
+    native_user_id, amount, reserved_for_type, reserved_for_id,
+    hold_expires_at, idempotency_key, description, correlation_id,
+  } = opts;
+
+  if (amount <= 0) return { success: false, reason: 'Hold amount must be positive' };
+
+  const existing = await findIdempotent(base44, native_user_id, idempotency_key);
+  if (existing) {
+    return {
+      success: existing.status === 'pending',
+      idempotent: true,
+      ledger_id: existing.ledger_id,
+      reservation_id: existing.reservation_id,
+    };
+  }
+
+  const available = await getAvailableBalance(base44, native_user_id);
+  if (available < amount) {
+    return {
+      success: false,
+      reason: 'insufficient_credits',
+      balance: available,
+      required: amount,
+    };
+  }
+
+  const reservation_id = newId();
+  const ledger_id = newId();
+  const totalBefore = await getCreditBalance(base44, native_user_id);
+
+  await base44.asServiceRole.entities[LEDGER_ENTITY].create({
+    ledger_id,
+    native_user_id,
+    entry_type: 'hold',
+    amount_delta: -amount,
+    balance_after: totalBefore, // total unchanged; available = total - reserved
+    source_type: reserved_for_type === 'photo_reveal' ? 'photo_reveal_hold' : 'photo_reveal_hold',
+    source_reference: reserved_for_id,
+    idempotency_key,
+    status: 'pending',
+    reservation_id,
+    reserved_for_type,
+    reserved_for_id,
+    hold_expires_at,
+    description_member_safe: description || `Reserved ${amount} BBP Credits for photo reveal request`,
+    correlation_id: correlation_id || ledger_id,
+  });
+
+  // Cached balance (total) is unchanged by a hold — only available changes.
+  return { success: true, ledger_id, reservation_id };
+}
+
+// Release a held reservation (decline, expiry, cancellation, block). Marks the
+// hold entry as 'expired' and writes a zero-delta 'release' audit entry. The
+// available balance is restored because the hold is no longer pending.
+// Idempotent on the release's own idempotency_key.
+export async function releaseHold(base44, opts) {
+  const { native_user_id, reservation_id, reason, idempotency_key, correlation_id } = opts;
+
+  const existing = await findIdempotent(base44, native_user_id, idempotency_key);
+  if (existing) {
+    return { success: true, idempotent: true, ledger_id: existing.ledger_id };
+  }
+
+  // Find the hold entry by reservation_id.
+  let holdEntry = null;
+  try {
+    const holds = await base44.asServiceRole.entities[LEDGER_ENTITY].filter({
+      native_user_id,
+      reservation_id,
+    });
+    holdEntry = holds.find((e) => e.entry_type === 'hold' && e.status === 'pending') || null;
+  } catch (e) {
+    console.error('[interactionCredits] releaseHold lookup failed:', e?.message || e);
+  }
+  if (!holdEntry) {
+    // Already released or never existed — idempotent success.
+    return { success: true, already_released: true };
+  }
+
+  // Mark the hold as expired (excluded from reserved balance).
+  await base44.asServiceRole.entities[LEDGER_ENTITY].update(holdEntry.id, {
+    status: 'expired',
+    staff_reason: reason || 'released',
+  });
+
+  // Write a zero-delta release audit entry.
+  const release_id = newId();
+  await base44.asServiceRole.entities[LEDGER_ENTITY].create({
+    ledger_id: release_id,
+    native_user_id,
+    entry_type: 'release',
+    amount_delta: 0,
+    balance_after: holdEntry.balance_after,
+    source_type: 'photo_reveal_release',
+    source_reference: reservation_id,
+    idempotency_key,
+    status: 'completed',
+    reservation_id,
+    description_member_safe: `Released reserved BBP Credits — ${reason || 'request closed'}`,
+    correlation_id: correlation_id || release_id,
+  });
+
+  return { success: true, ledger_id: release_id };
+}
+
+// Convert a held reservation into a completed debit (owner approved). The hold
+// entry's status changes from 'pending' to 'completed' and entry_type to
+// 'debit_reveal', finalizing the spend. Total balance drops by the amount.
+// Idempotent on the convert's own idempotency_key.
+export async function convertHoldToDebit(base44, opts) {
+  const { native_user_id, reservation_id, description, idempotency_key, correlation_id } = opts;
+
+  const existing = await findIdempotent(base44, native_user_id, idempotency_key);
+  if (existing) {
+    return { success: true, idempotent: true, ledger_id: existing.ledger_id, balance_after: existing.balance_after };
+  }
+
+  // Find the hold entry.
+  let holdEntry = null;
+  try {
+    const holds = await base44.asServiceRole.entities[LEDGER_ENTITY].filter({
+      native_user_id,
+      reservation_id,
+    });
+    holdEntry = holds.find((e) => e.entry_type === 'hold' && e.status === 'pending') || null;
+  } catch (e) {
+    console.error('[interactionCredits] convertHoldToDebit lookup failed:', e?.message || e);
+  }
+  if (!holdEntry) {
+    return { success: false, reason: 'hold_not_found_or_already_resolved' };
+  }
+
+  const amount = Math.abs(holdEntry.amount_delta || 0);
+  const totalBefore = await getCreditBalance(base44, native_user_id);
+  const balanceAfter = Math.round((totalBefore - amount) * 100) / 100;
+
+  // Convert the hold into a completed debit_reveal entry.
+  await base44.asServiceRole.entities[LEDGER_ENTITY].update(holdEntry.id, {
+    status: 'completed',
+    entry_type: 'debit_reveal',
+    amount_delta: -amount,
+    balance_after: balanceAfter,
+    description_member_safe: description || `Photo reveal approved — ${amount} BBP Credits`,
+    correlation_id: correlation_id || holdEntry.ledger_id,
+  });
+
+  await syncCachedBalance(base44, native_user_id, balanceAfter);
+  return { success: true, ledger_id: holdEntry.ledger_id, balance_after: balanceAfter };
 }
 
 // Reverse a prior debit (refund / chargeback / staff reversal). Creates a
@@ -177,7 +365,6 @@ export async function reverseDebit(base44, opts) {
     correlation_id: correlation_id || ledger_id,
   });
 
-  // Mark the original debit as reversed.
   try {
     const orig = await base44.asServiceRole.entities[LEDGER_ENTITY].filter({ ledger_id: original_ledger_id });
     if (orig[0]) {
@@ -188,7 +375,6 @@ export async function reverseDebit(base44, opts) {
   }
 
   await syncCachedBalance(base44, native_user_id, balanceAfter);
-
   return { success: true, ledger_id, balance_after: balanceAfter };
 }
 
@@ -214,18 +400,17 @@ export async function staffAdjust(base44, opts) {
     source_reference: null,
     idempotency_key,
     status: 'completed',
-    description_member_safe: amount > 0 ? 'Credit added by Nina Purple team' : 'Adjustment by Nina Purple team',
+    description_member_safe: amount > 0 ? 'BBP Credits added by Nina Purple team' : 'Adjustment by Nina Purple team',
     staff_reason,
     correlation_id: correlation_id || ledger_id,
   });
 
   await syncCachedBalance(base44, native_user_id, balanceAfter);
-
   return { success: true, ledger_id, balance_after: balanceAfter };
 }
 
 // Sync the cached credit_balance on UserProfile to match the ledger-derived
-// balance. Best-effort; the ledger remains authoritative.
+// total balance. Best-effort; the ledger remains authoritative.
 async function syncCachedBalance(base44, native_user_id, balance) {
   try {
     const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_id: native_user_id });
@@ -242,7 +427,7 @@ export async function getRecentLedger(base44, native_user_id, limit = 20) {
   try {
     const entries = await base44.asServiceRole.entities[LEDGER_ENTITY].filter({ native_user_id });
     return entries
-      .filter((e) => e.status === 'completed' || e.status === 'reversed')
+      .filter((e) => e.status === 'completed' || e.status === 'reversed' || e.status === 'pending' || e.status === 'expired')
       .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))
       .slice(0, limit);
   } catch (e) {

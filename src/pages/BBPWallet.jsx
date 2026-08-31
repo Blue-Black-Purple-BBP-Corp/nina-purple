@@ -5,6 +5,8 @@ import { useLang } from '@/lib/LanguageContext';
 import { base44 } from '@/api/base44Client';
 import RedemptionCatalogCard from '@/components/bbp/RedemptionCatalogCard';
 import CreditsModal from '@/components/CreditsModal';
+import PhotoRevealRequestCard from '@/components/photos/PhotoRevealRequestCard';
+import PhotoRevealStatusBadge from '@/components/photos/PhotoRevealStatusBadge';
 
 const LEDGER_LABELS = {
   credit_purchase: { en: 'Wallet top-up', fr: 'Recharge du portefeuille' },
@@ -30,18 +32,37 @@ export default function BBPWallet() {
   const [bbp, setBbp] = useState(null);
   const [loading, setLoading] = useState(true);
   const [creditsOpen, setCreditsOpen] = useState(false);
+  const [revealRequests, setRevealRequests] = useState({ outgoing: [], incoming: [], names: {} });
 
   useEffect(() => { loadWallet(); }, []);
 
   const loadWallet = async () => {
     setLoading(true);
     try {
-      const [entRes, bbpRes] = await Promise.all([
+      const [entRes, bbpRes, revealRes] = await Promise.all([
         base44.functions.invoke('getMemberAccessEntitlement', {}),
         base44.functions.invoke('getEngagementProfile', {}),
+        base44.functions.invoke('getPhotoRevealRequests', {}),
       ]);
       setEntitlement(entRes.data?.data || entRes.data || null);
       if (bbpRes.data) setBbp(bbpRes.data);
+      if (revealRes.data) {
+        const outgoing = revealRes.data.outgoing || [];
+        const incoming = revealRes.data.incoming || [];
+        // Resolve display names for the other party in each request.
+        const otherIds = [...new Set([
+          ...incoming.map(r => r.viewer_native_user_id),
+          ...outgoing.map(r => r.owner_native_user_id),
+        ])];
+        let names = {};
+        if (otherIds.length) {
+          try {
+            const profRes = await base44.functions.invoke('getConnectionProfiles', { user_ids: otherIds });
+            names = profRes.data?.profiles || {};
+          } catch {}
+        }
+        setRevealRequests({ outgoing, incoming, names });
+      }
     } catch (e) {
       console.warn('Wallet load failed:', e.message);
     } finally {
@@ -58,6 +79,8 @@ export default function BBPWallet() {
   }
 
   const credits = entitlement?.wallet_credit_balance ?? 0;
+  const reserved = entitlement?.wallet_reserved_balance ?? 0;
+  const available = entitlement?.wallet_available_balance ?? Math.max(0, credits - reserved);
   const recentLedger = entitlement?.recent_ledger || [];
   const bbpAvailable = bbp?.wallet?.available_points || 0;
   const bbpPending = bbp?.wallet?.pending_points || 0;
@@ -120,16 +143,22 @@ export default function BBPWallet() {
       <section className="glass-card rounded-3xl p-5 space-y-3">
         <div className="flex items-center gap-2">
           <Coins className="w-5 h-5 text-[#F5A800]" />
-          <h2 className="font-serif text-base text-foreground">{isFr ? 'Crédits d’Interaction' : 'Interaction Credits'}</h2>
+          <h2 className="font-serif text-base text-foreground">{isFr ? 'Crédits BBP' : 'BBP Credits'}</h2>
         </div>
         <div className="text-4xl font-serif font-bold text-[#F5A800]">
-          ${credits.toFixed(2)}
-          <span className="text-base text-foreground/40 font-body font-normal ml-1">USD</span>
+          {available.toFixed(2)}
+          <span className="text-base text-foreground/40 font-body font-normal ml-1">BBP</span>
         </div>
+        {reserved > 0 && (
+          <div className="flex items-center gap-1.5 text-foreground/50 text-xs">
+            <Clock className="w-3.5 h-3.5" />
+            {isFr ? `Réservés: ${reserved.toFixed(2)} BBP` : `Reserved: ${reserved.toFixed(2)} BBP`}
+          </div>
+        )}
         <p className="text-foreground/50 text-xs leading-relaxed">
           {isFr
-            ? 'Crédits prépayés utilisés pour déverrouiller des connexions et envoyer un message initial. Les réponses dans une conversation existante sont gratuites.'
-            : 'Prepaid credits used to unlock connections and send an initial message. Replies in an existing conversation are free.'}
+            ? '1 Crédit BBP = 1 $ USD pour les achats Nina Purple éligibles. Les Crédits BBP ne peuvent pas payer l’Adhésion Nina Purple. Ils ne sont pas de l’argent et ne peuvent pas être retirés, transférés, vendus ou échangés hors de Nina Purple.'
+            : '1 BBP Credit = $1 toward eligible Nina Purple purchases. BBP Credits cannot be used for Nina Purple Membership or membership renewals. They are not cash and cannot be withdrawn, transferred, sold, gifted, or exchanged outside Nina Purple.'}
         </p>
         <button onClick={() => setCreditsOpen(true)}
           className="w-full py-3 bg-[#F5A800] text-[#0B0510] rounded-full font-bold text-sm hover:bg-yellow-400 transition-all flex items-center justify-center gap-2">
@@ -138,28 +167,64 @@ export default function BBPWallet() {
         </button>
       </section>
 
-      {/* C. Photo Reveal Access */}
-      <section className="glass-card rounded-2xl p-4 space-y-2">
+      {/* C. Photo Reveal Requests */}
+      <section className="glass-card rounded-2xl p-4 space-y-3">
         <div className="flex items-center gap-2">
           <Camera className="w-4 h-4 text-[#7B2FBE]" />
-          <h3 className="font-serif text-sm text-foreground">{isFr ? 'Accès aux photos' : 'Photo Reveal Access'}</h3>
+          <h3 className="font-serif text-sm text-foreground">{isFr ? 'Demandes de révélation de photos' : 'Photo Reveal Requests'}</h3>
         </div>
         <p className="text-foreground/50 text-xs leading-relaxed">
           {isFr
-            ? 'L’accès aux photos d’un autre membre est accordé par déverrouillage de connexion avec vos crédits. Ce n’est pas un solde en espèces.'
-            : 'Access to another member’s photos is granted by connection unlock with your credits. This is not a cash balance.'}
+            ? 'Vos photos restent privées par défaut. Les autres membres peuvent demander l’accès, mais vous devez approuver chaque demande.'
+            : 'Your photos remain private by default. Other members can request access, but you must approve each request.'}
         </p>
+
+        {/* Incoming — owner approves/declines */}
+        {revealRequests.incoming.filter(r => r.request_status === 'pending_owner_approval').length > 0 && (
+          <div className="space-y-2">
+            <p className="text-foreground/60 text-xs font-semibold uppercase tracking-wider">{isFr ? 'À approuver' : 'Awaiting your approval'}</p>
+            {revealRequests.incoming
+              .filter(r => r.request_status === 'pending_owner_approval')
+              .map(r => (
+                <PhotoRevealRequestCard
+                  key={r.request_id}
+                  request={r}
+                  viewerName={revealRequests.names[r.viewer_native_user_id]?.display_name}
+                  onResolved={() => loadWallet()}
+                />
+              ))}
+          </div>
+        )}
+
+        {/* Outgoing — viewer sees status */}
+        {revealRequests.outgoing.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-foreground/60 text-xs font-semibold uppercase tracking-wider">{isFr ? 'Vos demandes' : 'Your requests'}</p>
+            {revealRequests.outgoing.slice(0, 5).map(r => (
+              <PhotoRevealStatusBadge
+                key={r.request_id}
+                request={r}
+                ownerName={revealRequests.names[r.owner_native_user_id]?.display_name}
+                onResolved={() => loadWallet()}
+              />
+            ))}
+          </div>
+        )}
+
+        {revealRequests.incoming.filter(r => r.request_status === 'pending_owner_approval').length === 0 && revealRequests.outgoing.length === 0 && (
+          <p className="text-foreground/40 text-xs text-center py-2">{isFr ? 'Aucune demande pour l’instant.' : 'No requests yet.'}</p>
+        )}
       </section>
 
       {/* D. BBP Points */}
       <section className="glass-card-gold rounded-2xl p-5 space-y-3">
         <div className="flex items-center gap-2">
           <Wallet className="w-5 h-5 text-[#F5A800]" />
-          <h2 className="font-serif text-base text-foreground">{isFr ? 'Points BBP' : 'BBP Points'}</h2>
+          <h2 className="font-serif text-base text-foreground">{isFr ? 'Récompenses BBP' : 'BBP Rewards'}</h2>
         </div>
         <div className="text-3xl font-serif font-bold text-[#F5A800]">
           {bbpAvailable}
-          <span className="text-sm text-foreground/40 font-body font-normal ml-1">BBP</span>
+          <span className="text-sm text-foreground/40 font-body font-normal ml-1">{isFr ? 'récompenses' : 'rewards'}</span>
         </div>
         <div className="flex items-center gap-1.5 text-foreground/50 text-xs">
           <Clock className="w-3.5 h-3.5" />
@@ -169,8 +234,8 @@ export default function BBPWallet() {
           <DollarSign className="w-3.5 h-3.5 text-[#F5A800] shrink-0 mt-0.5" />
           <p className="text-foreground/60 text-xs leading-relaxed">
             {isFr
-              ? '1 BBP = 1 $ USD pour les avantages éligibles. Les points BBP ne sont pas de l’argent, ne sont pas des crédits d’interaction, et ne peuvent pas être transférés.'
-              : '1 BBP = $1.00 USD toward eligible benefits. BBP Points are not cash, are not Interaction Credits, and cannot be transferred.'}
+              ? 'Récompenses gagnées sur la plateforme (1 BBP = 1 $). Distinctes de vos Crédits BBP. Non transférables, aucune valeur monétaire.'
+              : 'Rewards earned on the platform (1 BBP = $1). Separate from your BBP Credits. Non-transferable, no cash value.'}
           </p>
         </div>
       </section>

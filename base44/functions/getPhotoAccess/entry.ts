@@ -95,6 +95,26 @@ Deno.serve(async (req) => {
       // ── Active entitlement ──
       const entitlement = await getActiveEntitlement(base44, user.id, ownerId);
       if (entitlement) {
+        // ── Owner-approval policy check (defense-in-depth) ──
+        // An owner_approval_required entitlement must link to an approved
+        // PhotoRevealRequest. Legacy auto-grant entitlements are grandfathered.
+        if (entitlement.approval_policy_version === 'owner_approval_required' && entitlement.request_id) {
+          try {
+            const reqs = await base44.asServiceRole.entities.PhotoRevealRequest.filter({ request_id: entitlement.request_id });
+            const linkedReq = reqs[0];
+            if (!linkedReq || linkedReq.request_status !== 'approved') {
+              await writePhotoAudit(base44, {
+                viewer_native_user_id: user.id, owner_native_user_id: ownerId,
+                entitlement_id: entitlement.entitlement_id,
+                access_result: 'denied', source_type: entitlement.source_type, correlation_id,
+              });
+              results[ownerId] = { access_result: 'denied', photos: [] };
+              continue;
+            }
+          } catch (e) {
+            console.warn('[getPhotoAccess] request link check failed:', e.message);
+          }
+        }
         // Mandatory access-time membership check (decision 5). Even if the
         // webhook-driven status update is delayed or fails, a non-owner viewer
         // must hold an active membership/trial to receive private photos.

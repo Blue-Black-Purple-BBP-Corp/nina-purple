@@ -1,6 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.36';
 import { PLAN_LIMITS, getPricingForCompatibility, getMonthStart, hasActiveMembership } from '../../shared/planLimits.ts';
-import { grantEntitlement } from '../../shared/photoAccess.ts';
 import { computeMembershipStatus, isEntitledForPaidActions } from '../../shared/membershipState.ts';
 import { evaluateFoundingEligibility } from '../../shared/foundingMembers.ts';
 import { debitInteraction, reverseDebit } from '../../shared/interactionCredits.ts';
@@ -79,11 +78,6 @@ Deno.serve(async (req) => {
           await base44.asServiceRole.entities.UserProfile.update(profile.id, {
             free_profile_unlocks_used: freeUsed + 1,
           });
-          await grantEntitlement(base44, {
-            viewer_id: user.id, owner_id: conn.to_user_id,
-            source_type: 'paid_credit', source_connection_id: conn.id,
-            correlation_id: `unlock-${conn.id}`,
-          });
           return Response.json({ success: true, unlock_cost_paid: 0, free_unlock: true });
         }
       }
@@ -128,29 +122,24 @@ Deno.serve(async (req) => {
         }, { status: 403 });
       }
 
-      // Record the unlock + grant the photo-reveal entitlement. If the grant
-      // fails, reverse the debit so the member is not charged.
+      // Record the unlock. Photo reveal is now a separate owner-approved flow
+      // (requestPhotoReveal) — unlockConnection grants messaging only, not photos.
       try {
         await base44.asServiceRole.entities.Connection.update(conn.id, {
           is_unlocked: true,
           unlock_cost_paid: pricing.unlock,
         });
-        await grantEntitlement(base44, {
-          viewer_id: user.id, owner_id: conn.to_user_id,
-          source_type: 'paid_credit', source_connection_id: conn.id,
-          correlation_id: idempotencyKey,
-        });
-      } catch (grantErr) {
-        console.error('[unlockConnection] entitlement grant failed:', grantErr.message);
+      } catch (updateErr) {
+        console.error('[unlockConnection] connection update failed:', updateErr.message);
         await reverseDebit(base44, {
           native_user_id: user.id,
           original_ledger_id: debit.ledger_id,
           amount: pricing.unlock,
-          reason: 'unlock_entitlement_grant_failed',
+          reason: 'unlock_update_failed',
           idempotency_key: `reverse-${idempotencyKey}`,
           correlation_id: idempotencyKey,
         });
-        return Response.json({ success: false, reason: 'Unable to complete the unlock.', code: 'grant_failed' }, { status: 500 });
+        return Response.json({ success: false, reason: 'Unable to complete the unlock.', code: 'update_failed' }, { status: 500 });
       }
 
       return Response.json({ success: true, unlock_cost_paid: pricing.unlock, balance_after: debit.balance_after });

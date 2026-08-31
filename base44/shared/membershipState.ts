@@ -18,6 +18,7 @@
 
 import { hasActiveMembership as hasLegacyMembership } from './planLimits.ts';
 import { evaluateFoundingEligibility } from './foundingMembers.ts';
+import { getReservedBalance } from './interactionCredits.ts';
 
 // Membership status values (member-safe).
 export const MEMBERSHIP_STATUS = {
@@ -177,6 +178,18 @@ export async function buildMemberAccessEntitlement(base44, native_user_id, opts 
   const allowed_paid_actions = isEntitledForPaidActions(membership_status) && !isStaffMemberMode;
 
   const walletBalance = profile?.credit_balance ?? 0;
+  const reservedBalance = await getReservedBalance(base44, native_user_id);
+  const availableBalance = Math.round((walletBalance - reservedBalance) * 100) / 100;
+
+  // Count pending photo-reveal requests (incoming for the owner).
+  let pending_reveal_requests = 0;
+  try {
+    const incoming = await base44.asServiceRole.entities.PhotoRevealRequest.filter({
+      owner_native_user_id: native_user_id,
+      request_status: 'pending_owner_approval',
+    });
+    pending_reveal_requests = incoming.length;
+  } catch {}
 
   // Feature matrix.
   const features = buildFeatureMatrix(membership_status, profile, walletBalance);
@@ -192,6 +205,9 @@ export async function buildMemberAccessEntitlement(base44, native_user_id, opts 
     founding_member_trial_ends_at: foundingBenefit?.trial_ends_at || null,
     allowed_paid_actions,
     wallet_credit_balance: walletBalance,
+    wallet_reserved_balance: reservedBalance,
+    wallet_available_balance: availableBalance,
+    pending_reveal_requests,
     photo_reveal_eligibility: features.reveal,
     connection_credit_eligibility: features.unlock,
     allowed_features: features.allowed,

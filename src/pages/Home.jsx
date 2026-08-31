@@ -139,7 +139,7 @@ export default function Home() {
         </div>
         <Link to="/wallet" className="flex items-center gap-1.5 px-3 py-1.5 glass-card-gold rounded-full text-[#F5A800] text-xs font-medium hover:opacity-80 transition-opacity">
           <Coins className="w-3.5 h-3.5" />
-          <span>${credits} {t('home.credits')}</span>
+          <span>{credits} BBP</span>
         </Link>
       </motion.div>
 

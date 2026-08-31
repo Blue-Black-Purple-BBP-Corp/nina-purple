@@ -38,7 +38,7 @@ export default function Connections() {
   const { data: limitsData, refresh: refreshLimits } = usePlanLimits();
 
   // Photos for unlocked connections come via authorized delivery (getPhotoAccess).
-  const entitledIds = connections.filter(c => c.is_unlocked).map(c => c.to_user_id);
+  const entitledIds = connections.map(c => c.to_user_id);
   const { photoData, refresh: refreshPhotos } = usePhotoAccess(entitledIds, JSON.stringify(entitledIds));
 
   useEffect(() => {
@@ -94,19 +94,20 @@ export default function Connections() {
     }
   };
 
-  const handleReveal = async (conn) => {
+  const handleRequestReveal = async (conn) => {
     setLimitError('');
-    // Galactic subscription-perk: reveal photos via a viewer-specific entitlement.
     try {
-      const res = await base44.functions.invoke('revealPhotos', { owner_user_id: conn.to_user_id });
+      const res = await base44.functions.invoke('requestPhotoReveal', { owner_user_id: conn.to_user_id });
       if (res.data?.success) {
+        setLimitError('');
         refreshPhotos();
+        loadData();
       } else {
-        setLimitError(res.data?.reason || (lang === 'fr' ? 'Révélation refusée.' : 'Reveal denied.'));
-        setPricingOpen(true);
+        setLimitError(res.data?.reason || (lang === 'fr' ? 'Demande refusée.' : 'Request denied.'));
+        if (res.data?.code === 'insufficient_credits') setPricingOpen(true);
       }
     } catch (e) {
-      setLimitError(lang === 'fr' ? 'Une erreur est survenue.' : 'Something went wrong.');
+      setLimitError(e?.response?.data?.reason || (lang === 'fr' ? 'Une erreur est survenue.' : 'Something went wrong.'));
     }
   };
 
@@ -305,24 +306,22 @@ export default function Connections() {
                 {/* Actions */}
                 <div className="p-4 flex gap-2">
                   {!conn.is_unlocked ? (
-                    <>
-                      <button onClick={() => setSelectedUnlock(conn)}
-                        className="flex-1 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all bg-[rgba(245,168,0,0.1)] border border-[rgba(245,168,0,0.3)] text-[#F5A800] hover:bg-[rgba(245,168,0,0.2)]">
-                        <Unlock className="w-4 h-4" />
-                        {t('connections.unlock')} · ${pricing.unlock}
-                      </button>
-                      {myProfile?.subscription_tier === 'galactic' && !primaryPhotoUrl(photoData, conn.to_user_id) && (
-                        <button onClick={() => handleReveal(conn)}
-                          className="px-4 py-3 glass-card rounded-xl text-[#F0E6FF]/60 hover:text-[#F5A800] transition-all"
-                          title={lang === 'fr' ? 'Révéler les photos (avantage Galactic)' : 'Reveal photos (Galactic perk)'}>
-                          <Camera className="w-4 h-4" />
-                        </button>
-                      )}
-                    </>
+                    <button onClick={() => setSelectedUnlock(conn)}
+                      className="flex-1 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all bg-[rgba(245,168,0,0.1)] border border-[rgba(245,168,0,0.3)] text-[#F5A800] hover:bg-[rgba(245,168,0,0.2)]">
+                      <Unlock className="w-4 h-4" />
+                      {t('connections.unlock')} · ${pricing.unlock}
+                    </button>
                   ) : (
                     <button className="flex-1 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 bg-[#F5A800] text-[#0B0510] hover:bg-yellow-400 transition-all">
                       <MessageCircle className="w-4 h-4" />
-                      {t('connections.send_message')} · ${pricing.msg.toFixed(2)}
+                      {t('connections.send_message')}
+                    </button>
+                  )}
+                  {!primaryPhotoUrl(photoData, conn.to_user_id) && (
+                    <button onClick={() => handleRequestReveal(conn)}
+                      className="px-4 py-3 glass-card rounded-xl text-[#F0E6FF]/60 hover:text-[#F5A800] transition-all"
+                      title={lang === 'fr' ? 'Demander la révélation des photos' : 'Request photo reveal'}>
+                      <Camera className="w-4 h-4" />
                     </button>
                   )}
                 </div>
@@ -361,8 +360,8 @@ export default function Connections() {
                     <span className="text-[#F5A800] font-bold">${getPricingForCompatibility(selectedUnlock.compatibility_score || 0).unlock}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-[#F0E6FF]/60">{lang === 'fr' ? 'Coût par message' : 'Per message cost'}</span>
-                    <span className="text-[#F0E6FF]/80">${getPricingForCompatibility(selectedUnlock.compatibility_score || 0).msg.toFixed(2)}</span>
+                    <span className="text-[#F0E6FF]/60">{lang === 'fr' ? 'Message initial' : 'First message'}</span>
+                    <span className="text-[#F0E6FF]/80">1 BBP</span>
                   </div>
                 </div>
                 {limitError && (

@@ -51,8 +51,8 @@ export default function PrivacySettingsModal({ isOpen, onClose, userProfile, onU
               <Shield className="w-4 h-4 text-[#7B2FBE] shrink-0 mt-0.5" />
               <p className="text-[#F0E6FF]/60 text-xs leading-relaxed">
                 {lang === 'fr'
-                  ? 'Toutes vos photos sont privées par défaut. Elles ne sont visibles que par vous et les membres qui déverrouillent votre profil via le flux de paiement. Ce réglage ne peut pas être désactivé.'
-                  : 'All your photos are private by default. They are visible only to you and members who unlock your profile through the paid flow. This cannot be turned off.'}
+                  ? "Vos photos restent privées par défaut. Les autres membres peuvent demander l\u2019accès, mais vous devez approuver chaque demande avant que vos photos leur soient montrées."
+                  : 'Your photos remain private by default. Other members can request access, but you must approve each request before your photos are shown to them.'}
               </p>
             </div>
           </div>
