@@ -58,6 +58,7 @@ Deno.serve(async (req) => {
       } catch (e) { /* non-fatal — default false */ }
 
       // Return only the public-safe subset — never phone, birthdate, sexual_orientation, relationship_status
+      const connState = connectionMap[uid] || {};
       profileMap[uid] = {
         user_id: p.user_id,
         display_name: p.show_in_listings !== false ? p.display_name : null,
@@ -65,7 +66,7 @@ Deno.serve(async (req) => {
         city: p.city,
         country: p.country,
         dating_archetype: p.dating_archetype,
-        bio: conn.is_unlocked ? p.bio : null,
+        bio: connState.is_unlocked ? p.bio : null,
         zodiac: p.zodiac,
         gender_pronoun: p.gender_pronoun,
         paired_status: p.paired_status,

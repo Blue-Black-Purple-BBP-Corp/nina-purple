@@ -75,6 +75,23 @@
     "questions_answered": {
       "type": "number",
       "default": 0
+    },
+    "compatibility_version": {
+      "type": "number",
+      "default": 1
+    },
+    "compatibility_updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "compatibility_edit_status": {
+      "type": "string",
+      "enum": [
+        "not_started",
+        "draft",
+        "saved"
+      ],
+      "default": "not_started"
     }
   },
   "required": [

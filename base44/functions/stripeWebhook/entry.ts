@@ -9,6 +9,32 @@ const CREDIT_AMOUNTS = {
   wallet_100: 100,
 };
 
+// Map a Stripe subscription object to the expanded subscription_status enum
+// (decision 3). Preserves founding-trial and legacy billing_exempt markers.
+function mapStripeSubStatus(sub, profile) {
+  const isFounding = sub.metadata?.founding_member_trial === 'true';
+  const status = sub.status;
+  const cancelAtPeriodEnd = sub.cancel_at_period_end;
+
+  if (isFounding && status === 'trialing') return 'trial_active';
+
+  switch (status) {
+    case 'active':
+      return cancelAtPeriodEnd ? 'cancelled_active_until_period_end' : 'active';
+    case 'trialing':
+      return 'trial_active';
+    case 'past_due':
+      return 'past_due';
+    case 'canceled':
+      return 'cancelled_expired';
+    case 'unpaid':
+    case 'incomplete':
+      return 'past_due';
+    default:
+      return profile?.subscription_status || 'none';
+  }
+}
+
 Deno.serve(async (req) => {
   const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
   const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET');
@@ -78,9 +104,22 @@ Deno.serve(async (req) => {
             await base44.asServiceRole.entities.UserProfile.update(profile.id, { subscription_tier: tier });
             console.info('[stripeWebhook] Updated subscription to', tier, 'for user:', user_id);
           } else if (CREDIT_AMOUNTS[price_key]) {
-            const newBalance = (profile.credit_balance || 0) + CREDIT_AMOUNTS[price_key];
-            await base44.asServiceRole.entities.UserProfile.update(profile.id, { credit_balance: newBalance });
-            console.info('[stripeWebhook] Added', CREDIT_AMOUNTS[price_key], 'credits — new balance:', newBalance);
+            // Credit via the append-only ledger (decision 2). Idempotent on the
+            // Stripe event ID, so duplicate webhook deliveries don't double-credit.
+            try {
+              const { creditFromTopup } = await import('../../shared/interactionCredits.ts');
+              const res = await creditFromTopup(base44, {
+                native_user_id: user_id,
+                amount: CREDIT_AMOUNTS[price_key],
+                source_reference: session.id,
+                idempotency_key: `topup-${event.id}`,
+                correlation_id: event.id,
+                description: `Added $${CREDIT_AMOUNTS[price_key].toFixed(2)} to your wallet`,
+              });
+              console.info('[stripeWebhook] Credited', CREDIT_AMOUNTS[price_key], 'via ledger — balance:', res.balance_after, 'idempotent:', res.idempotent);
+            } catch (ledgerErr) {
+              console.error('[stripeWebhook] Ledger credit failed:', ledgerErr.message);
+            }
           }
         }
       }
@@ -120,6 +159,29 @@ Deno.serve(async (req) => {
           }
         } catch (fbErr) {
           console.error('[stripeWebhook] Founding benefit expire failed:', fbErr.message);
+        }
+      }
+    }
+
+    // ── Subscription state updates: map Stripe status → subscription_status ──
+    if (event.type === 'customer.subscription.updated') {
+      const sub = event.data.object;
+      const subUserId = sub.metadata?.user_id;
+      if (subUserId) {
+        try {
+          const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_id: subUserId });
+          if (profiles.length) {
+            const p = profiles[0];
+            const newStatus = mapStripeSubStatus(sub, p);
+            const renewalDate = sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : p.subscription_renewal_date;
+            await base44.asServiceRole.entities.UserProfile.update(p.id, {
+              subscription_status: newStatus,
+              subscription_renewal_date: renewalDate,
+            });
+            console.info('[stripeWebhook] subscription.updated →', newStatus, 'for user:', subUserId);
+          }
+        } catch (e) {
+          console.error('[stripeWebhook] subscription.updated handler error:', e.message);
         }
       }
     }

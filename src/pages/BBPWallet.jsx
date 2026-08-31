@@ -1,54 +1,52 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Wallet, ArrowLeft, Award, Clock, TrendingUp, Info, Loader2, Gift, DollarSign } from 'lucide-react';
+import { Wallet, ArrowLeft, Award, Clock, TrendingUp, Info, Loader2, Gift, DollarSign, Crown, Camera, Coins, ArrowRight, Check } from 'lucide-react';
 import { useLang } from '@/lib/LanguageContext';
 import { base44 } from '@/api/base44Client';
 import RedemptionCatalogCard from '@/components/bbp/RedemptionCatalogCard';
+import CreditsModal from '@/components/CreditsModal';
 
-const SOURCE_LABELS = {
-  profile_complete: { en: 'Profile Completion', fr: 'Complétion du Profil' },
-  orientation_complete: { en: 'Community Orientation', fr: 'Orientation Communautaire' },
-  account_confirmation: { en: 'Account Confirmation', fr: 'Confirmation de Compte' },
-  meetup_confirmation: { en: 'Mutual "We\'ve met" Confirmation', fr: 'Confirmation "On s\'est rencontrés"' },
-  referral_qualified: { en: 'Qualified Referral', fr: 'Parrainage Qualifié' },
-  event_attendance: { en: 'Event Attendance', fr: 'Présence à un Événement' },
-  experience_attendance: { en: 'Experience Attendance', fr: 'Présence à une Expérience' },
-  profile_refresh: { en: 'Profile Refresh', fr: 'Mise à jour du Profil' },
-  community_contribution: { en: 'Community Contribution', fr: 'Contribution Communautaire' },
-  social_proof: { en: 'Social Proof', fr: 'Preuve Sociale' },
-  redemption: { en: 'Redemption', fr: 'Échange' },
-  staff_adjustment: { en: 'Staff Adjustment', fr: 'Ajustement Staff' },
+const LEDGER_LABELS = {
+  credit_purchase: { en: 'Wallet top-up', fr: 'Recharge du portefeuille' },
+  debit_unlock: { en: 'Connection unlock', fr: 'Déverrouillage de connexion' },
+  debit_outreach: { en: 'Initial message', fr: 'Message initial' },
+  debit_reveal: { en: 'Photo reveal', fr: 'Révélation de photo' },
+  reversal: { en: 'Reversal / refund', fr: 'Inversion / remboursement' },
+  staff_adjustment: { en: 'Team adjustment', fr: 'Ajustement équipe' },
+  expiry: { en: 'Credit expired', fr: 'Crédit expiré' },
 };
 
-const STATUS_LABELS = {
-  pending: { en: 'Pending', fr: 'En attente' },
-  available: { en: 'Available', fr: 'Disponible' },
-  redeemed: { en: 'Redeemed', fr: 'Échangé' },
-  reversed: { en: 'Reversed', fr: 'Inversé' },
-  expired: { en: 'Expired', fr: 'Expiré' },
-  held: { en: 'On Hold', fr: 'Suspendu' },
-  under_review: { en: 'Under Review', fr: 'En Révision' },
-};
-
+// Unified private Wallet & Credits page. Clearly separates the four member
+// balances that have different meanings (decision 5):
+//   A. Membership — status, renewal/end, manage
+//   B. Interaction Credits — prepaid USD wallet, recharge, transaction history
+//   C. Photo Reveal Access — entitlement-based, not a cash wallet
+//   D. BBP Points — member-benefit points (only if active)
+// Never mixes them into one ambiguous balance.
 export default function BBPWallet() {
   const { lang } = useLang();
   const isFr = lang === 'fr';
-  const [data, setData] = useState(null);
+  const [entitlement, setEntitlement] = useState(null);
+  const [bbp, setBbp] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [creditsOpen, setCreditsOpen] = useState(false);
 
-  useEffect(() => {
-    loadWallet();
-  }, []);
+  useEffect(() => { loadWallet(); }, []);
 
   const loadWallet = async () => {
     setLoading(true);
     try {
-      const res = await base44.functions.invoke('getEngagementProfile', {});
-      if (res.data) setData(res.data);
+      const [entRes, bbpRes] = await Promise.all([
+        base44.functions.invoke('getMemberAccessEntitlement', {}),
+        base44.functions.invoke('getEngagementProfile', {}),
+      ]);
+      setEntitlement(entRes.data?.data || entRes.data || null);
+      if (bbpRes.data) setBbp(bbpRes.data);
     } catch (e) {
-      console.warn('getEngagementProfile failed:', e.message);
+      console.warn('Wallet load failed:', e.message);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   if (loading) {
@@ -59,179 +57,166 @@ export default function BBPWallet() {
     );
   }
 
-  if (!data) {
-    return (
-      <div className="px-4 py-16 max-w-lg mx-auto text-center">
-        <p className="text-[#F0E6FF]/50 text-sm">
-          {isFr ? 'Impossible de charger le portefeuille.' : 'Unable to load wallet.'}
-        </p>
-      </div>
-    );
-  }
+  const credits = entitlement?.wallet_credit_balance ?? 0;
+  const recentLedger = entitlement?.recent_ledger || [];
+  const bbpAvailable = bbp?.wallet?.available_points || 0;
+  const bbpPending = bbp?.wallet?.pending_points || 0;
+  const membershipStatus = entitlement?.membership_status || 'payment_required';
+  const membershipEndsAt = entitlement?.membership_ends_at;
 
-  const { wallet, recent_ledger, engagement_profile } = data;
-  const available = wallet?.available_points || 0;
-  const pending = wallet?.pending_points || 0;
-  const lifetimeEarned = wallet?.lifetime_earned || 0;
-  const lifetimeRedeemed = wallet?.lifetime_redeemed || 0;
-  const lifetimeReversed = wallet?.lifetime_reversed || 0;
-  const expired = wallet?.expired_points || 0;
+  const statusLabel = (() => {
+    const map = {
+      trial_active: isFr ? 'Essai actif' : 'Trial active',
+      membership_active: isFr ? 'Adhésion active' : 'Membership active',
+      grace_period: isFr ? 'Période de grâce' : 'Grace period',
+      payment_past_due: isFr ? 'Paiement en retard' : 'Payment past due',
+      cancelled_active_until_period_end: isFr ? 'Active jusqu’à la fin' : 'Active until period end',
+      cancelled_expired: isFr ? 'Expirée' : 'Expired',
+      payment_required: isFr ? 'Aucune adhésion' : 'No membership',
+      suspended: isFr ? 'Suspendu' : 'Suspended',
+      restricted: isFr ? 'Restreint' : 'Restricted',
+      admin_member_mode: isFr ? 'Mode Membre' : 'Member Mode',
+    };
+    return map[membershipStatus] || membershipStatus;
+  })();
+
+  const statusColor = ['trial_active', 'membership_active', 'grace_period', 'cancelled_active_until_period_end'].includes(membershipStatus) ? '#F5A800' : '#9CA3AF';
 
   return (
     <div className="px-4 py-6 max-w-lg mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <Link to="/profile" className="text-[#F0E6FF]/40 hover:text-[#F0E6FF] transition-colors">
+        <Link to="/profile" className="text-foreground/40 hover:text-foreground transition-colors">
           <ArrowLeft className="w-5 h-5" />
         </Link>
-        <h1 className="font-serif text-2xl text-[#F0E6FF]">
-          {isFr ? 'Portefeuille BBP' : 'BBP Wallet'}
-        </h1>
+        <h1 className="font-serif text-2xl text-foreground">{isFr ? 'Portefeuille et crédits' : 'Wallet & credits'}</h1>
       </div>
 
-      {/* Balance card */}
-      <div className="glass-card-gold rounded-3xl p-6 space-y-4">
+      {/* A. Membership */}
+      <section className="glass-card-gold rounded-3xl p-5 space-y-3">
         <div className="flex items-center gap-2">
-          <Wallet className="w-5 h-5 text-[#F5A800]" />
-          <span className="text-[#F0E6FF]/60 text-sm font-medium">
-            {isFr ? 'Solde BBP' : 'BBP Balance'}
+          <Crown className="w-5 h-5 text-[#F5A800]" />
+          <h2 className="font-serif text-base text-foreground">{isFr ? 'Adhésion' : 'Membership'}</h2>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="px-2.5 py-1 rounded-full text-xs font-semibold" style={{ background: `${statusColor}15`, color: statusColor, border: `1px solid ${statusColor}30` }}>
+            {statusLabel}
           </span>
+          <span className="text-foreground/50 text-xs">{entitlement?.plan_name}</span>
+        </div>
+        {membershipEndsAt && (
+          <p className="text-foreground/50 text-xs">
+            {['trial_active', 'cancelled_active_until_period_end'].includes(membershipStatus)
+              ? (isFr ? `Fin de l’accès le ${new Date(membershipEndsAt).toLocaleDateString(isFr ? 'fr-CA' : 'en-US')}` : `Access ends ${new Date(membershipEndsAt).toLocaleDateString(isFr ? 'fr-CA' : 'en-US')}`)
+              : (isFr ? `Renouvellement le ${new Date(membershipEndsAt).toLocaleDateString(isFr ? 'fr-CA' : 'en-US')}` : `Renews ${new Date(membershipEndsAt).toLocaleDateString(isFr ? 'fr-CA' : 'en-US')}`)}
+          </p>
+        )}
+        <Link to="/membership" className="text-[#F5A800] text-xs font-semibold hover:opacity-80 flex items-center gap-1">
+          {isFr ? 'Gérer l’adhésion' : 'Manage membership'} <ArrowRight className="w-3.5 h-3.5" />
+        </Link>
+      </section>
+
+      {/* B. Interaction Credits */}
+      <section className="glass-card rounded-3xl p-5 space-y-3">
+        <div className="flex items-center gap-2">
+          <Coins className="w-5 h-5 text-[#F5A800]" />
+          <h2 className="font-serif text-base text-foreground">{isFr ? 'Crédits d’Interaction' : 'Interaction Credits'}</h2>
         </div>
         <div className="text-4xl font-serif font-bold text-[#F5A800]">
-          {available}
-          <span className="text-lg text-[#F0E6FF]/40 ml-2">BBP</span>
+          ${credits.toFixed(2)}
+          <span className="text-base text-foreground/40 font-body font-normal ml-1">USD</span>
         </div>
-        <div className="grid grid-cols-2 gap-3 pt-2">
-          <div className="p-3 rounded-xl bg-[rgba(245,168,0,0.05)]">
-            <div className="flex items-center gap-1.5 mb-1">
-              <Clock className="w-3.5 h-3.5 text-[#F5A800]/60" />
-              <span className="text-[#F0E6FF]/50 text-xs">{isFr ? 'En attente' : 'Pending'}</span>
-            </div>
-            <p className="text-[#F0E6FF] font-bold text-lg">{pending}</p>
-          </div>
-          <div className="p-3 rounded-xl bg-[rgba(123,47,190,0.05)]">
-            <div className="flex items-center gap-1.5 mb-1">
-              <TrendingUp className="w-3.5 h-3.5 text-[#7B2FBE]/60" />
-              <span className="text-[#F0E6FF]/50 text-xs">{isFr ? 'Total gagné' : 'Lifetime Earned'}</span>
-            </div>
-            <p className="text-[#F0E6FF] font-bold text-lg">{lifetimeEarned}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Exact legal summary — required text */}
-      <div className="glass-card-gold rounded-2xl p-4 flex items-start gap-3">
-        <DollarSign className="w-4 h-4 text-[#F5A800] shrink-0 mt-0.5" />
-        <p className="text-[#F0E6FF]/70 text-xs leading-relaxed font-medium">
+        <p className="text-foreground/50 text-xs leading-relaxed">
           {isFr
-            ? '1 BBP Point = USD $1.00 toward eligible Nina Purple benefits. BBP Points are not cash, cannot be transferred, and are subject to BBP Points Rules.'
-            : '1 BBP Point = USD $1.00 toward eligible Nina Purple benefits. BBP Points are not cash, cannot be transferred, and are subject to BBP Points Rules.'}
+            ? 'Crédits prépayés utilisés pour déverrouiller des connexions et envoyer un message initial. Les réponses dans une conversation existante sont gratuites.'
+            : 'Prepaid credits used to unlock connections and send an initial message. Replies in an existing conversation are free.'}
         </p>
-      </div>
+        <button onClick={() => setCreditsOpen(true)}
+          className="w-full py-3 bg-[#F5A800] text-[#0B0510] rounded-full font-bold text-sm hover:bg-yellow-400 transition-all flex items-center justify-center gap-2">
+          <DollarSign className="w-4 h-4" />
+          {isFr ? 'Recharger des crédits' : 'Recharge credits'}
+        </button>
+      </section>
 
-      {/* Face value USD + expiry info */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="glass-card rounded-2xl p-4">
-          <div className="flex items-center gap-1.5 mb-1">
-            <DollarSign className="w-3.5 h-3.5 text-[#F5A800]/60" />
-            <span className="text-[#F0E6FF]/50 text-xs">{isFr ? 'Valeur disponible (USD)' : 'Available Value (USD)'}</span>
-          </div>
-          <p className="text-[#F5A800] font-bold text-lg">${available}</p>
+      {/* C. Photo Reveal Access */}
+      <section className="glass-card rounded-2xl p-4 space-y-2">
+        <div className="flex items-center gap-2">
+          <Camera className="w-4 h-4 text-[#7B2FBE]" />
+          <h3 className="font-serif text-sm text-foreground">{isFr ? 'Accès aux photos' : 'Photo Reveal Access'}</h3>
         </div>
-        <div className="glass-card rounded-2xl p-4">
-          <div className="flex items-center gap-1.5 mb-1">
-            <Clock className="w-3.5 h-3.5 text-[#7B2FBE]/60" />
-            <span className="text-[#F0E6FF]/50 text-xs">{isFr ? 'Expiré (à vie)' : 'Expired (lifetime)'}</span>
-          </div>
-          <p className="text-[#F0E6FF] font-bold text-lg">{expired}</p>
-        </div>
-      </div>
-
-      {/* Expiry notice */}
-      <div className="glass-card rounded-2xl p-4 flex items-start gap-3">
-        <Info className="w-4 h-4 text-[#F0E6FF]/40 shrink-0 mt-0.5" />
-        <p className="text-[#F0E6FF]/50 text-xs leading-relaxed">
+        <p className="text-foreground/50 text-xs leading-relaxed">
           {isFr
-            ? 'Les points disponibles expirent 12 mois après leur date de disponibilité. Les points en attente n\'expirent pas tant qu\'ils sont en attente.'
-            : 'Available points expire 12 months after their available date. Pending points do not expire while pending.'}
+            ? 'L’accès aux photos d’un autre membre est accordé par déverrouillage de connexion (crédits) ou par l’avantage Galactic. Ce n’est pas un solde en espèces.'
+            : 'Access to another member’s photos is granted by connection unlock (credits) or the Galactic perk. This is not a cash balance.'}
         </p>
-      </div>
+      </section>
 
-      {/* Recent activity */}
-      <div>
-        <h2 className="font-serif text-lg text-[#F0E6FF] mb-3">
-          {isFr ? 'Activité récente' : 'Recent Activity'}
-        </h2>
-        {(!recent_ledger || recent_ledger.length === 0) ? (
+      {/* D. BBP Points */}
+      <section className="glass-card-gold rounded-2xl p-5 space-y-3">
+        <div className="flex items-center gap-2">
+          <Wallet className="w-5 h-5 text-[#F5A800]" />
+          <h2 className="font-serif text-base text-foreground">{isFr ? 'Points BBP' : 'BBP Points'}</h2>
+        </div>
+        <div className="text-3xl font-serif font-bold text-[#F5A800]">
+          {bbpAvailable}
+          <span className="text-sm text-foreground/40 font-body font-normal ml-1">BBP</span>
+        </div>
+        <div className="flex items-center gap-1.5 text-foreground/50 text-xs">
+          <Clock className="w-3.5 h-3.5" />
+          {isFr ? 'En attente' : 'Pending'}: {bbpPending}
+        </div>
+        <div className="flex items-start gap-2 pt-1">
+          <DollarSign className="w-3.5 h-3.5 text-[#F5A800] shrink-0 mt-0.5" />
+          <p className="text-foreground/60 text-xs leading-relaxed">
+            {isFr
+              ? '1 BBP = 1 $ USD pour les avantages éligibles. Les points BBP ne sont pas de l’argent, ne sont pas des crédits d’interaction, et ne peuvent pas être transférés.'
+              : '1 BBP = $1.00 USD toward eligible benefits. BBP Points are not cash, are not Interaction Credits, and cannot be transferred.'}
+          </p>
+        </div>
+      </section>
+
+      {/* Recent transactions (Interaction Credits ledger) */}
+      <section className="space-y-3">
+        <h2 className="font-serif text-lg text-foreground">{isFr ? 'Activité des crédits' : 'Credit activity'}</h2>
+        {recentLedger.length === 0 ? (
           <div className="glass-card rounded-2xl p-6 text-center">
-            <Gift className="w-8 h-8 text-[#F0E6FF]/20 mx-auto mb-2" />
-            <p className="text-[#F0E6FF]/40 text-sm">
-              {isFr ? 'Aucune activité pour l\'instant. Complétez votre profil pour gagner des points !' : 'No activity yet. Complete your profile to earn points!'}
+            <Gift className="w-7 h-7 text-foreground/20 mx-auto mb-2" />
+            <p className="text-foreground/40 text-sm">
+              {isFr ? 'Aucune activité de crédit pour l’instant.' : 'No credit activity yet.'}
             </p>
           </div>
         ) : (
           <div className="space-y-2">
-            {recent_ledger.map((entry) => {
-              const label = SOURCE_LABELS[entry.source_type] || { en: entry.source_type, fr: entry.source_type };
-              const statusLabel = STATUS_LABELS[entry.status] || { en: entry.status, fr: entry.status };
-              const isPositive = entry.points_delta > 0;
+            {recentLedger.map((entry) => {
+              const label = LEDGER_LABELS[entry.entry_type] || { en: entry.entry_type, fr: entry.entry_type };
+              const isPositive = (entry.amount_delta || 0) > 0;
               return (
-                <div key={entry.id} className="glass-card rounded-xl p-3 flex items-center justify-between">
+                <div key={entry.ledger_id} className="glass-card rounded-xl p-3 flex items-center justify-between">
                   <div className="flex-1 min-w-0">
-                    <p className="text-[#F0E6FF] text-sm font-medium truncate">
-                      {isFr ? label.fr : label.en}
+                    <p className="text-foreground text-sm font-medium truncate">{isFr ? label.fr : label.en}</p>
+                    <p className="text-foreground/30 text-[10px]">
+                      {new Date(entry.created_date).toLocaleDateString(isFr ? 'fr-CA' : 'en-US', { month: 'short', day: 'numeric' })}
                     </p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span
-                        className="text-[10px] px-1.5 py-0.5 rounded-full"
-                        style={{
-                          background: entry.status === 'available' ? 'rgba(245,168,0,0.1)' : 'rgba(123,47,190,0.1)',
-                          color: entry.status === 'available' ? '#F5A800' : '#7B2FBE',
-                        }}
-                      >
-                        {isFr ? statusLabel.fr : statusLabel.en}
-                      </span>
-                      <span className="text-[#F0E6FF]/30 text-[10px]">
-                        {new Date(entry.created_date).toLocaleDateString(isFr ? 'fr-CA' : 'en-CA', { month: 'short', day: 'numeric' })}
-                      </span>
-                    </div>
                   </div>
-                  <div className={`font-bold text-sm ${isPositive ? 'text-[#F5A800]' : 'text-red-400'}`}>
-                    {isPositive ? '+' : ''}{entry.points_delta}
+                  <div className={`font-bold text-sm ${isPositive ? 'text-[#F5A800]' : 'text-foreground/70'}`}>
+                    {isPositive ? '+' : ''}{(entry.amount_delta || 0).toFixed(2)}
                   </div>
                 </div>
               );
             })}
           </div>
         )}
-      </div>
+      </section>
 
-      {/* Redemption Catalog */}
-      <div>
-        <RedemptionCatalogCard availablePoints={available} onRedeemed={loadWallet} />
-      </div>
+      {/* BBP Redemption Catalog */}
+      <RedemptionCatalogCard availablePoints={bbpAvailable} onRedeemed={loadWallet} />
 
-      {/* BBP Points Rules */}
-      <div className="glass-card-orchid rounded-2xl p-5 space-y-3">
-        <div className="flex items-center gap-2">
-          <Award className="w-4 h-4 text-[#7B2FBE]" />
-          <h3 className="font-serif text-base text-[#F0E6FF]">
-            {isFr ? 'Règles des points BBP' : 'BBP Points Rules'}
-          </h3>
-        </div>
-        <div className="space-y-2 text-xs text-[#F0E6FF]/60 leading-relaxed">
-          <p>• {isFr ? 'Compléter le profil de compatibilité: points uniques' : 'Complete compatibility profile: one-time points'}</p>
-          <p>• {isFr ? 'Terminer l\'orientation communautaire: points uniques par version' : 'Complete Community Orientation: one-time per version'}</p>
-          <p>• {isFr ? 'Assister à un événement: points en attente puis disponibles' : 'Attend an event: pending then available points'}</p>
-          <p>• {isFr ? 'Confirmation "On s\'est rencontrés" mutuelle: points en attente 72h' : 'Mutual "We\'ve met" confirmation: 72h pending points'}</p>
-          <p>• {isFr ? 'Parrainage qualifié: points partagés après qualification' : 'Qualified referral: split points after qualification'}</p>
-        </div>
-        <p className="text-[#F0E6FF]/30 text-xs pt-2 border-t border-[rgba(240,230,255,0.05)]">
-          {isFr
-            ? "Les points sont émis côté serveur uniquement. Aucun transfert, aucune valeur monétaire, aucun échange contre de l'argent."
-            : 'Points are issued server-side only. No transfers, no cash value, no cash redemption.'}
-        </p>
-      </div>
+      {/* Support path */}
+      <Link to="/contact" className="block text-center text-foreground/40 text-xs hover:text-foreground/60 transition-colors pt-2">
+        {isFr ? 'Besoin d’aide avec la facturation ? Contactez le support' : 'Need help with billing? Contact support'}
+      </Link>
+
+      <CreditsModal isOpen={creditsOpen} onClose={() => setCreditsOpen(false)} />
     </div>
   );
 }

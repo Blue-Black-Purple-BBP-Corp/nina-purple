@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Star, Coins, Shield, Camera, ChevronRight as ChevronRightIcon, Crown, Edit3, Award, Users, Loader2, LogOut, LogIn, User as UserIcon, Trash2, AlertTriangle } from 'lucide-react';
+import { Star, Coins, Shield, Camera, ChevronRight as ChevronRightIcon, Crown, Edit3, Award, Users, Loader2, LogOut, LogIn, User as UserIcon, Trash2, AlertTriangle, Eye, Sparkles, Wallet } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useLang } from '@/lib/LanguageContext';
 import { useTranslation } from '@/lib/i18n';
 import PricingModal from '@/components/PricingModal';
@@ -30,6 +31,7 @@ const TIER_META = {
 export default function Profile() {
   const { lang } = useLang();
   const { t } = useTranslation(lang);
+  const navigate = useNavigate();
   const [pricingOpen, setPricingOpen]   = useState(false);
   const [creditsOpen, setCreditsOpen]   = useState(false);
   const [upgradeOpen, setUpgradeOpen]   = useState(false);
@@ -155,9 +157,33 @@ export default function Profile() {
 
   const sections = [
     {
+      icon: Eye,
+      label: lang === 'fr' ? 'Aperçu du profil' : 'Preview profile',
+      sub: lang === 'fr' ? 'Voir comme les autres membres' : 'See how others see you',
+      to: '/profile/preview',
+    },
+    {
+      icon: Sparkles,
+      label: lang === 'fr' ? 'Profil de compatibilité' : 'Compatibility profile',
+      sub: lang === 'fr' ? 'Revoir vos réponses' : 'Review your answers',
+      to: '/compatibility-profile',
+    },
+    {
+      icon: Crown,
+      label: lang === 'fr' ? 'Adhésion et accès' : 'Membership & access',
+      sub: lang === 'fr' ? 'Statut, plan, fonctions' : 'Status, plan, features',
+      to: '/membership',
+    },
+    {
+      icon: Wallet,
+      label: lang === 'fr' ? 'Portefeuille et crédits' : 'Wallet & credits',
+      sub: `$${credits.toFixed(2)} · ${rewards} BBP`,
+      to: '/wallet',
+    },
+    {
       icon: Camera,
       label: t('profile.photos'),
-      sub: lang === 'fr' ? `${(userProfile?.photos || []).length} photo(s)` : `${(userProfile?.photos || []).length} photo(s)`,
+      sub: lang === 'fr' ? `${photoCount} photo(s)` : `${photoCount} photo(s)`,
       action: lang === 'fr' ? 'Gérer' : 'Manage',
       onClick: () => setPhotosOpen(true),
     },
@@ -167,20 +193,6 @@ export default function Profile() {
       sub: `$${credits.toFixed(2)} USD`,
       action: lang === 'fr' ? 'Ajouter' : 'Add',
       onClick: () => setCreditsOpen(true),
-    },
-    {
-      icon: Award,
-      label: t('profile.rewards'),
-      sub: `${rewards} BBP`,
-      action: null,
-      onClick: null,
-    },
-    {
-      icon: Crown,
-      label: t('profile.subscription'),
-      sub: `${tierMeta.icon} ${lang === 'fr' ? tierMeta.label_fr : tierMeta.label_en}`,
-      action: tier === 'solar' ? (lang === 'fr' ? 'Mettre à niveau' : 'Upgrade') : (lang === 'fr' ? 'Changer' : 'Change'),
-      onClick: () => setUpgradeOpen(true),
     },
     {
       icon: Shield,
@@ -233,13 +245,11 @@ export default function Profile() {
         )}
         {city && <p className="text-[#F0E6FF]/40 text-sm mt-0.5">{city}</p>}
 
-        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full mt-2"
-          style={{ background: `${tierMeta.color}10`, border: `1px solid ${tierMeta.color}30` }}>
-          <span className="text-sm">{tierMeta.icon}</span>
-          <span className="text-sm font-medium" style={{ color: tierMeta.color }}>
-            {lang === 'fr' ? tierMeta.label_fr : tierMeta.label_en}
-          </span>
-        </div>
+        <Link to="/membership" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full mt-2 glass-card hover:border-[rgba(245,168,0,0.3)] transition-all">
+          <Crown className="w-3.5 h-3.5 text-[#F5A800]" />
+          <span className="text-sm text-[#F0E6FF]/70">{lang === 'fr' ? 'Adhésion et accès' : 'Membership & access'}</span>
+          <ChevronRightIcon className="w-3 h-3 text-[#F0E6FF]/30" />
+        </Link>
 
         {userProfile?.is_founding_member && (
           <div className="mt-2"><FoundingMemberBadge variant="full" /></div>
@@ -292,16 +302,18 @@ export default function Profile() {
 
       {/* Profile sections */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="space-y-2">
-        {sections.map((section, i) => (
+        {sections.map((section, i) => {
+          const Icon = section.icon;
+          const handle = section.to ? () => navigate(section.to) : section.onClick;
+          return (
           <motion.button key={i}
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.25 + i * 0.05 }}
-            onClick={section.onClick}
-            disabled={!section.onClick}
-            className="w-full glass-card rounded-2xl p-4 flex items-center gap-3 hover:border-[rgba(245,168,0,0.15)] transition-all group text-left disabled:cursor-default">
+            onClick={handle}
+            className="w-full glass-card rounded-2xl p-4 flex items-center gap-3 hover:border-[rgba(245,168,0,0.15)] transition-all group text-left">
             <div className="w-10 h-10 rounded-xl bg-[rgba(123,47,190,0.1)] flex items-center justify-center group-hover:bg-[rgba(123,47,190,0.2)] transition-all shrink-0">
-              <section.icon className="w-5 h-5 text-[#7B2FBE]" />
+              <Icon className="w-5 h-5 text-[#7B2FBE]" />
             </div>
             <div className="flex-1">
               <p className="text-[#F0E6FF] text-sm font-medium">{section.label}</p>
@@ -309,10 +321,11 @@ export default function Profile() {
             </div>
             <div className="flex items-center gap-2">
               {section.action && <span className="text-[#F5A800] text-xs">{section.action}</span>}
-              {section.onClick && <ChevronRightIcon className="w-4 h-4 text-[#F0E6FF]/20 group-hover:text-[#F5A800] transition-colors" />}
+              <ChevronRightIcon className="w-4 h-4 text-[#F0E6FF]/20 group-hover:text-[#F5A800] transition-colors" />
             </div>
           </motion.button>
-        ))}
+          );
+        })}
       </motion.div>
 
       {/* Experience mode switch — Single / Couple */}

@@ -31,6 +31,8 @@ import Messages from '@/pages/Messages';
 import Events from '@/pages/Events';
 import Community from '@/pages/Community';
 import Profile from '@/pages/Profile';
+import ProfilePreview from '@/components/profile/ProfilePreview';
+import MembershipAndAccess from '@/pages/MembershipAndAccess';
 import CompatibilityProfile from '@/pages/CompatibilityProfile';
 import BBPWallet from '@/pages/BBPWallet';
 import Relationship from '@/pages/Relationship';
@@ -96,6 +98,8 @@ const AuthenticatedApp = () => {
         <Route path="/events" element={<Events />} />
         <Route path="/community" element={<Community />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/profile/preview" element={<ProfilePreview />} />
+        <Route path="/membership" element={<MembershipAndAccess />} />
         <Route path="/compatibility-profile" element={<CompatibilityProfile />} />
         <Route path="/wallet" element={<BBPWallet />} />
         <Route path="/relationship" element={<Relationship />} />

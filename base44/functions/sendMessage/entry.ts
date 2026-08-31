@@ -1,5 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.36';
-import { PLAN_LIMITS, getPricingForCompatibility, getMonthStart, hasActiveMembership } from '../../shared/planLimits.ts';
+import { PLAN_LIMITS } from '../../shared/planLimits.ts';
+import { computeMembershipStatus, isEntitledForPaidActions } from '../../shared/membershipState.ts';
+import { evaluateFoundingEligibility } from '../../shared/foundingMembers.ts';
+import { debitInteraction, reverseDebit } from '../../shared/interactionCredits.ts';
 
 // Sends a message with server-authoritative cost computation and plan-limit enforcement.
 // The client never sets the cost — it is derived from the connection's compatibility score.
@@ -30,13 +33,44 @@ Deno.serve(async (req) => {
     }
     const tier = profile?.subscription_tier || 'solar';
     const limits = PLAN_LIMITS[tier] || PLAN_LIMITS.solar;
-    const membershipActive = hasActiveMembership(profile);
 
-    // Compute cost server-side from the connection's compatibility score
-    const pricing = getPricingForCompatibility(conn.compatibility_score || 0);
+    // ── Membership entitlement gate (decision 1) ──
+    const foundingElig = await evaluateFoundingEligibility(base44, user.id);
+    const membershipStatus = computeMembershipStatus(profile, foundingElig.benefit, 0);
+    if (!isEntitledForPaidActions(membershipStatus)) {
+      return Response.json({
+        error: 'An active Nina Purple membership is required to send messages.',
+        code: 'membership_required',
+        membership_status: membershipStatus,
+      }, { status: 403 });
+    }
 
-    // ── Nina Membership: check free message allowance first ──
-    if (tier === 'nina_membership' && membershipActive && limits.free_messages > 0) {
+    // ── Initial outreach vs reply (decision 2) ──
+    // The first message this user sends in a conversation is a paid initial
+    // outreach (one credit). Replies in an existing conversation are free.
+    let hasSentBefore = false;
+    try {
+      const priorMsgs = await base44.asServiceRole.entities.Message.filter({ conversation_id, from_user_id: user.id });
+      hasSentBefore = priorMsgs.length > 0;
+    } catch (e) {
+      console.warn('sendMessage: could not check prior messages:', e.message);
+    }
+
+    if (hasSentBefore) {
+      // Reply — free.
+      const message = await base44.asServiceRole.entities.Message.create({
+        conversation_id,
+        from_user_id: user.id,
+        to_user_id,
+        content: content.trim(),
+        cost: 0,
+        message_type: 'text',
+      });
+      return Response.json({ success: true, message, free_reply: true });
+    }
+
+    // ── Nina Membership: check free outreach allowance first ──
+    if (tier === 'nina_membership' && limits.free_messages > 0) {
       const freeUsed = profile.free_messages_used || 0;
       if (freeUsed < limits.free_messages) {
         const message = await base44.asServiceRole.entities.Message.create({
@@ -50,35 +84,56 @@ Deno.serve(async (req) => {
         await base44.asServiceRole.entities.UserProfile.update(profile.id, {
           free_messages_used: freeUsed + 1,
         });
-        return Response.json({ success: true, message, free_message: true });
-      }
-      // Free allowance exhausted — fall through to paid pricing below
-    } else if (tier !== 'nina_membership') {
-      // ── Legacy tier monthly message quota (hard cap) ──
-      const monthStart = getMonthStart();
-      let directMessages = 0;
-      try {
-        const sentMsgs = await base44.asServiceRole.entities.Message.filter({ from_user_id: user.id });
-        directMessages = sentMsgs.filter(m => new Date(m.created_date) >= monthStart).length;
-      } catch (e) {
-        console.error('Error counting messages:', e.message);
-      }
-      if (limits.messages_per_month !== Infinity && directMessages >= limits.messages_per_month) {
-        return Response.json({ error: 'Message limit reached. Upgrade your plan or wait for next month.' }, { status: 403 });
+        return Response.json({ success: true, message, free_outreach: true });
       }
     }
 
-    // Paid message — cost from the interaction-pricing table (unchanged)
-    const message = await base44.asServiceRole.entities.Message.create({
-      conversation_id,
-      from_user_id: user.id,
-      to_user_id,
-      content: content.trim(),
-      cost: pricing.msg,
-      message_type: 'text',
+    // ── Paid initial outreach: debit one credit (decision 2) ──
+    const OUTREACH_COST = 1.0; // one credit = $1
+    const idempotencyKey = `outreach-${conversation_id}-${user.id}`;
+    const debit = await debitInteraction(base44, {
+      native_user_id: user.id,
+      amount: OUTREACH_COST,
+      entry_type: 'debit_outreach',
+      source_type: 'outreach',
+      source_reference: conversation_id,
+      idempotency_key: idempotencyKey,
+      description: 'Initial message to start a conversation',
+      correlation_id: idempotencyKey,
     });
+    if (!debit.success) {
+      return Response.json({
+        error: debit.reason === 'insufficient_credits'
+          ? 'You need more Interaction Credits to start a new conversation.'
+          : 'Unable to send the message.',
+        code: debit.reason,
+        balance: debit.balance,
+        required: debit.required,
+      }, { status: 403 });
+    }
 
-    return Response.json({ success: true, message });
+    try {
+      const message = await base44.asServiceRole.entities.Message.create({
+        conversation_id,
+        from_user_id: user.id,
+        to_user_id,
+        content: content.trim(),
+        cost: OUTREACH_COST,
+        message_type: 'text',
+      });
+      return Response.json({ success: true, message, balance_after: debit.balance_after });
+    } catch (createErr) {
+      console.error('[sendMessage] message create failed:', createErr.message);
+      await reverseDebit(base44, {
+        native_user_id: user.id,
+        original_ledger_id: debit.ledger_id,
+        amount: OUTREACH_COST,
+        reason: 'message_create_failed',
+        idempotency_key: `reverse-${idempotencyKey}`,
+        correlation_id: idempotencyKey,
+      });
+      return Response.json({ error: 'Unable to send the message.' }, { status: 500 });
+    }
   } catch (error) {
     console.error('sendMessage error:', error.message);
     return Response.json({ error: error.message }, { status: 500 });

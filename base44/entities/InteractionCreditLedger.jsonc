@@ -1,0 +1,131 @@
+{
+  "name": "InteractionCreditLedger",
+  "type": "object",
+  "properties": {
+    "ledger_id": {
+      "type": "string",
+      "description": "Stable ledger entry identifier (ULID)."
+    },
+    "native_user_id": {
+      "type": "string",
+      "description": "Platform user ID of the wallet owner (RLS key)."
+    },
+    "entry_type": {
+      "type": "string",
+      "enum": [
+        "credit_purchase",
+        "debit_unlock",
+        "debit_outreach",
+        "debit_reveal",
+        "reversal",
+        "staff_adjustment",
+        "expiry"
+      ],
+      "description": "credit_purchase = Stripe top-up; debit_unlock = profile unlock; debit_outreach = initial paid message (new conversation); debit_reveal = photo reveal; reversal = refund/chargeback/staff reversal compensating a prior debit; staff_adjustment = manual staff credit/debit; expiry = expired credit."
+    },
+    "amount_delta": {
+      "type": "number",
+      "description": "Positive for credits, negative for debits. In USD."
+    },
+    "balance_after": {
+      "type": "number",
+      "description": "Wallet balance immediately after this entry applied. Audit snapshot; the authoritative balance is the sum of completed entries."
+    },
+    "source_type": {
+      "type": "string",
+      "enum": [
+        "stripe_topup",
+        "unlock",
+        "outreach",
+        "reveal",
+        "refund_reversal",
+        "staff_adjustment",
+        "expiry"
+      ]
+    },
+    "source_reference": {
+      "type": "string",
+      "description": "Stripe charge/checkout ID, Connection ID, Message ID, or entitlement ID that gave rise to this entry."
+    },
+    "idempotency_key": {
+      "type": "string",
+      "description": "Unique per logical operation per user. Prevents duplicate debits/credits on retry, refresh, double-click, or webhook redelivery."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "pending",
+        "reversed",
+        "failed"
+      ],
+      "default": "completed"
+    },
+    "description_member_safe": {
+      "type": "string",
+      "description": "Neutral, member-facing description of the entry."
+    },
+    "staff_reason": {
+      "type": "string",
+      "description": "Reason recorded by staff for adjustments/reversals. Null for member-initiated entries."
+    },
+    "correlation_id": {
+      "type": "string",
+      "description": "Correlates a debit with its reversal or a top-up with its Stripe event."
+    }
+  },
+  "required": [
+    "ledger_id",
+    "native_user_id",
+    "entry_type",
+    "amount_delta",
+    "source_type",
+    "idempotency_key"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.native_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.native_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

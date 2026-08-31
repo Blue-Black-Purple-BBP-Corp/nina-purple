@@ -9,6 +9,12 @@ import { ninaHorizontal } from '@/lib/images';
 import { useLang } from '@/lib/LanguageContext';
 import { useTranslation } from '@/lib/i18n';
 import { base44 } from '@/api/base44Client';
+import Paywall from '@/components/Paywall';
+
+// Routes that require an active membership/trial entitlement. Account-
+// maintenance routes (/profile, /compatibility-profile, /wallet, /membership,
+// /relationship) remain accessible without membership.
+const PAID_ROUTES = ['/connections', '/messages', '/events', '/community'];
 
 export default function AppLayout() {
   const location = useLocation();
@@ -16,6 +22,7 @@ export default function AppLayout() {
   const { lang } = useLang();
   const { t } = useTranslation(lang);
   const [gateState, setGateState] = useState('loading'); // 'loading' | 'error' | 'unauthenticated' | 'ready'
+  const [entitlement, setEntitlement] = useState(null);
 
   const checkGate = async () => {
     setGateState('loading');
@@ -28,6 +35,13 @@ export default function AppLayout() {
       }
       if (data.onboarding_status === 'complete') {
         setGateState('ready');
+        // Fetch membership entitlement for the paid-route gate.
+        try {
+          const ent = await base44.functions.invoke('getMemberAccessEntitlement', {});
+          setEntitlement(ent.data?.data || ent.data || null);
+        } catch (e) {
+          console.warn('Entitlement fetch failed:', e.message);
+        }
         return;
       }
       // Incomplete — admins and staff bypass member onboarding so they can reach privileged workspaces
@@ -41,6 +55,10 @@ export default function AppLayout() {
         const scData = sc.data || sc;
         if (scData?.authorized_contexts?.length) {
           setGateState('ready');
+          try {
+            const ent = await base44.functions.invoke('getMemberAccessEntitlement', {});
+            setEntitlement(ent.data?.data || ent.data || null);
+          } catch (e) { console.warn('Entitlement fetch failed:', e.message); }
           return;
         }
       } catch {}
@@ -163,9 +181,11 @@ export default function AppLayout() {
         </div>
       </header>
 
-      {/* Main content */}
+      {/* Main content — paid routes are gated by the membership entitlement */}
       <main className="flex-1 pb-24 pt-16">
-        <Outlet />
+        {PAID_ROUTES.includes(location.pathname) && entitlement && !entitlement.allowed_paid_actions
+          ? <Paywall entitlement={entitlement} lang={lang} />
+          : <Outlet />}
       </main>
 
       {/* Bottom navigation */}

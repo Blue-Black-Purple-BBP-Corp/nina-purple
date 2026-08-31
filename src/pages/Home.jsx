@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Calendar, MessageCircle, Star, Coins, Users, Loader2, Heart, User } from 'lucide-react';
+import { Calendar, MessageCircle, Star, Coins, Users, Loader2, Heart, User, Sparkles, ChevronRight as ChevronRightIcon } from 'lucide-react';
 import { useLang } from '@/lib/LanguageContext';
 import { useTranslation } from '@/lib/i18n';
 import PricingModal from '@/components/PricingModal';
@@ -128,9 +128,9 @@ export default function Home() {
             {lang === 'fr' ? `Bonjour, ${displayName.split(' ')[0]}` : `Hello, ${displayName.split(' ')[0]}`}
           </h1>
           <div className="flex items-center gap-2 mt-0.5">
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: `${tierColor}15`, color: tierColor, border: `1px solid ${tierColor}30` }}>
-              {tierLabel}
-            </span>
+            <Link to="/membership" className="text-xs font-semibold px-2 py-0.5 rounded-full glass-card text-[#F0E6FF]/70 hover:border-[rgba(245,168,0,0.3)] transition-all">
+              {lang === 'fr' ? 'Adhésion' : 'Membership'}
+            </Link>
             {isCouple && (
               <span className="text-xs font-semibold px-2 py-0.5 rounded-full flex items-center gap-1" style={{ background: 'rgba(123,47,190,0.15)', color: '#7B2FBE', border: '1px solid rgba(123,47,190,0.3)' }}>
                 <Heart className="w-3 h-3" />
@@ -142,15 +142,28 @@ export default function Home() {
             {userProfile?.city && <span className="text-[#F0E6FF]/30 text-xs">{userProfile.city}</span>}
           </div>
         </div>
-        <button onClick={() => setPricingOpen(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 glass-card-gold rounded-full text-[#F5A800] text-xs font-medium">
+        <Link to="/wallet" className="flex items-center gap-1.5 px-3 py-1.5 glass-card-gold rounded-full text-[#F5A800] text-xs font-medium hover:opacity-80 transition-opacity">
           <Coins className="w-3.5 h-3.5" />
           <span>${credits} {t('home.credits')}</span>
-        </button>
+        </Link>
       </motion.div>
 
       {/* Daily Insight — personalized to the Compatibility Profile */}
       <DailyInsightCard profile={userProfile} lang={lang} />
+
+      {/* Compatibility profile quick access */}
+      <motion.div {...fadeUp(0.05)}>
+        <Link to="/compatibility-profile" className="block glass-card-orchid rounded-2xl p-4 flex items-center gap-3 hover:border-[rgba(123,47,190,0.4)] transition-all group">
+          <div className="w-10 h-10 rounded-xl bg-[rgba(123,47,190,0.15)] flex items-center justify-center shrink-0">
+            <Sparkles className="w-5 h-5 text-[#7B2FBE]" />
+          </div>
+          <div className="flex-1">
+            <p className="text-[#F0E6FF] text-sm font-medium">{lang === 'fr' ? 'Profil de compatibilité' : 'Compatibility profile'}</p>
+            <p className="text-[#F0E6FF]/50 text-xs">{lang === 'fr' ? 'Revisitez les réponses qui façonnent vos correspondances' : 'Revisit the answers that shape your matches'}</p>
+          </div>
+          <ChevronRightIcon className="w-4 h-4 text-[#F0E6FF]/30 group-hover:text-[#7B2FBE] transition-colors" />
+        </Link>
+      </motion.div>
 
       {/* Couple journey banner */}
       {isCouple && (

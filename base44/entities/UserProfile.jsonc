@@ -92,11 +92,18 @@
       "enum": [
         "none",
         "active",
+        "trial_active",
+        "past_due",
+        "grace_period",
+        "cancelled_active_until_period_end",
+        "cancelled_expired",
         "billing_exempt",
-        "lapsed"
+        "lapsed",
+        "suspended",
+        "restricted"
       ],
       "default": "none",
-      "description": "Authoritative membership state. active = paying $20/mo, billing_exempt = special code reward active, lapsed = cancelled/expired, none = never subscribed."
+      "description": "Authoritative membership state mapped from Stripe + Founding Member entitlement. active = paying $20/mo; trial_active = Founding Member 3-month trial; past_due = payment failed (no new debits); grace_period = short post-failure window (debits allowed); cancelled_active_until_period_end = cancelled but paid through period end; cancelled_expired/lapsed = no access; billing_exempt = legacy special-code grant; suspended/restricted = account-status override; none = never subscribed."
     },
     "subscription_renewal_date": {
       "type": "string",
@@ -130,7 +137,8 @@
     },
     "credit_balance": {
       "type": "number",
-      "default": 0
+      "default": 0,
+      "description": "Cached interaction-credit balance (USD), synced from the InteractionCreditLedger. The ledger is the authoritative source of truth."
     },
     "bbp_rewards": {
       "type": "number",
@@ -213,7 +221,7 @@
         "standard_started",
         "active"
       ],
-      "description": "Tracks membership selection at the membership step. pending = at step; trial_started = founding trial checkout initiated; standard_started = standard checkout initiated; active = membership active."
+      "description": "Tracks membership selection at the membership step."
     },
     "membership_subscription_reference": {
       "type": "string",
@@ -313,7 +321,7 @@
         "permanently_removed"
       ],
       "default": "active",
-      "description": "Server-enforced account-status guard. suspended = removed from discovery/matching, messaging and new bookings blocked, BBP frozen; login permitted so the member can view the notice and appeal."
+      "description": "Server-enforced account-status guard."
     },
     "suspended_at": {
       "type": "string",
@@ -351,13 +359,38 @@
         ]
       },
       "default": [],
-      "description": "Self-declared record of the sign-in methods the member has authenticated with. Best-effort; Base44 does not expose linked identities."
+      "description": "Self-declared record of the sign-in methods the member has authenticated with."
     },
     "referral_code": {
       "type": "string"
     },
     "referred_by_code": {
       "type": "string"
+    },
+    "compatibility_version": {
+      "type": "number",
+      "default": 1,
+      "description": "Monotonic version counter incremented on each explicit 'Save updated compatibility profile' submission."
+    },
+    "compatibility_updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last time the member submitted a compatibility-profile save."
+    },
+    "compatibility_last_completed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the compatibility profile last reached a complete state."
+    },
+    "compatibility_edit_status": {
+      "type": "string",
+      "enum": [
+        "not_started",
+        "draft",
+        "saved"
+      ],
+      "default": "not_started",
+      "description": "not_started = never edited post-onboarding; draft = edits in progress (unsaved); saved = last submission committed."
     }
   },
   "required": [
