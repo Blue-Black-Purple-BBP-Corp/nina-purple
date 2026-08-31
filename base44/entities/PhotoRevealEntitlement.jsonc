@@ -40,7 +40,7 @@
         "staff_grant",
         "approved_promotion"
       ],
-      "description": "How the entitlement was granted. paid_credit = connection unlock via credit pricing; subscription_perk = Galactic monthly allowance; staff_grant = manual staff grant."
+      "description": "How the entitlement was granted. paid_credit = photo reveal purchased with BBP Credits (owner-approved); subscription_perk = legacy Galactic monthly allowance; staff_grant = manual staff grant."
     },
     "source_transaction_id": {
       "type": "string",
@@ -49,6 +49,19 @@
     "source_connection_id": {
       "type": "string",
       "description": "The Connection record that gave rise to this entitlement, for traceability."
+    },
+    "request_id": {
+      "type": "string",
+      "description": "The PhotoRevealRequest that authorized this entitlement (owner_approval_required policy). Null for legacy_auto_grant entitlements created before the approval policy."
+    },
+    "approval_policy_version": {
+      "type": "string",
+      "enum": [
+        "legacy_auto_grant",
+        "owner_approval_required"
+      ],
+      "default": "owner_approval_required",
+      "description": "legacy_auto_grant = entitlement created before the owner-approval policy (grandfathered, no re-approval needed); owner_approval_required = entitlement created after owner explicitly approved a PhotoRevealRequest."
     },
     "status": {
       "type": "string",
@@ -64,7 +77,7 @@
         "superseded"
       ],
       "default": "pending",
-      "description": "Only one active entitlement per viewer\u2192owner pair. inactive_due_to_membership = viewer's membership lapsed (access-time check denies delivery; reactivates when membership restores). under_review = moderation hold. superseded = replaced by a higher-tier entitlement. Entitlement history is never deleted."
+      "description": "Only one active entitlement per viewer->owner pair. inactive_due_to_membership = viewer's membership lapsed; under_review = moderation hold; superseded = replaced. Entitlement history is never deleted."
     },
     "granted_at": {
       "type": "string",
@@ -74,7 +87,7 @@
     "expires_at": {
       "type": "string",
       "format": "date-time",
-      "description": "Optional expiry. Null = no expiry (entitlement lasts until revoked)."
+      "description": "Optional expiry. Null = no expiry."
     },
     "revoked_at": {
       "type": "string",
@@ -82,7 +95,7 @@
     },
     "revocation_reason": {
       "type": "string",
-      "description": "refund | block | moderation | staff_action | superseded | fraud_hold | membership_inactive | subscription_ended | reactivated."
+      "description": "refund | block | moderation | staff_action | superseded | fraud_hold | membership_inactive | subscription_ended | reactivated | owner_revoked."
     }
   },
   "required": [
@@ -115,6 +128,9 @@
       "$or": [
         {
           "data.viewer_native_user_id": "{{user.id}}"
+        },
+        {
+          "data.owner_native_user_id": "{{user.id}}"
         },
         {
           "user_condition": {
