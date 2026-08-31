@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Loader2, Share2, Sparkles, Check } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, Share2, Sparkles, Check, Edit3 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LanguageContext';
 import { ninaIcon } from '@/lib/images';
 import CompatibilityResultCard from '@/components/CompatibilityResultCard';
+import EditProfileModal from '@/components/profile/EditProfileModal';
+import { getArchetypeLabel } from '@/lib/archetypes';
 import {
   ECRS_ITEMS, BIG5_ITEMS, LIKERT_7, LIKERT_5,
   scoreAttachment, scoreBigFive, traitLevel, LEVEL_LABEL, BIG5_TRAITS,
@@ -30,6 +32,9 @@ export default function CompatibilityProfile() {
   const [syncing, setSyncing] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [result, setResult] = useState(null); // { attachment, big5 }
+  const [userProfile, setUserProfile] = useState(null);
+  const [matchingAnswers, setMatchingAnswers] = useState(null);
+  const [editOpen, setEditOpen] = useState(false);
   const cardRef = useRef(null);
 
   useEffect(() => {
@@ -38,6 +43,11 @@ export default function CompatibilityProfile() {
         const user = await base44.auth.me();
         const profiles = await base44.entities.UserProfile.filter({ user_id: user.id });
         const profile = profiles[0];
+        if (profile) setUserProfile(profile);
+        try {
+          const ma = await base44.entities.MatchingAnswers.filter({ user_id: user.id });
+          setMatchingAnswers(ma[0] || null);
+        } catch (e) { /* non-fatal */ }
         if (profile?.display_name) setDisplayName(profile.display_name);
         if (profile?.attachment_style) {
           // Already completed — reconstruct results from stored tags
@@ -325,6 +335,25 @@ export default function CompatibilityProfile() {
                 })}
               </div>
 
+              {/* Dating archetype — quick edit path */}
+              {userProfile?.dating_archetype && (
+                <div className="glass-card rounded-2xl p-4 flex items-center justify-between">
+                  <div className="min-w-0 flex-1 mr-3">
+                    <p className="text-[#F0E6FF]/50 text-xs uppercase tracking-wider mb-0.5">
+                      {isFr ? 'Archétype de rencontre' : 'Dating archetype'}
+                    </p>
+                    <p className="text-[#F0E6FF] text-sm font-medium truncate">
+                      {getArchetypeLabel(userProfile.dating_archetype, lang)}
+                    </p>
+                  </div>
+                  <button onClick={() => setEditOpen(true)}
+                    className="px-4 py-2 glass-card rounded-full text-[#F5A800] text-xs font-medium hover:border-[rgba(245,168,0,0.3)] transition-all flex items-center gap-1.5 shrink-0">
+                    <Edit3 className="w-3 h-3" />
+                    {isFr ? 'Modifier' : 'Update'}
+                  </button>
+                </div>
+              )}
+
               {/* Actions */}
               <div className="flex gap-3">
                 <button onClick={handleShare}
@@ -340,6 +369,17 @@ export default function CompatibilityProfile() {
           )}
         </AnimatePresence>
       </div>
+
+      <EditProfileModal
+        isOpen={editOpen}
+        onClose={() => setEditOpen(false)}
+        userProfile={userProfile}
+        matchingAnswers={matchingAnswers}
+        onUpdate={(updated) => setUserProfile(updated)}
+        onAnswersUpdate={setMatchingAnswers}
+        lang={lang}
+        initialTab="archetype"
+      />
     </div>
   );
 }

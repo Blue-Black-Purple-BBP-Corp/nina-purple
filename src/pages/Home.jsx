@@ -16,8 +16,7 @@ import NextStepCard from '@/components/dashboard/NextStepCard';
 import FoundingMemberBadge from '@/components/FoundingMemberBadge';
 import { base44 } from '@/api/base44Client';
 import { usePhotoAccess, primaryPhotoUrl } from '@/hooks/usePhotoAccess';
-
-const ARCHETYPE_COLORS = { blue: '#60A5FA', black: '#9CA3AF', purple: '#A855F7' };
+import { ARCHETYPE_COLORS } from '@/lib/archetypes';
 
 function CompatibilityOrb({ score }) {
   const color = score >= 90 ? '#F5A800' : score >= 75 ? '#A855F7' : score >= 60 ? '#7B2FBE' : '#6B7280';

@@ -5,12 +5,7 @@ import { Eye, Lock, ArrowLeft, Heart, MapPin, Camera } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LanguageContext';
 import FoundingMemberBadge from '@/components/FoundingMemberBadge';
-
-const ARCHETYPE_META = {
-  blue:   { color: '#60A5FA', label_en: 'The Traveler',    label_fr: 'Le Voyageur' },
-  black:  { color: '#9CA3AF', label_en: 'The Seeker',      label_fr: 'Le Chercheur' },
-  purple: { color: '#A855F7', label_en: 'The Enlightened', label_fr: "L'Éveillé" },
-};
+import { getArchetypeLabel, getArchetypeColor } from '@/lib/archetypes';
 
 // Renders the member's own profile exactly as an ordinary non-entitled member
 // would see it: locked photos, no bio, no wallet/subscription/edit controls,
@@ -56,7 +51,8 @@ export default function ProfilePreview() {
     );
   }
 
-  const archetypeMeta = ARCHETYPE_META[preview.dating_archetype] || ARCHETYPE_META.purple;
+  const archetypeColor = getArchetypeColor(preview.dating_archetype);
+  const archetypeLabel = getArchetypeLabel(preview.dating_archetype, lang);
   const initials = (preview.display_name || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
 
   return (
@@ -108,8 +104,8 @@ export default function ProfilePreview() {
           {/* Tags */}
           <div className="flex items-center gap-2 flex-wrap">
             <span className="px-2.5 py-1 rounded-full text-xs border"
-              style={{ color: archetypeMeta.color, borderColor: `${archetypeMeta.color}30`, background: `${archetypeMeta.color}10` }}>
-              {isFr ? archetypeMeta.label_fr : archetypeMeta.label_en}
+              style={{ color: archetypeColor, borderColor: `${archetypeColor}30`, background: `${archetypeColor}10` }}>
+              {archetypeLabel}
             </span>
             {preview.gender_pronoun && (
               <span className="px-2.5 py-1 rounded-full text-xs border border-foreground/10 text-foreground/50">

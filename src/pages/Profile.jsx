@@ -20,6 +20,7 @@ import CommunityStandingCard from '@/components/bbp/CommunityStandingCard';
 import UsageIndicator from '@/components/dashboard/UsageIndicator';
 // TEMP: import AmbassadorBadge from '@/components/dashboard/AmbassadorBadge';
 import { base44 } from '@/api/base44Client';
+import { getArchetypeLabel } from '@/lib/archetypes';
 
 const TIER_META = {
   solar:   { color: '#A78BFA', label_en: 'Solar',    label_fr: 'Solaire',    icon: '☀️' },
@@ -234,7 +235,7 @@ export default function Profile() {
           <div className="grid grid-cols-2 gap-2 text-xs">
             <InfoChip label={lang === 'fr' ? 'Nom' : 'Name'} value={fullName || '—'} />
             <InfoChip label={lang === 'fr' ? 'Ville' : 'City'} value={city || '—'} />
-            <InfoChip label={lang === 'fr' ? 'Archétype' : 'Archetype'} value={userProfile?.dating_archetype || '—'} />
+            <InfoChip label={lang === 'fr' ? 'Archétype' : 'Archetype'} value={userProfile?.dating_archetype ? getArchetypeLabel(userProfile.dating_archetype, lang) : '—'} />
             <InfoChip label={lang === 'fr' ? 'Questions' : 'Questions'} value={`${Object.keys(matchingAnswers || {}).filter(k => matchingAnswers[k] && k.startsWith('q')).length}/21`} />
           </div>
           {completeness < 100 && (

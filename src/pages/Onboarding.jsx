@@ -18,6 +18,7 @@ import LanguageToggle from '@/components/LanguageToggle';
 import AppleIcon from '@/components/AppleIcon';
 import MicrosoftIcon from '@/components/MicrosoftIcon';
 import { ninaIcon, ninaCharacter } from '@/lib/images';
+import { getActiveArchetypes, getArchetypeLabel, getArchetypeDescription } from '@/lib/archetypes';
 
 // Steps: age → guidelines → segmentation → profile → archetype → photos → questions → subscription → register → complete
 const STEPS = ['age', 'guidelines', 'segmentation', 'profile', 'archetype', 'photos', 'questions', 'orientation', 'subscription', 'complete'];
@@ -558,11 +559,7 @@ export default function Onboarding() {
     }
   };
 
-  const archetypes = [
-    { id: 'blue', color: '#60A5FA', name: t('onboarding.blue_name'), desc: t('onboarding.blue_desc') },
-    { id: 'black', color: '#9CA3AF', name: t('onboarding.black_name'), desc: t('onboarding.black_desc') },
-    { id: 'purple', color: '#A855F7', name: t('onboarding.purple_name'), desc: t('onboarding.purple_desc') },
-  ];
+  const archetypes = getActiveArchetypes();
 
   const plans = ALL_PLANS.map(plan => ({
     id: plan.key,
@@ -850,10 +847,14 @@ export default function Onboarding() {
               className="w-full space-y-6">
               <NinaSpeech message={t('onboarding.archetype_intro')} />
               <h2 className="font-serif text-3xl text-[#F0E6FF]">{t('onboarding.archetype_title')}</h2>
+              <div role="radiogroup" aria-label={t('onboarding.archetype_title')}>
               {archetypes.map(a => {
-                const isSelected = archetype === a.id;
+                const isSelected = archetype === a.code;
                 return (
-                  <button key={a.id} onClick={() => setArchetype(a.id)}
+                  <button key={a.code} onClick={() => setArchetype(a.code)}
+                    role="radio"
+                    aria-checked={isSelected}
+                    aria-label={getArchetypeLabel(a.code, lang)}
                     className="w-full rounded-2xl p-5 text-left transition-all duration-300 relative overflow-hidden"
                     style={{
                       background: isSelected
@@ -864,20 +865,24 @@ export default function Onboarding() {
                       backdropFilter: 'blur(40px)',
                     }}>
                     <div className="flex items-center justify-between mb-1">
-                      <div className="font-serif text-xl" style={{ color: a.color }}>{a.name}</div>
+                      <div className="font-serif text-xl" style={{ color: a.color }}>{getArchetypeLabel(a.code, lang)}</div>
                       {isSelected && (
-                        <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
-                          style={{ background: a.color }}>
-                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                            <path d="M2 6l3 3 5-5" stroke="#0B0510" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <span className="sr-only">{lang === 'fr' ? 'Sélectionné' : 'Selected'}</span>
+                          <div className="w-6 h-6 rounded-full flex items-center justify-center"
+                            style={{ background: a.color }}>
+                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                              <path d="M2 6l3 3 5-5" stroke="#0B0510" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          </div>
                         </div>
                       )}
                     </div>
-                    <div className="text-sm leading-relaxed transition-colors" style={{ color: isSelected ? (isLight ? 'rgba(26,10,46,0.85)' : 'rgba(240,230,255,0.85)') : (isLight ? 'rgba(26,10,46,0.55)' : 'rgba(240,230,255,0.5)') }}>{a.desc}</div>
+                    <div className="text-sm leading-relaxed transition-colors" style={{ color: isSelected ? (isLight ? 'rgba(26,10,46,0.85)' : 'rgba(240,230,255,0.85)') : (isLight ? 'rgba(26,10,46,0.55)' : 'rgba(240,230,255,0.5)') }}>{getArchetypeDescription(a.code, lang)}</div>
                   </button>
                 );
               })}
+              </div>
               {!archetype && (
                 <p className="text-[#F5A800]/60 text-xs text-center">
                   {lang === 'fr' ? 'Sélectionnez un archétype pour continuer' : 'Select an archetype to continue'}

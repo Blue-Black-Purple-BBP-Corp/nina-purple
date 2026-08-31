@@ -4,8 +4,9 @@ import { base44 } from '@/api/base44Client';
 import { QUESTIONS_21 } from '@/pages/Onboarding';
 import LocationAutocomplete from '@/components/LocationAutocomplete';
 import RequestChangeModal from './RequestChangeModal';
+import { getActiveArchetypes, getArchetypeLabel, getArchetypeDescription } from '@/lib/archetypes';
 
-export default function EditProfileModal({ isOpen, onClose, userProfile, matchingAnswers, onUpdate, onAnswersUpdate, lang }) {
+export default function EditProfileModal({ isOpen, onClose, userProfile, matchingAnswers, onUpdate, onAnswersUpdate, lang, initialTab }) {
   const [tab, setTab] = useState('profile');
   const [profile, setProfile] = useState({});
   const [archetype, setArchetype] = useState('');
@@ -29,7 +30,7 @@ export default function EditProfileModal({ isOpen, onClose, userProfile, matchin
       });
       setArchetype(userProfile.dating_archetype || '');
       setAnswers(matchingAnswers || {});
-      setTab('profile');
+      setTab(initialTab || 'profile');
       setCurrentQ(0);
       base44.auth.me().then(u => setEmail(u?.email || '')).catch(() => {});
     }
@@ -37,11 +38,7 @@ export default function EditProfileModal({ isOpen, onClose, userProfile, matchin
 
   if (!isOpen) return null;
 
-  const archetypes = [
-    { id: 'blue', color: '#60A5FA', name: lang === 'fr' ? 'Le Mystique Bleu' : 'Blue Mystic', icon: '💙' },
-    { id: 'black', color: '#9CA3AF', name: lang === 'fr' ? 'Le Gardien Noir' : 'Black Guardian', icon: '🖤' },
-    { id: 'purple', color: '#A855F7', name: lang === 'fr' ? 'L\'Alchimiste Pourpre' : 'Purple Alchemist', icon: '💜' },
-  ];
+  const archetypes = getActiveArchetypes();
 
   const set = (k, v) => setProfile(p => ({ ...p, [k]: v }));
 
@@ -191,28 +188,35 @@ export default function EditProfileModal({ isOpen, onClose, userProfile, matchin
 
           {/* TAB: Archetype */}
           {tab === 'archetype' && (
-            <div className="space-y-3">
+            <div className="space-y-3" role="radiogroup" aria-label={lang === 'fr' ? 'Choisissez votre archétype de rencontre' : 'Select your dating archetype'}>
               <p className="text-[#F0E6FF]/50 text-sm">{lang === 'fr' ? 'Sélectionnez votre archétype de rencontre' : 'Select your dating archetype'}</p>
               {archetypes.map(a => {
-                const selected = archetype === a.id;
+                const selected = archetype === a.code;
                 return (
-                  <button key={a.id} onClick={() => setArchetype(a.id)}
+                  <button key={a.code} onClick={() => setArchetype(a.code)}
+                    role="radio"
+                    aria-checked={selected}
+                    aria-label={getArchetypeLabel(a.code, lang)}
                     className="w-full rounded-2xl p-4 text-left transition-all duration-300"
                     style={{
                       background: selected ? `${a.color}18` : 'rgba(31,16,38,0.7)',
                       border: `2px solid ${selected ? a.color : 'rgba(240,230,255,0.08)'}`,
                       boxShadow: selected ? `0 0 20px ${a.color}30` : 'none',
                     }}>
-                    <div className="flex items-center justify-between">
-                      <span className="font-serif text-lg" style={{ color: a.color }}>{a.icon} {a.name}</span>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-serif text-lg" style={{ color: a.color }}>{getArchetypeLabel(a.code, lang)}</span>
                       {selected && (
-                        <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0" style={{ background: a.color }}>
-                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                            <path d="M2 6l3 3 5-5" stroke="#0B0510" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <span className="sr-only">{lang === 'fr' ? 'Sélectionné' : 'Selected'}</span>
+                          <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: a.color }}>
+                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                              <path d="M2 6l3 3 5-5" stroke="#0B0510" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          </div>
                         </div>
                       )}
                     </div>
+                    <p className="text-sm leading-relaxed text-[#F0E6FF]/60">{getArchetypeDescription(a.code, lang)}</p>
                   </button>
                 );
               })}

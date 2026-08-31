@@ -9,12 +9,7 @@ import IncomingConnections from '@/components/IncomingConnections';
 import { base44 } from '@/api/base44Client';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
 import { usePhotoAccess, primaryPhotoUrl } from '@/hooks/usePhotoAccess';
-
-const ARCHETYPE_META = {
-  blue:   { color: '#60A5FA', label_en: 'The Traveler',    label_fr: 'Le Voyageur' },
-  black:  { color: '#9CA3AF', label_en: 'The Seeker',      label_fr: 'Le Chercheur' },
-  purple: { color: '#A855F7', label_en: 'The Enlightened', label_fr: "L'Éveillé" },
-};
+import { getArchetypeLabel, getArchetypeColor } from '@/lib/archetypes';
 
 const getCompatibilityColor = (score) => {
   if (score >= 90) return '#F5A800';
@@ -228,7 +223,8 @@ export default function Connections() {
             const score = conn.compatibility_score || 0;
             const pricing = getPricingForCompatibility(score);
             const compColor = getCompatibilityColor(score);
-            const archetypeMeta = ARCHETYPE_META[profile.dating_archetype] || ARCHETYPE_META.purple;
+            const archetypeColor = getArchetypeColor(profile.dating_archetype);
+            const archetypeLabel = getArchetypeLabel(profile.dating_archetype, lang);
 
             return (
               <motion.div key={conn.id}
@@ -276,8 +272,8 @@ export default function Connections() {
                 {/* Badges */}
                 <div className="px-5 pb-3 flex items-center gap-2 flex-wrap">
                   <span className="px-2.5 py-1 rounded-full text-xs border"
-                    style={{ color: archetypeMeta.color, borderColor: `${archetypeMeta.color}30`, background: `${archetypeMeta.color}10` }}>
-                    {lang === 'fr' ? archetypeMeta.label_fr : archetypeMeta.label_en}
+                    style={{ color: archetypeColor, borderColor: `${archetypeColor}30`, background: `${archetypeColor}10` }}>
+                    {archetypeLabel}
                   </span>
                   {profile.relationship_status && (
                     <span className="px-2.5 py-1 rounded-full text-xs border border-[rgba(240,230,255,0.1)] text-[#F0E6FF]/50">{profile.relationship_status}</span>
