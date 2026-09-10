@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, Shield, ShieldCheck, AlertTriangle, ScrollText, Users, RefreshCw, FileEdit } from 'lucide-react';
+import { Loader2, Shield, ShieldCheck, AlertTriangle, ScrollText, Users, RefreshCw, FileEdit, MapPin } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import StatsOverview from '@/components/admin/StatsOverview';
 import VerificationQueue from '@/components/admin/VerificationQueue';
 import ModerationQueue from '@/components/admin/ModerationQueue';
 import AuditLogViewer from '@/components/admin/AuditLogViewer';
 import ProfileChangeQueue from '@/components/admin/ProfileChangeQueue';
+import ActiveCitiesAdmin from '@/components/admin/ActiveCitiesAdmin';
 import DateRangeSelector from '@/components/admin/DateRangeSelector';
 import { useStaffSession } from '@/lib/StaffSessionContext';
 
@@ -81,6 +82,7 @@ export default function AdminDashboard() {
   const tabs = [
     { id: 'verification', label: 'Verification', icon: ShieldCheck, count: data?.verifications?.length || 0 },
     { id: 'change_requests', label: 'Change Requests', icon: FileEdit },
+    { id: 'cities', label: 'Cities', icon: MapPin },
     ...(currentContext === 'trust_safety' ? [{ id: 'moderation', label: 'Moderation', icon: AlertTriangle, count: data?.moderation?.length || 0 }] : []),
     { id: 'audit', label: 'Audit Log', icon: ScrollText, superOnly: true },
   ];
@@ -150,6 +152,9 @@ export default function AdminDashboard() {
         )}
         {tab === 'change_requests' && (
           <ProfileChangeQueue />
+        )}
+        {tab === 'cities' && (
+          <ActiveCitiesAdmin />
         )}
         {tab === 'audit' && isAdminish && (
           <AuditLogViewer canView={isAdminish} dateRange={dateRange} onDateChange={setDateRange} />

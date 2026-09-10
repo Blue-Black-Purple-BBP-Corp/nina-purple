@@ -789,11 +789,7 @@ export default function Onboarding() {
                     if (data?.country) setProfile(p => ({ ...p, country: data.country }));
                   }}
                   placeholder={lang === 'fr' ? 'Entrez votre ville (ex: Montréal…)' : 'Enter your city (e.g., Montreal…)'} />
-                {profile.city && profile.city.length >= 2 && !locationValid && (
-                  <p className="text-foreground/40 text-xs mt-1">
-                    {lang === 'fr' ? 'Sélectionnez votre ville dans la liste déroulante.' : 'Select your city from the dropdown list.'}
-                  </p>
-                )}
+
               </div>
 
               <div>
@@ -836,7 +832,7 @@ export default function Onboarding() {
                 if (!profile.first_name.trim()) missing.push(lang === 'fr' ? 'prénom' : 'first name');
                 if (!profile.last_name.trim()) missing.push(lang === 'fr' ? 'nom' : 'last name');
                 if (!profile.display_name.trim()) missing.push(lang === 'fr' ? 'nom affiché' : 'display name');
-                if (!profile.city.trim() || !locationValid) missing.push(lang === 'fr' ? 'ville (sélectionnée dans la liste)' : 'city (selected from dropdown)');
+                if (!profile.city.trim()) missing.push(lang === 'fr' ? 'ville' : 'city');
                 if (!profile.birthdate || !isOver18(profile.birthdate)) missing.push(lang === 'fr' ? 'date de naissance (18+)' : 'birthdate (18+)');
                 if (!profile.sexual_orientation) missing.push(lang === 'fr' ? 'orientation' : 'orientation');
                 if (!profile.gender_pronoun) missing.push(lang === 'fr' ? 'pronom' : 'pronoun');

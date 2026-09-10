@@ -1,0 +1,90 @@
+{
+  "name": "ActiveCity",
+  "type": "object",
+  "description": "Internally managed city list for location suggestions during onboarding and profile editing. The is_actively_onboarding flag is informational only (sets expectations about where Nina Purple is currently active) and never gates or restricts any user from any city.",
+  "properties": {
+    "city": {
+      "type": "string",
+      "description": "City name."
+    },
+    "region": {
+      "type": "string",
+      "description": "Region, province, or state."
+    },
+    "country": {
+      "type": "string",
+      "description": "Country name."
+    },
+    "is_actively_onboarding": {
+      "type": "boolean",
+      "default": false,
+      "description": "Informational flag indicating Nina Purple is actively onboarding in this city. Shown as a suggestion during signup. Never restricts or blocks users from other cities."
+    },
+    "display_order": {
+      "type": "number",
+      "default": 0,
+      "description": "Sort order for display. Lower numbers appear first."
+    }
+  },
+  "required": [
+    "city"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    }
+  }
+}
