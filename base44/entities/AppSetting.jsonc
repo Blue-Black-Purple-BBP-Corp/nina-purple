@@ -10,6 +10,11 @@
       "type": "string",
       "description": "Setting value stored as string; parsed on read."
     },
+    "numeric_value": {
+      "type": "number",
+      "default": 0,
+      "description": "Numeric setting value, used for atomic counters (e.g. signup_sequence_counter). Incremented via updateMany $inc."
+    },
     "updated_by_admin_id": {
       "type": "string"
     }

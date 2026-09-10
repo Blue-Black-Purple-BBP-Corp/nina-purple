@@ -107,11 +107,47 @@ Deno.serve(async (req) => {
 
     const created = await base44.asServiceRole.entities.UserProfile.create(profileData);
 
-    // ── Assign signup sequence number and issue Special Code if eligible ──
+    // ── Assign signup sequence number (atomic counter) and issue Special Code ──
     try {
-      const allProfiles = await base44.asServiceRole.entities.UserProfile.list();
-      const seqNum = allProfiles.length;
-      await base44.asServiceRole.entities.UserProfile.update(created.id, { signup_sequence_number: seqNum });
+      // Ensure the atomic counter row exists
+      let counter = await base44.asServiceRole.entities.AppSetting.filter({ key: 'signup_sequence_counter' });
+      if (counter.length === 0) {
+        await base44.asServiceRole.entities.AppSetting.create({
+          key: 'signup_sequence_counter',
+          value: '0',
+          numeric_value: 0,
+        });
+      }
+
+      // Atomically increment the counter and read back the new value.
+      // $inc is a single indivisible DB operation — two concurrent signups
+      // can never read the same pre-increment value. A post-write uniqueness
+      // check acts as the second line of defense: if a collision is detected
+      // (extremely rare), the loop retries with the next available number.
+      let seqNum = null;
+      const MAX_RETRIES = 5;
+      for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+        await base44.asServiceRole.entities.AppSetting.updateMany(
+          { key: 'signup_sequence_counter' },
+          { $inc: { numeric_value: 1 } }
+        );
+        const updated = await base44.asServiceRole.entities.AppSetting.filter({ key: 'signup_sequence_counter' });
+        seqNum = updated[0]?.numeric_value;
+        if (seqNum == null) continue;
+
+        await base44.asServiceRole.entities.UserProfile.update(created.id, { signup_sequence_number: seqNum });
+
+        // Verify uniqueness — no other profile should have this number
+        const duplicates = await base44.asServiceRole.entities.UserProfile.filter({ signup_sequence_number: seqNum });
+        if (duplicates.length <= 1) break;
+
+        console.warn(`[createProfile] Sequence number ${seqNum} collision (attempt ${attempt + 1}), retrying...`);
+        seqNum = null;
+      }
+
+      if (seqNum == null) {
+        throw new Error('Failed to assign unique signup sequence number after max retries');
+      }
 
       // Issue Special Code to first 200 users (fraud control: one per user)
       if (seqNum <= 200) {

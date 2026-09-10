@@ -50,8 +50,13 @@ export default function Community() {
 
   const loadPosts = async (roomId) => {
     setPostsLoading(true);
-    const data = await base44.entities.ChatPost.filter({ room_id: roomId }, '-created_date', 30);
-    setPosts(data.reverse());
+    try {
+      const result = await base44.functions.invoke('communityChat', { action: 'get_posts', room_id: roomId });
+      setPosts(result.data?.posts || []);
+    } catch (e) {
+      console.error('Failed to load posts:', e);
+      setPosts([]);
+    }
     setPostsLoading(false);
   };
 
@@ -72,19 +77,18 @@ export default function Community() {
       }
     }
     setPosting(true);
-    const post = await base44.entities.ChatPost.create({
-      room_id: activeRoom.id,
-      author_id: currentUser.id,
-      author_name: userProfile?.display_name || currentUser.full_name || 'Member',
-      content: newPost.trim(),
-      likes_count: 0,
-      comments_count: 0,
-    });
-    // Update room post count
-    await base44.entities.ChatRoom.update(activeRoom.id, {
-      posts_count: (activeRoom.posts_count || 0) + 1,
-    });
-    setPosts(prev => [...prev, post]);
+    try {
+      const result = await base44.functions.invoke('communityChat', {
+        action: 'post',
+        room_id: activeRoom.id,
+        content: newPost.trim(),
+      });
+      if (result.data?.post) {
+        setPosts(prev => [...prev, result.data.post]);
+      }
+    } catch (e) {
+      setLimitError(e?.message || (lang === 'fr' ? 'Échec de la publication.' : 'Failed to post.'));
+    }
     setNewPost('');
     setPosting(false);
     if (!isOwnRoom) refreshLimits();
