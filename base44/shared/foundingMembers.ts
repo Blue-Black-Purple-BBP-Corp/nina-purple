@@ -10,8 +10,35 @@
 import { evaluateOnboardingCompletion } from './onboardingState.ts';
 
 export const TRIAL_DURATION_DAYS = 90;
+export const FOUNDING_MEMBER_CAP = 222;
 export const FOUNDING_PRICE_KEY = 'nina_membership_1m';
 export const FOUNDING_PRICE_ID = Deno.env?.get?.('STRIPE_PRICE_NINA_MEMBERSHIP_1M') || 'price_1UACzrJyNPXqDP7PTGpZfkVe';
+
+// Count currently active founding members — benefits with eligibility_status
+// 'active' (trial in progress) or 'eligible' (claimed, not yet started),
+// excluding deleted/anonymized accounts. Used for the 222-cap eligibility rule.
+// Slots reopen on churn: if a founding member's account is deleted or their
+// benefit expires/is revoked, the count decreases and a new signup can fill
+// that slot.
+async function countActiveFoundingMembers(base44) {
+  const [activeBenefits, eligibleBenefits] = await Promise.all([
+    base44.asServiceRole.entities.FoundingMemberBenefit.filter({ eligibility_status: 'active' }, '-created_date', 500),
+    base44.asServiceRole.entities.FoundingMemberBenefit.filter({ eligibility_status: 'eligible' }, '-created_date', 500),
+  ]);
+  const userIds = [...new Set([...activeBenefits, ...eligibleBenefits].map((b) => b.native_user_id))];
+  let count = 0;
+  for (const userId of userIds) {
+    try {
+      const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_id: userId });
+      if (profiles[0] && profiles[0].account_status !== 'permanently_removed') {
+        count++;
+      }
+    } catch {
+      // Profile not found — don't count
+    }
+  }
+  return count;
+}
 
 async function getBbpMemberId(base44, native_user_id) {
   try {
@@ -51,8 +78,23 @@ export async function evaluateFoundingEligibility(base44, native_user_id) {
     return { eligibility_status: 'redeemed', reason: 'active_subscription' };
   }
 
+  // If the user already has an 'eligible' benefit (claimed a slot), they
+  // bypass the 222 cap — the slot was already reserved.
+  const existingEligible = findStatus('eligible');
+  if (existingEligible) {
+    return { eligibility_status: 'eligible', benefit: existingEligible };
+  }
+
   if (!profile.is_founding_member) {
     return { eligibility_status: 'ineligible', reason: 'not_founding_member' };
+  }
+
+  // 222 cap: count currently active founding members (active + eligible
+  // benefits, excluding deleted/anonymized accounts). If the cap is reached,
+  // new users see the standard $20/month offer. Slots reopen on churn.
+  const activeCount = await countActiveFoundingMembers(base44);
+  if (activeCount >= FOUNDING_MEMBER_CAP) {
+    return { eligibility_status: 'ineligible', reason: 'founding_cap_reached', active_count: activeCount };
   }
 
   return { eligibility_status: 'eligible' };

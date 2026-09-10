@@ -198,9 +198,16 @@ export default function MembershipAndAccess() {
           <Loader2 className="w-6 h-6 text-[#F5A800] animate-spin mx-auto" />
           <h2 className="font-serif text-lg text-foreground">{isFr ? 'Confirmation en cours' : 'Confirming membership'}</h2>
           <p className="text-foreground/50 text-sm">{isFr ? 'Cela peut prendre un moment.' : 'This can take a moment.'}</p>
-          <button onClick={() => window.location.reload()} className="text-[#F5A800] text-xs font-semibold hover:underline">
-            {isFr ? 'Vérifier le statut' : 'Check status'}
-          </button>
+          <div className="space-y-2">
+            <button onClick={startReactivationCheckout} disabled={checkoutLoading}
+              className="w-full py-3 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+              {checkoutLoading ? <><Loader2 className="w-4 h-4 animate-spin" /> {isFr ? 'Traitement…' : 'Processing…'}</> : (isFr ? 'Réessayer le paiement' : 'Retry checkout')}
+            </button>
+            <button onClick={() => window.location.reload()} className="text-[#F5A800] text-xs font-semibold hover:underline">
+              {isFr ? 'Vérifier le statut' : 'Check status'}
+            </button>
+          </div>
+          {checkoutError && <p className="text-red-400 text-xs text-center">{checkoutError}</p>}
         </div>
       )}
 

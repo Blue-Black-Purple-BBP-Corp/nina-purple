@@ -155,7 +155,7 @@ Deno.serve(async (req) => {
           membership_checkout_reference: session.id,
           membership_checkout_started_at: new Date().toISOString(),
           membership_confirmation_deadline: deadline,
-          onboarding_status: profiles[0].onboarding_status === 'complete' ? 'complete' : 'awaiting_payment_confirmation',
+          onboarding_status: 'awaiting_payment_confirmation',
           membership_last_error_code_member_safe: null,
         });
       }

@@ -517,14 +517,20 @@ export default function Onboarding() {
       goNext();
       return;
     }
-    if (offer?.offer_type === 'awaiting_payment_confirmation') {
-      // Don't create a duplicate checkout — the pending state is already set.
-      setLoading(false);
-      goNext();
-      return;
-    }
 
-    if (offer?.offer_type === 'founding_member_trial' && offer.checkout_action_allowed) {
+    // Proceed with checkout for all other offer types, including
+    // awaiting_payment_confirmation. Previously, awaiting_payment_confirmation
+    // skipped the checkout and sent the user to the complete step, causing
+    // them to enter the app without a membership and see a stuck "Confirming
+    // membership" spinner. Now, the user is redirected to Stripe to complete
+    // the checkout. startFoundingMemberTrial is idempotent (reuses the same
+    // benefit/checkout session via the benefit_id idempotency key);
+    // createCheckout creates a new session (the old one remains valid —
+    // Stripe prevents duplicate charges).
+    const isFoundingPath = offer?.offer_type === 'founding_member_trial'
+      || (offer?.offer_type === 'awaiting_payment_confirmation' && offer?.founding_member_tag);
+
+    if (isFoundingPath) {
       // Founding Member trial path — 3 months free, then $20/month.
       try {
         const res = await base44.functions.invoke('startFoundingMemberTrial', {
@@ -540,30 +546,16 @@ export default function Onboarding() {
         setLoading(false);
         return;
       }
-    } else if (offer?.offer_type === 'standard_membership' && offer.checkout_action_allowed) {
-      // Standard $20/month membership path.
+    } else if (offer?.offer_type === 'standard_membership' || offer?.offer_type === 'membership_reactivation' || offer?.offer_type === 'awaiting_payment_confirmation') {
+      // Standard $20/month or reactivation path.
+      const cancelUrl = offer?.offer_type === 'membership_reactivation'
+        ? `${origin}/membership?payment=cancelled`
+        : `${origin}/onboarding?payment=cancelled`;
       try {
         const res = await base44.functions.invoke('createCheckout', {
           price_key: 'nina_membership_1m',
           success_url: `${origin}/home?payment=success`,
-          cancel_url: `${origin}/onboarding?payment=cancelled`,
-        });
-        if (res.data?.url) {
-          window.location.href = res.data.url;
-          return;
-        }
-      } catch (e) {
-        setFormError(e.message || (lang === 'fr' ? 'Échec du paiement.' : 'Checkout failed.'));
-        setLoading(false);
-        return;
-      }
-    } else if (offer?.offer_type === 'membership_reactivation' && offer.checkout_action_allowed) {
-      // Reactivation path — same $20/month price.
-      try {
-        const res = await base44.functions.invoke('createCheckout', {
-          price_key: 'nina_membership_1m',
-          success_url: `${origin}/home?payment=success`,
-          cancel_url: `${origin}/membership?payment=cancelled`,
+          cancel_url: cancelUrl,
         });
         if (res.data?.url) {
           window.location.href = res.data.url;
@@ -1128,6 +1120,10 @@ export default function Onboarding() {
                       ? 'Cela peut prendre un moment. Votre progression a été sauvegardée.'
                       : 'This can take a moment. Your profile progress has been saved.'}
                   </p>
+                  <button onClick={() => handleComplete()} disabled={loading}
+                    className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                    {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> {lang === 'fr' ? 'Traitement…' : 'Processing…'}</> : (lang === 'fr' ? 'Réessayer le paiement' : 'Retry checkout')}
+                  </button>
                   <button onClick={() => goNext()} className="w-full py-3 glass-card rounded-full text-foreground/60 text-sm font-medium hover:text-[#F5A800] transition-colors">
                     {lang === 'fr' ? 'Continuer' : 'Continue'}
                   </button>
