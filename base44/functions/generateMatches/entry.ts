@@ -49,9 +49,26 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Complete the 21 compatibility questions first' }, { status: 400 });
     }
 
-    // Skip users the caller already has a connection with
-    const existingConns = await base44.asServiceRole.entities.Connection.filter({ from_user_id: targetUserId });
-    const existingToIds = new Set(existingConns.map(c => c.to_user_id));
+    // Skip users with any existing connection in EITHER direction (already
+    // matched, or already declined/blocked me — must never resurface).
+    const [connsFrom, connsTo] = await Promise.all([
+      base44.asServiceRole.entities.Connection.filter({ from_user_id: targetUserId }),
+      base44.asServiceRole.entities.Connection.filter({ to_user_id: targetUserId }),
+    ]);
+    const existingToIds = new Set([
+      ...connsFrom.map(c => c.to_user_id),
+      ...connsTo.map(c => c.from_user_id),
+    ]);
+
+    // Skip users blocked by me or who have blocked me (either direction).
+    const [blocksByMe, blocksOfMe] = await Promise.all([
+      base44.asServiceRole.entities.BlockedUser.filter({ blocker_user_id: targetUserId }),
+      base44.asServiceRole.entities.BlockedUser.filter({ blocked_user_id: targetUserId }),
+    ]);
+    const blockedIds = new Set([
+      ...blocksByMe.map(b => b.blocked_user_id),
+      ...blocksOfMe.map(b => b.blocker_user_id),
+    ]);
 
     // SEGREGATION: only individual (single) profiles with completed onboarding
     const allProfiles = await base44.asServiceRole.entities.UserProfile.list('-created_date', 1000);
@@ -62,6 +79,7 @@ Deno.serve(async (req) => {
       p.account_status !== 'suspended' &&
       p.account_status !== 'permanently_removed' &&
       !existingToIds.has(p.user_id) &&
+      !blockedIds.has(p.user_id) &&
       // Pre-filter (Question 4): sexual orientation must be an exact match.
       // Only enforced when both users have a orientation set, so missing data
       // never blocks matching.

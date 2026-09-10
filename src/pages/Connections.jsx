@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lock, Unlock, Camera, MessageCircle, Loader2, Heart } from 'lucide-react';
+import { Lock, Unlock, Camera, MessageCircle, Loader2, Heart, ShieldOff } from 'lucide-react';
 import { useLang } from '@/lib/LanguageContext';
 import { useTranslation, getPricingForCompatibility } from '@/lib/i18n';
 import PricingModal from '@/components/PricingModal';
@@ -86,6 +86,19 @@ export default function Connections() {
       }
     } catch (e) {
       setLimitError(e?.response?.data?.reason || e?.response?.data?.error || (lang === 'fr' ? 'Une erreur est survenue.' : 'Something went wrong.'));
+    }
+  };
+
+  const handleBlock = async (conn) => {
+    const confirmMsg = lang === 'fr'
+      ? 'Bloquer ce membre ? Vous ne le verrez plus dans vos correspondances et il ne pourra plus vous contacter.'
+      : 'Block this member? You will no longer see them in matching and they will not be able to contact you.';
+    if (!window.confirm(confirmMsg)) return;
+    try {
+      await base44.functions.invoke('blockUser', { action: 'block', target_user_id: conn.to_user_id });
+      setConnections(prev => prev.filter(c => c.id !== conn.id));
+    } catch (e) {
+      setLimitError(e?.response?.data?.error || (lang === 'fr' ? 'Une erreur est survenue.' : 'Something went wrong.'));
     }
   };
 
@@ -320,6 +333,11 @@ export default function Connections() {
                       <Camera className="w-4 h-4" />
                     </button>
                   )}
+                  <button onClick={() => handleBlock(conn)}
+                    className="px-4 py-3 glass-card rounded-xl text-[#F0E6FF]/40 hover:text-red-400 transition-all"
+                    title={lang === 'fr' ? 'Bloquer ce membre' : 'Block this member'}>
+                    <ShieldOff className="w-4 h-4" />
+                  </button>
                 </div>
               </motion.div>
             );

@@ -23,6 +23,25 @@ Deno.serve(async (req) => {
     if (!conn) return Response.json({ error: 'Connection not found' }, { status: 404 });
     if (!conn.is_unlocked) return Response.json({ error: 'Connection is not unlocked' }, { status: 403 });
     if (conn.to_user_id !== to_user_id) return Response.json({ error: 'Invalid recipient' }, { status: 400 });
+    if (conn.status === 'blocked') return Response.json({ error: 'You cannot message this member.' }, { status: 403 });
+
+    // Blocking check (either direction) — never rely on connection status alone,
+    // since a block can happen after unlock without an explicit connection record.
+    const [blocksByMe, blocksOfMe] = await Promise.all([
+      base44.asServiceRole.entities.BlockedUser.filter({ blocker_user_id: user.id, blocked_user_id: to_user_id }),
+      base44.asServiceRole.entities.BlockedUser.filter({ blocker_user_id: to_user_id, blocked_user_id: user.id }),
+    ]);
+    if (blocksByMe.length > 0 || blocksOfMe.length > 0) {
+      return Response.json({ error: 'You cannot message this member.' }, { status: 403 });
+    }
+
+    // Basic spam prevention: max 10 messages per rolling 60 seconds per sender.
+    const recentMsgs = await base44.asServiceRole.entities.Message.filter({ from_user_id: user.id }, '-created_date', 15);
+    const oneMinuteAgo = Date.now() - 60 * 1000;
+    const recentCount = recentMsgs.filter(m => m.created_date && new Date(m.created_date).getTime() >= oneMinuteAgo).length;
+    if (recentCount >= 10) {
+      return Response.json({ error: 'You are sending messages too quickly. Please wait a moment.' }, { status: 429 });
+    }
 
     // Check plan limits
     const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_id: user.id });

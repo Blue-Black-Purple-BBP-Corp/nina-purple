@@ -1,0 +1,71 @@
+{
+  "name": "BlockedUser",
+  "type": "object",
+  "description": "User-to-user block. blocker_user_id never wants to see, match with, or receive messages from blocked_user_id. Checked by generateMatches and sendMessage.",
+  "properties": {
+    "blocker_user_id": {
+      "type": "string",
+      "description": "Platform user ID of the member who initiated the block."
+    },
+    "blocked_user_id": {
+      "type": "string",
+      "description": "Platform user ID of the member being blocked."
+    },
+    "reason": {
+      "type": "string",
+      "description": "Optional member-provided reason."
+    },
+    "blocked_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "blocker_user_id",
+    "blocked_user_id"
+  ],
+  "rls": {
+    "create": {
+      "data.blocker_user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.blocker_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.blocker_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    }
+  }
+}
