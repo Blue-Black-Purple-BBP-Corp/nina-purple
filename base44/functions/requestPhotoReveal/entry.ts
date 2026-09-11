@@ -3,7 +3,7 @@ import { computeMembershipStatus, isEntitledForPaidActions } from '../../shared/
 import { evaluateFoundingEligibility } from '../../shared/foundingMembers.ts';
 import { holdCredits, getAvailableBalance } from '../../shared/interactionCredits.ts';
 import {
-  checkRevealEligibility, createPhotoRevealRequest, isBlocked, isConnectionUnlocked, writePhotoAudit,
+  checkRevealEligibility, createPhotoRevealRequest, isBlocked, writePhotoAudit,
   PHOTO_REVEAL_COST_BBP, APPROVAL_EXPIRY_DAYS,
 } from '../../shared/photoAccess.ts';
 
@@ -80,53 +80,43 @@ Deno.serve(async (req) => {
       });
     }
 
-    // ── Gallery Unlock is free if the profile is already fully unlocked ──
-    const alreadyUnlocked = await isConnectionUnlocked(base44, user.id, owner_user_id);
-    const price = alreadyUnlocked ? 0 : PHOTO_REVEAL_COST_BBP;
+    // ── Sufficient available credits? ──
+    const price = PHOTO_REVEAL_COST_BBP;
+    const available = await getAvailableBalance(base44, user.id);
+    if (available < price) {
+      return Response.json({
+        success: false,
+        reason: 'You need more BBP Credits to request a photo reveal.',
+        code: 'insufficient_credits',
+        balance: available,
+        required: price,
+      }, { status: 403 });
+    }
+
+    // ── Reserve (hold) the credits ──
     const correlation_id = crypto.randomUUID();
     const holdExpiresAt = new Date(Date.now() + APPROVAL_EXPIRY_DAYS * 24 * 60 * 60 * 1000).toISOString();
-
-    let reservation_id = null;
-    let ledger_hold_id = null;
-
-    if (price > 0) {
-      // ── Sufficient available credits? ──
-      const available = await getAvailableBalance(base44, user.id);
-      if (available < price) {
-        return Response.json({
-          success: false,
-          reason: 'You need more BBP Credits to request a photo reveal.',
-          code: 'insufficient_credits',
-          balance: available,
-          required: price,
-        }, { status: 403 });
-      }
-
-      // ── Reserve (hold) the credits ──
-      const idempotency_key = `hold-reveal-${owner_user_id}-${user.id}`;
-      const hold = await holdCredits(base44, {
-        native_user_id: user.id,
-        amount: price,
-        reserved_for_type: 'photo_reveal',
-        reserved_for_id: owner_user_id, // provisional; updated to request_id after creation
-        hold_expires_at: holdExpiresAt,
-        idempotency_key,
-        description: `Reserved ${price} BBP Credits for photo reveal request`,
-        correlation_id,
-      });
-      if (!hold.success) {
-        return Response.json({
-          success: false,
-          reason: hold.reason === 'insufficient_credits'
-            ? 'You need more BBP Credits to request a photo reveal.'
-            : 'Unable to reserve credits.',
-          code: hold.reason,
-          balance: hold.balance,
-          required: hold.required,
-        }, { status: 403 });
-      }
-      reservation_id = hold.reservation_id;
-      ledger_hold_id = hold.ledger_id;
+    const idempotency_key = `hold-reveal-${owner_user_id}-${user.id}`;
+    const hold = await holdCredits(base44, {
+      native_user_id: user.id,
+      amount: price,
+      reserved_for_type: 'photo_reveal',
+      reserved_for_id: owner_user_id, // provisional; updated to request_id after creation
+      hold_expires_at: holdExpiresAt,
+      idempotency_key,
+      description: `Reserved ${price} BBP Credits for photo reveal request`,
+      correlation_id,
+    });
+    if (!hold.success) {
+      return Response.json({
+        success: false,
+        reason: hold.reason === 'insufficient_credits'
+          ? 'You need more BBP Credits to request a photo reveal.'
+          : 'Unable to reserve credits.',
+        code: hold.reason,
+        balance: hold.balance,
+        required: hold.required,
+      }, { status: 403 });
     }
 
     // ── Create the request ──
@@ -134,8 +124,8 @@ Deno.serve(async (req) => {
       viewer_id: user.id,
       owner_id: owner_user_id,
       quoted_price: price,
-      reservation_id,
-      ledger_hold_id,
+      reservation_id: hold.reservation_id,
+      ledger_hold_id: hold.ledger_id,
       correlation_id,
     });
 

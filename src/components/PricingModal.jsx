@@ -13,31 +13,16 @@ const TABS = [
   { id: 'guarantee',   en: 'Value Guarantee',  fr: 'Garantie de valeur' },
 ];
 
-// First message is included free with the connection unlock. Every message
-// after that is charged the per-message rate for the connection's
-// compatibility tier (see the Profile Unlock tab). Gallery Unlock (photo
-// reveal) is a flat fee, free if the profile is already fully unlocked.
+// Single flat paid interaction (decision 1): one credit to start a
+// conversation. Replies in an established conversation are free. No per-
+// message, per-reply, per-view, or per-keystroke charges.
 const MICRO_ROWS = (lang) => [
   {
-    action: lang === 'fr' ? 'Premier message' : 'First message',
+    action: lang === 'fr' ? 'Démarrer une conversation' : 'Start a conversation',
     cond:   lang === 'fr'
-      ? 'Inclus gratuitement avec le déverrouillage de la connexion.'
-      : 'Included free with the connection unlock.',
-    cost:   lang === 'fr' ? 'Inclus gratuitement' : 'Included free',
-  },
-  {
-    action: lang === 'fr' ? 'Messages suivants' : 'Messages after that',
-    cond:   lang === 'fr'
-      ? 'Facturés selon le niveau de compatibilité de la connexion (voir l\u2019onglet Déverrouillage de Profil).'
-      : 'Charged per the connection\u2019s compatibility tier (see the Profile Unlock tab).',
-    cost:   lang === 'fr' ? 'Selon compatibilité' : 'Varies by compatibility',
-  },
-  {
-    action: lang === 'fr' ? 'Déverrouillage de la Galerie' : 'Gallery Unlock',
-    cond:   lang === 'fr'
-      ? 'Révélation des photos privées. Gratuit si le profil est déjà entièrement déverrouillé.'
-      : 'Reveals private photos. Free if the profile is already fully unlocked.',
-    cost:   '$10.00',
+      ? 'Nouveau message payant pour entamer une conversation. Les réponses dans une conversation établie sont gratuites.'
+      : 'New paid message to start a conversation. Replies in an established conversation are free.',
+    cost:   '1 BBP Credit',
   },
 ];
 
@@ -108,7 +93,6 @@ export default function PricingModal({ isOpen, onClose }) {
                     </div>
                     <div className="text-right shrink-0 ml-4">
                       <div className="text-[#F5A800] font-bold text-base">${row.unlock}</div>
-                      <div className="text-[#F0E6FF]/40 text-[10px] mt-0.5">${row.msg.toFixed(2)}/msg</div>
                     </div>
                   </div>
                 ))}
