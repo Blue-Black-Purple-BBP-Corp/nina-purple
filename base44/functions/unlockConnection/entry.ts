@@ -3,6 +3,7 @@ import { PLAN_LIMITS, getPricingForCompatibility, getMonthStart, hasActiveMember
 import { computeMembershipStatus, isEntitledForPaidActions } from '../../shared/membershipState.ts';
 import { evaluateFoundingEligibility } from '../../shared/foundingMembers.ts';
 import { debitInteraction, reverseDebit } from '../../shared/interactionCredits.ts';
+import { completeConnectionIfBothPaid } from '../../shared/connectionComplete.ts';
 
 // Authoritative server-side handler for connection unlocks.
 // The client must NEVER write is_unlocked / unlock_cost_paid / gallery_unlocked
@@ -72,13 +73,18 @@ Deno.serve(async (req) => {
         const freeUsed = profile.free_profile_unlocks_used || 0;
         if (freeUsed < limits.free_profile_unlocks) {
           await base44.asServiceRole.entities.Connection.update(conn.id, {
-            is_unlocked: true,
+            from_unlock_paid: true,
             unlock_cost_paid: 0,
           });
           await base44.asServiceRole.entities.UserProfile.update(profile.id, {
             free_profile_unlocks_used: freeUsed + 1,
           });
-          return Response.json({ success: true, unlock_cost_paid: 0, free_unlock: true });
+          // Both parties must pay — check if to_user has already accepted.
+          const result = await completeConnectionIfBothPaid(base44, conn.id);
+          if (result.completed) {
+            return Response.json({ success: true, unlock_cost_paid: 0, free_unlock: true, connected: true, brief: result.brief });
+          }
+          return Response.json({ success: true, unlock_cost_paid: 0, free_unlock: true, waiting_for_acceptance: true });
         }
       }
 
@@ -87,7 +93,7 @@ Deno.serve(async (req) => {
         const monthStart = getMonthStart();
         const myConns = await base44.asServiceRole.entities.Connection.filter({ from_user_id: user.id });
         const unlocksUsed = myConns.filter(
-          (c) => c.is_unlocked && c.unlock_cost_paid > 0 && new Date(c.updated_date || c.created_date) >= monthStart
+          (c) => (c.from_unlock_paid || c.is_unlocked) && c.unlock_cost_paid > 0 && new Date(c.updated_date || c.created_date) >= monthStart
         ).length;
         const unlocksRemaining = Math.max(0, limits.unlocks_per_month - unlocksUsed);
         if (unlocksRemaining <= 0) {
@@ -122,11 +128,11 @@ Deno.serve(async (req) => {
         }, { status: 403 });
       }
 
-      // Record the unlock. Photo reveal is now a separate owner-approved flow
-      // (requestPhotoReveal) — unlockConnection grants messaging only, not photos.
+      // Record from_user's payment (does NOT set is_unlocked — both parties must pay).
+      // Photo reveal is a separate owner-approved flow (requestPhotoReveal).
       try {
         await base44.asServiceRole.entities.Connection.update(conn.id, {
-          is_unlocked: true,
+          from_unlock_paid: true,
           unlock_cost_paid: pricing.unlock,
         });
       } catch (updateErr) {
@@ -142,7 +148,12 @@ Deno.serve(async (req) => {
         return Response.json({ success: false, reason: 'Unable to complete the unlock.', code: 'update_failed' }, { status: 500 });
       }
 
-      return Response.json({ success: true, unlock_cost_paid: pricing.unlock, balance_after: debit.balance_after });
+      // Both parties must pay — check if to_user has already accepted and paid.
+      const result = await completeConnectionIfBothPaid(base44, conn.id);
+      if (result.completed) {
+        return Response.json({ success: true, unlock_cost_paid: pricing.unlock, balance_after: debit.balance_after, connected: true, brief: result.brief });
+      }
+      return Response.json({ success: true, unlock_cost_paid: pricing.unlock, balance_after: debit.balance_after, waiting_for_acceptance: true });
     }
 
     // gallery_unlock has been folded into the PhotoRevealEntitlement model

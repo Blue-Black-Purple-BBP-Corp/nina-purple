@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.36';
-import { computeScoreFromStored } from '../../shared/compatibilityScoring.ts';
+import { computeScoreFromStored, computeSupplementScore, blendScores } from '../../shared/compatibilityScoring.ts';
 
 // Matching-pool generator. Creates Connection records for a single user against
 // other SINGLE users with completed onboarding + compatibility answers.
@@ -92,7 +92,9 @@ Deno.serve(async (req) => {
       const theirAnswers = theirAnswersArr[0];
       if (!theirAnswers) continue;
       const { overall } = computeScoreFromStored(myAnswers, theirAnswers);
-      scored.push({ profile: p, score: overall });
+      const supplement = computeSupplementScore(myProfile, p);
+      const blended = blendScores(overall, supplement);
+      scored.push({ profile: p, score: blended });
     }
 
     scored.sort((a, b) => b.score - a.score);

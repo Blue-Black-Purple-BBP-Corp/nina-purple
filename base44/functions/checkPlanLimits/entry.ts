@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
     let unlocksUsed = 0;
     try {
       const myConns = await base44.entities.Connection.filter({ from_user_id: user.id });
-      unlocksUsed = myConns.filter(c => c.is_unlocked && c.unlock_cost_paid > 0 && new Date(c.updated_date || c.created_date) >= cycleStart).length;
+      unlocksUsed = myConns.filter(c => (c.from_unlock_paid || c.is_unlocked) && c.unlock_cost_paid > 0 && new Date(c.updated_date || c.created_date) >= cycleStart).length;
     } catch (e) {
       console.error('Error counting unlocks:', e.message);
     }

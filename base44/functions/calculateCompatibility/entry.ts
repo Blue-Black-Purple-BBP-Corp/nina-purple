@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.36';
-import { computeScore } from '../../shared/compatibilityScoring.ts';
+import { computeScore, computeSupplementScore, blendScores } from '../../shared/compatibilityScoring.ts';
 
 // Scores compatibility between two users who share an unlocked Connection.
 // SEGREGATION: refuses to score across experience modes (single vs couple) —
@@ -55,5 +55,9 @@ Deno.serve(async (req) => {
 
   const { overall, categoryScores } = computeScore(myAnswers, theirAnswers);
 
-  return Response.json({ compatibility: overall, categoryScores });
+  // Blend in the ECR-S attachment style + Big Five supplement (stored on UserProfile).
+  const supplement = computeSupplementScore(myProfile, theirProfile);
+  const blended = blendScores(overall, supplement);
+
+  return Response.json({ compatibility: blended, categoryScores, supplement_score: supplement });
 });

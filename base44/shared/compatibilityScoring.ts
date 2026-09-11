@@ -108,6 +108,63 @@ export function computeScoreFromStored(storedA: Record<string, any>, storedB: Re
   return computeScore(mapStoredAnswers(storedA), mapStoredAnswers(storedB));
 }
 
+// ── Attachment style + Big Five supplement (ECR-S / Mini-IPIP results) ──
+// These are stored on UserProfile (not MatchingAnswers) and were previously
+// disconnected from the matching pipeline. The supplement uses the same 0-4
+// scoring pattern as the 21-question SCORE_MATRIX and blends into the overall
+// score so the compatibility quiz actually feeds matching.
+
+// Attachment style compatibility (0-4 scale). secure-secure is ideal;
+// anxious-avoidant is the classic anxious-avoidant trap (lowest).
+const ATTACHMENT_MATRIX: Record<string, Record<string, number>> = {
+  secure:  { secure: 4, anxious: 3, avoidant: 2, fearful: 2 },
+  anxious: { secure: 3, anxious: 3, avoidant: 1, fearful: 2 },
+  avoidant: { secure: 2, anxious: 1, avoidant: 2, fearful: 2 },
+  fearful: { secure: 2, anxious: 2, avoidant: 2, fearful: 2 },
+};
+
+// Big Five trait similarity (0-4 scale). Closer scores = higher compatibility.
+function big5TraitSimilarity(a: number | undefined, b: number | undefined): number | null {
+  if (a == null || b == null) return null;
+  const diff = Math.abs(a - b);
+  if (diff <= 0.5) return 4;
+  if (diff <= 1.0) return 3;
+  if (diff <= 1.5) return 2;
+  if (diff <= 2.0) return 1;
+  return 0;
+}
+
+// Compute a 0-100 supplement score from ECR-S attachment style + Big Five
+// personality traits (stored on UserProfile). Returns null if no data available.
+export function computeSupplementScore(profileA: any, profileB: any): number | null {
+  const scores: number[] = [];
+
+  // Attachment style compatibility
+  const aStyle = profileA?.attachment_style;
+  const bStyle = profileB?.attachment_style;
+  if (aStyle && bStyle && ATTACHMENT_MATRIX[aStyle]?.[bStyle] != null) {
+    scores.push(ATTACHMENT_MATRIX[aStyle][bStyle]);
+  }
+
+  // Big Five trait similarity
+  const traits = ['big5_openness', 'big5_conscientiousness', 'big5_extraversion', 'big5_agreeableness', 'big5_neuroticism'];
+  for (const t of traits) {
+    const s = big5TraitSimilarity(profileA?.[t], profileB?.[t]);
+    if (s !== null) scores.push(s);
+  }
+
+  if (scores.length === 0) return null;
+  const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+  return Math.round((avg / 4) * 100);
+}
+
+// Blend the 21-question base score with the attachment/Big Five supplement.
+// 70% base, 30% supplement. If no supplement data, returns base unchanged.
+export function blendScores(baseScore: number, supplementScore: number | null): number {
+  if (supplementScore === null) return baseScore;
+  return Math.round(baseScore * 0.7 + supplementScore * 0.3);
+}
+
 // Human-readable option labels per question (a/b/c/d), from the matching algorithm spec.
 export const QUESTION_OPTIONS: Record<string, Record<string, string>> = {
   q11: { a: 'Honesty and integrity', b: 'Compassion and empathy', c: 'Ambition and achievement', d: 'Adventure and spontaneity' },

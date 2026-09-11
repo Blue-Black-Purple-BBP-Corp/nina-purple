@@ -17,11 +17,31 @@
     },
     "is_unlocked": {
       "type": "boolean",
-      "default": false
+      "default": false,
+      "description": "True only when BOTH parties have completed their unlock payment. Set by the shared completion logic, never directly by the client."
     },
     "unlock_cost_paid": {
       "type": "number",
-      "default": 0
+      "default": 0,
+      "description": "Amount from_user paid (0 for free unlocks). Recorded at unlockConnection time."
+    },
+    "from_unlock_paid": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether from_user has paid their share of the mutual unlock cost. Set by unlockConnection; required for the connection to complete."
+    },
+    "to_unlock_paid": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether to_user has paid their share of the mutual unlock cost. Set by acceptConnection; required for the connection to complete."
+    },
+    "pending_payment_for": {
+      "type": "string",
+      "enum": [
+        "from_user",
+        "to_user"
+      ],
+      "description": "When status is 'pending_payment', indicates which party still needs to complete their payment. Null when not in pending_payment state."
     },
     "gallery_unlocked": {
       "type": "boolean",
@@ -37,9 +57,11 @@
         "pending",
         "connected",
         "declined",
-        "blocked"
+        "blocked",
+        "pending_payment"
       ],
-      "default": "pending"
+      "default": "pending",
+      "description": "pending = initial match; pending_payment = one party approved but the other lacks credits; connected = both parties paid and the connection is active; declined/blocked = rejected."
     },
     "messages_count": {
       "type": "number",

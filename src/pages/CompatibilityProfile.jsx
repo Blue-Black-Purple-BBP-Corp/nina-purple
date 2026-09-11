@@ -172,7 +172,7 @@ export default function CompatibilityProfile() {
                 <h1 className="font-serif text-3xl text-[#F0E6FF] mb-3">
                   {isFr ? 'Votre Profil de Compatibilité' : 'Your Compatibility Profile'}
                 </h1>
-                <p className="text-[#F0E6FF]/65 text-sm leading-relaxed max-w-md mx-auto">
+                <p className="text-[#F0E6FF]/60 text-sm leading-relaxed max-w-md mx-auto">
                   {isFr
                     ? "Un exercice de découverte de soi en deux parties. Vos résultats nourrissent votre score de compatibilité — les correspondances se font discrètement en arrière-plan pendant que vous explorez."
                     : "A two-part self-discovery exercise. Your results feed your compatibility scoring — matching happens quietly in the background while you explore."}
@@ -187,7 +187,7 @@ export default function CompatibilityProfile() {
                       {isFr ? 'Partie 1 — Style d\u2019attachement (ECR-S)' : 'Part 1 — Attachment style (ECR-S)'}
                     </div>
                   </div>
-                  <p className="text-[#F0E6FF]/55 text-xs leading-relaxed pl-6">
+                  <p className="text-[#F0E6FF]/50 text-xs leading-relaxed pl-6">
                     {isFr
                       ? "12 questions · échelle de 1 à 7. Révèle comment vous vous connectez, faites confiance et réagissez dans vos relations intimes."
                       : "12 questions · 1 to 7 scale. Reveals how you connect, trust, and respond in close relationships."}
@@ -201,7 +201,7 @@ export default function CompatibilityProfile() {
                       {isFr ? 'Partie 2 — Personnalité (Mini-IPIP)' : 'Part 2 — Big Five personality (Mini-IPIP)'}
                     </div>
                   </div>
-                  <p className="text-[#F0E6FF]/55 text-xs leading-relaxed pl-6">
+                  <p className="text-[#F0E6FF]/50 text-xs leading-relaxed pl-6">
                     {isFr
                       ? "20 questions · échelle de 1 à 5. Carte votre personnalité selon cinq dimensions : ouverture, conscience, extraversion, agréabilité et névrotisme."
                       : "20 questions · 1 to 5 scale. Maps your personality across five dimensions: openness, conscientiousness, extraversion, agreeableness, and neuroticism."}
