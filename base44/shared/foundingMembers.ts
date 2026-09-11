@@ -26,18 +26,19 @@ async function countActiveFoundingMembers(base44) {
     base44.asServiceRole.entities.FoundingMemberBenefit.filter({ eligibility_status: 'eligible' }, '-created_date', 500),
   ]);
   const userIds = [...new Set([...activeBenefits, ...eligibleBenefits].map((b) => b.native_user_id))];
-  let count = 0;
-  for (const userId of userIds) {
-    try {
-      const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_id: userId });
-      if (profiles[0] && profiles[0].account_status !== 'permanently_removed') {
-        count++;
-      }
-    } catch {
-      // Profile not found — don't count
-    }
-  }
-  return count;
+  if (userIds.length === 0) return 0;
+
+  // Batch-fetch all relevant profiles in a single query (was: one
+  // UserProfile.filter call per user — up to 222 individual API calls,
+  // which triggered Base44 platform rate limits on every paid action
+  // that calls evaluateFoundingEligibility: unlockConnection,
+  // acceptConnection, requestPhotoReveal).
+  const profiles = await base44.asServiceRole.entities.UserProfile.filter(
+    { user_id: { $in: userIds } },
+    '-created_date',
+    500,
+  );
+  return profiles.filter((p) => p.account_status !== 'permanently_removed').length;
 }
 
 async function getBbpMemberId(base44, native_user_id) {

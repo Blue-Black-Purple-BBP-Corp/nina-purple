@@ -10,6 +10,7 @@ import { base44 } from '@/api/base44Client';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
 import { usePhotoAccess, primaryPhotoUrl } from '@/hooks/usePhotoAccess';
 import { getArchetypeLabel, getArchetypeColor } from '@/lib/archetypes';
+import { toast } from '@/components/ui/use-toast';
 
 const getCompatibilityColor = (score) => {
   if (score >= 90) return '#F5A800';
@@ -29,6 +30,7 @@ export default function Connections() {
   const [pricingOpen, setPricingOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [limitError, setLimitError] = useState('');
+  const [revealLoading, setRevealLoading] = useState(null);
   const [view, setView] = useState('outgoing');
   const { data: limitsData, refresh: refreshLimits } = usePlanLimits();
 
@@ -103,19 +105,35 @@ export default function Connections() {
   };
 
   const handleRequestReveal = async (conn) => {
-    setLimitError('');
+    setRevealLoading(conn.id);
     try {
       const res = await base44.functions.invoke('requestPhotoReveal', { owner_user_id: conn.to_user_id });
       if (res.data?.success) {
-        setLimitError('');
-        refreshPhotos();
-        loadData();
+        if (res.data?.already_entitled) {
+          toast({
+            title: lang === 'fr' ? 'Photos déjà déverrouillées' : 'Photos already unlocked',
+            description: lang === 'fr' ? 'Vous avez déjà accès aux photos de ce membre.' : 'You already have access to this member\'s photos.',
+          });
+          refreshPhotos();
+          loadData();
+        } else {
+          toast({
+            title: lang === 'fr' ? 'Demande envoyée' : 'Request sent',
+            description: lang === 'fr'
+              ? 'Votre demande de révélation des photos a été envoyée. Vous y aurez accès si le membre approuve.'
+              : 'Your photo reveal request has been sent. You\'ll get access if the member approves.',
+          });
+        }
       } else {
-        setLimitError(res.data?.reason || (lang === 'fr' ? 'Demande refusée.' : 'Request denied.'));
+        const reason = res.data?.reason || (lang === 'fr' ? 'Demande refusée.' : 'Request denied.');
+        toast({ title: lang === 'fr' ? 'Demande refusée' : 'Request denied', description: reason, variant: 'destructive' });
         if (res.data?.code === 'insufficient_credits') setPricingOpen(true);
       }
     } catch (e) {
-      setLimitError(e?.response?.data?.reason || (lang === 'fr' ? 'Une erreur est survenue.' : 'Something went wrong.'));
+      const reason = e?.response?.data?.reason || e?.response?.data?.error || (lang === 'fr' ? 'Une erreur est survenue.' : 'Something went wrong.');
+      toast({ title: lang === 'fr' ? 'Erreur' : 'Error', description: reason, variant: 'destructive' });
+    } finally {
+      setRevealLoading(null);
     }
   };
 
@@ -327,10 +345,12 @@ export default function Connections() {
                     </button>
                   )}
                   {!primaryPhotoUrl(photoData, conn.to_user_id) && (
-                    <button onClick={() => handleRequestReveal(conn)}
-                      className="px-4 py-3 glass-card rounded-xl text-[#F0E6FF]/60 hover:text-[#F5A800] transition-all"
+                    <button onClick={() => handleRequestReveal(conn)} disabled={revealLoading === conn.id}
+                      className="px-4 py-3 glass-card rounded-xl text-[#F0E6FF]/60 hover:text-[#F5A800] transition-all disabled:opacity-50"
                       title={lang === 'fr' ? 'Demander la révélation des photos' : 'Request photo reveal'}>
-                      <Camera className="w-4 h-4" />
+                      {revealLoading === conn.id
+                        ? <Loader2 className="w-4 h-4 animate-spin" />
+                        : <Camera className="w-4 h-4" />}
                     </button>
                   )}
                   <button onClick={() => handleBlock(conn)}
