@@ -66,7 +66,7 @@ Deno.serve(async (req) => {
         city: p.city,
         country: p.country,
         dating_archetype: p.dating_archetype,
-        bio: connState.is_unlocked ? p.bio : null,
+        bio: p.bio || null, // visible to all members (not paywalled)
         zodiac: p.zodiac,
         gender_pronoun: p.gender_pronoun,
         paired_status: p.paired_status,

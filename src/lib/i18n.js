@@ -104,6 +104,7 @@ export const translations = {
     },
     // Home
     home: {
+      subtitle: "What's new for you",
       my_connections: 'My Connections',
       photo_requests: 'Photo Requests',
       upcoming_events: 'Upcoming Events',
@@ -116,6 +117,10 @@ export const translations = {
       unlock_to_connect: 'Unlock to Connect',
       credits: 'Credits',
       add_credits: 'Add Credits',
+    },
+    // Profile page subtitle
+    profile: {
+      subtitle: 'Your space to reflect and grow',
     },
     // Connections
     connections: {
@@ -297,6 +302,7 @@ export const translations = {
       low: 'Correspondance Faible',
     },
     home: {
+      subtitle: 'Ce qui est nouveau pour vous',
       my_connections: 'Mes Connexions',
       photo_requests: 'Demandes de Photos',
       upcoming_events: 'Événements à Venir',
@@ -309,6 +315,9 @@ export const translations = {
       unlock_to_connect: 'Déverrouiller pour Connecter',
       credits: 'Crédits',
       add_credits: 'Ajouter des Crédits',
+    },
+    profile: {
+      subtitle: 'Votre espace pour réfléchir et grandir',
     },
     connections: {
       title: 'Votre Constellation',

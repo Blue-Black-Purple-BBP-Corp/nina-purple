@@ -27,6 +27,7 @@ export default function EditProfileModal({ isOpen, onClose, userProfile, matchin
         sexual_orientation: userProfile.sexual_orientation || '',
         gender_pronoun: userProfile.gender_pronoun || '',
         relationship_status: userProfile.relationship_status || '',
+        bio: userProfile.bio || '',
       });
       setArchetype(userProfile.dating_archetype || '');
       setAnswers(matchingAnswers || {});
@@ -80,6 +81,7 @@ export default function EditProfileModal({ isOpen, onClose, userProfile, matchin
     if (profile.gender_pronoun) score += 10;
     if (profile.relationship_status) score += 10;
     if (archetype) score += 10;
+    if (profile.bio?.trim()) score += 5;
     const photoCount = (userProfile?.photos || []).length;
     if (photoCount >= 1) score += 5;
     if (photoCount >= 3) score += 5;
@@ -159,6 +161,17 @@ export default function EditProfileModal({ isOpen, onClose, userProfile, matchin
                 <label className={labelClass}>{lang === 'fr' ? 'Ville' : 'City'}</label>
                 <LocationAutocomplete value={profile.city} onChange={val => set('city', val)}
                   placeholder={lang === 'fr' ? 'Rechercher une ville…' : 'Search a city…'} />
+              </div>
+              <div>
+                <label className={labelClass}>{lang === 'fr' ? 'À propos de moi' : 'About me'}</label>
+                <textarea
+                  value={profile.bio || ''}
+                  onChange={e => set('bio', e.target.value.slice(0, 500))}
+                  maxLength={500}
+                  rows={4}
+                  placeholder={lang === 'fr' ? 'Partagez quelque chose d\'authentique à propos de vous…' : 'Share something authentic about yourself…'}
+                  className={`${inputClass} resize-none leading-relaxed`} />
+                <p className="text-[#F0E6FF]/30 text-[10px] mt-1 text-right">{(profile.bio || '').length}/500</p>
               </div>
               <div>
                 <div className="flex items-center justify-between">

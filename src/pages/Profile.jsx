@@ -21,6 +21,9 @@ import UsageIndicator from '@/components/dashboard/UsageIndicator';
 // TEMP: import AmbassadorBadge from '@/components/dashboard/AmbassadorBadge';
 import { base44 } from '@/api/base44Client';
 import { getArchetypeLabel } from '@/lib/archetypes';
+import { QUESTIONS_21 } from '@/pages/Onboarding';
+
+const QUESTION_KEYS = new Set(QUESTIONS_21.map(q => q.key));
 
 const TIER_META = {
   solar:   { color: '#A78BFA', label_en: 'Solar',    label_fr: 'Solaire',    icon: '☀️' },
@@ -148,9 +151,12 @@ export default function Profile() {
     if (!userProfile?.dating_archetype) items.push(lang === 'fr' ? 'Choisir un archétype' : 'Choose an archetype');
     const photoCount = userProfile?.photo_count ?? (userProfile?.photos || []).length;
     if (photoCount < 3) items.push(lang === 'fr' ? `Ajouter ${3 - photoCount} photo(s) (minimum 3)` : `Add ${3 - photoCount} more photo(s) (minimum 3)`);
-    const answered = Object.keys(matchingAnswers || {}).filter(k => matchingAnswers[k] && k.startsWith('q')).length;
+    const answered = Object.keys(matchingAnswers || {}).filter(k => matchingAnswers[k] && QUESTION_KEYS.has(k)).length;
     if (answered < 21) items.push(lang === 'fr' ? `Répondre aux 21 questions (${answered}/21)` : `Answer all 21 questions (${answered}/21)`);
-    return items.length > 0 ? items : [lang === 'fr' ? 'Profil complet !' : 'Profile complete!'];
+    if (items.length > 0) return items;
+    if (completeness >= 100) return [lang === 'fr' ? 'Profil complet !' : 'Profile complete!'];
+    if (photoCount < 6) return [lang === 'fr' ? `Ajouter ${6 - photoCount} photo(s) pour atteindre 100%` : `Add ${6 - photoCount} more photo(s) to reach 100%`];
+    return [lang === 'fr' ? 'Profil complet !' : 'Profile complete!'];
   };
   const tierMeta    = TIER_META[tier] || TIER_META.solar;
   const firstPhoto  = primaryPhotoUrl(myPhotoData, ownerId) || null;
@@ -180,6 +186,7 @@ export default function Profile() {
             </div>
             <div className="flex-1 min-w-0">
               <h2 className="font-serif text-xl text-[#F0E6FF] truncate">{displayName}</h2>
+              <p className="text-[#F0E6FF]/40 text-xs mt-0.5">{t('profile.subtitle')}</p>
               {displayAlias && displayAlias !== displayName && (
                 <p className="text-[#F0E6FF]/40 text-sm italic">@{displayAlias}</p>
               )}
@@ -236,7 +243,7 @@ export default function Profile() {
             <InfoChip label={lang === 'fr' ? 'Nom' : 'Name'} value={fullName || '—'} />
             <InfoChip label={lang === 'fr' ? 'Ville' : 'City'} value={city || '—'} />
             <InfoChip label={lang === 'fr' ? 'Archétype' : 'Archetype'} value={userProfile?.dating_archetype ? getArchetypeLabel(userProfile.dating_archetype, lang) : '—'} />
-            <InfoChip label={lang === 'fr' ? 'Questions' : 'Questions'} value={`${Object.keys(matchingAnswers || {}).filter(k => matchingAnswers[k] && k.startsWith('q')).length}/21`} />
+            <InfoChip label={lang === 'fr' ? 'Questions' : 'Questions'} value={`${Object.keys(matchingAnswers || {}).filter(k => matchingAnswers[k] && QUESTION_KEYS.has(k)).length}/21`} />
           </div>
           {completeness < 100 && (
             <div className="space-y-1 pt-1 border-t border-[rgba(240,230,255,0.06)]">

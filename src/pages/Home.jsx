@@ -127,6 +127,7 @@ export default function Home() {
           <h1 className="font-serif text-2xl text-[#F0E6FF]">
             {lang === 'fr' ? `Bonjour, ${displayName.split(' ')[0]}` : `Hello, ${displayName.split(' ')[0]}`}
           </h1>
+          <p className="text-[#F0E6FF]/40 text-xs mt-0.5">{t('home.subtitle')}</p>
           <div className="flex items-center gap-2 mt-0.5">
             <Link to="/membership" className="text-xs font-semibold px-2 py-0.5 rounded-full glass-card text-[#F0E6FF]/70 hover:border-[rgba(245,168,0,0.3)] transition-all">
               {lang === 'fr' ? 'Adhésion' : 'Membership'}

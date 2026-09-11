@@ -14,7 +14,7 @@ import { getActiveOwnerPhotos } from '../../shared/photoAccess.ts';
 //   - Photos are shown in the locked state (standard non-entitled viewer):
 //     has_photos + count, but no signed URLs. The owner's real images are NOT
 //     delivered in preview.
-//   - bio is null (gated behind a paid unlock in the real viewer model).
+//   - bio is returned (visible to all members, not paywalled).
 //   - viewer_context = 'standard_member_preview'.
 //   - Creates no payment, entitlement, connection, view-analytics, message,
 //     notification, or wallet side effect.
@@ -54,7 +54,7 @@ Deno.serve(async (req) => {
       dating_archetype: profile.dating_archetype,
       zodiac: profile.zodiac,
       gender_pronoun: profile.gender_pronoun,
-      bio: null, // gated behind a paid unlock for ordinary viewers
+      bio: profile.bio || null, // visible to all members (not paywalled)
       paired_status: profile.paired_status,
       profile_type: profile.profile_type,
       is_founding_member: profile.is_founding_member === true,

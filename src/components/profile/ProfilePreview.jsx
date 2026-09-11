@@ -121,13 +121,17 @@ export default function ProfilePreview() {
             {preview.is_founding_member && <FoundingMemberBadge />}
           </div>
 
-          {/* Bio — locked for non-entitled viewers */}
-          <div className="pt-2 border-t border-foreground/5">
-            <div className="flex items-center gap-2 text-foreground/30">
-              <Lock className="w-3.5 h-3.5" />
-              <p className="text-xs">{isFr ? 'Bio verrouillée — déverrouillez la connexion pour voir.' : 'Bio locked — unlock the connection to view.'}</p>
+          {/* Bio — visible to all members (not paywalled) */}
+          {preview.bio ? (
+            <div className="pt-2 border-t border-foreground/5">
+              <p className="text-foreground/40 text-[10px] uppercase tracking-wide mb-1">{isFr ? 'À propos de moi' : 'About me'}</p>
+              <p className="text-foreground/70 text-sm leading-relaxed whitespace-pre-line">{preview.bio}</p>
             </div>
-          </div>
+          ) : (
+            <div className="pt-2 border-t border-foreground/5">
+              <p className="text-foreground/30 text-xs italic">{isFr ? 'Aucune bio pour le moment.' : 'No bio yet.'}</p>
+            </div>
+          )}
         </div>
       </motion.div>
 
