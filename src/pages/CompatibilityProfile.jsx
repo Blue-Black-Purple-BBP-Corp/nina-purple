@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Loader2, Share2, Sparkles, Check, Edit3, Heart } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, Share2, Sparkles, Check, Edit3, Heart, RefreshCw, AlertTriangle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LanguageContext';
 import { ninaIcon } from '@/lib/images';
@@ -37,6 +37,7 @@ export default function CompatibilityProfile() {
   const [matchingAnswers, setMatchingAnswers] = useState(null);
   const [editOpen, setEditOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [retakeConfirm, setRetakeConfirm] = useState(false);
   const cardRef = useRef(null);
 
   useEffect(() => {
@@ -143,6 +144,45 @@ export default function CompatibilityProfile() {
     } catch (e) {
       console.error('Share failed:', e.message);
     }
+  };
+
+  // Retake: permanently clears all compatibility results and restarts the quiz.
+  // Requires a two-step confirmation — the first click opens the dialog, the
+  // second click (inside the dialog) confirms the irreversible deletion.
+  const handleRetake = async () => {
+    setSyncing(true);
+    try {
+      await base44.functions.invoke('updateProfile', {
+        attachment_style: null,
+        attachment_anxiety: null,
+        attachment_avoidance: null,
+        big5_openness: null,
+        big5_conscientiousness: null,
+        big5_extraversion: null,
+        big5_agreeableness: null,
+        big5_neuroticism: null,
+        compatibility_updated_at: null,
+        compatibility_last_completed_at: null,
+        compatibility_edit_status: 'not_started',
+      });
+    } catch (e) {
+      console.error('Retake: failed to clear results:', e.message);
+    }
+    try { localStorage.removeItem(RAW_STORAGE_KEY); } catch (e) {}
+    setAnswers({});
+    setIndex(0);
+    setResult(null);
+    setUserProfile(prev => prev ? {
+      ...prev,
+      attachment_style: null, attachment_anxiety: null, attachment_avoidance: null,
+      big5_openness: null, big5_conscientiousness: null, big5_extraversion: null,
+      big5_agreeableness: null, big5_neuroticism: null,
+      compatibility_updated_at: null, compatibility_last_completed_at: null,
+      compatibility_edit_status: 'not_started',
+    } : prev);
+    setSyncing(false);
+    setRetakeConfirm(false);
+    setPhase('intro');
   };
 
   const allAnswered = QUIZ_ITEMS.every((i) => answers[i.id] != null);
@@ -381,7 +421,48 @@ export default function CompatibilityProfile() {
                     {isFr ? <><Share2 className="w-4 h-4" /> Image</> : <><Share2 className="w-4 h-4" /> Image</>}
                   </button>
                 </div>
+                <button onClick={() => setRetakeConfirm(true)}
+                  className="w-full py-3 text-[#F0E6FF]/40 text-sm hover:text-red-400 transition-colors flex items-center justify-center gap-2">
+                  <RefreshCw className="w-4 h-4" /> {isFr ? 'Repasser le test' : 'Retake test'}
+                </button>
               </div>
+
+              {/* Retake confirmation — two-step safety gate */}
+              <AnimatePresence>
+                {retakeConfirm && (
+                  <motion.div key="retake-confirm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-[80] bg-[#0B0510]/80 backdrop-blur-md flex items-center justify-center px-6">
+                    <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+                      className="glass-card rounded-3xl p-6 max-w-sm w-full space-y-4 border-red-500/30">
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-full bg-red-500/15 flex items-center justify-center shrink-0">
+                          <AlertTriangle className="w-5 h-5 text-red-400" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-serif text-lg text-[#F0E6FF] mb-1">
+                            {isFr ? 'Repasser le test ?' : 'Retake the test?'}
+                          </h3>
+                          <p className="text-[#F0E6FF]/60 text-sm leading-relaxed">
+                            {isFr
+                              ? 'Vos résultats actuels (style d\u2019attachement et Big Five) seront définitivement supprimés. Vous devrez répondre à nouveau à toutes les questions. Cette action est irréversible.'
+                              : 'Your current results (attachment style and Big Five) will be permanently deleted. You will need to answer all questions again. This action cannot be undone.'}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex gap-3">
+                        <button onClick={handleRetake} disabled={syncing}
+                          className="flex-1 py-3 bg-red-500 text-white rounded-full font-bold text-sm hover:bg-red-600 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                          {syncing ? <><Loader2 className="w-4 h-4 animate-spin" /> {isFr ? 'Suppression…' : 'Deleting…'}</> : (isFr ? 'Oui, supprimer et repasser' : 'Yes, delete and retake')}
+                        </button>
+                        <button onClick={() => setRetakeConfirm(false)} disabled={syncing}
+                          className="flex-1 py-3 glass-card rounded-full text-[#F0E6FF]/70 font-medium text-sm hover:text-[#F0E6FF] transition-colors">
+                          {isFr ? 'Annuler' : 'Cancel'}
+                        </button>
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           )}
         </AnimatePresence>

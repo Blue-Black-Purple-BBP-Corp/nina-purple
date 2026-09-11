@@ -25,6 +25,8 @@ import { base44 } from '@/api/base44Client';
 import { getArchetypeLabel } from '@/lib/archetypes';
 import { computeChecklist } from '@/lib/profileChecklist';
 import { QUESTIONS_21 } from '@/pages/Onboarding';
+import DailyInsightCard from '@/components/DailyInsightCard';
+import CompatibilitySummaryCard from '@/components/profile/CompatibilitySummaryCard';
 
 const QUESTION_KEYS = new Set(QUESTIONS_21.map(q => q.key));
 
@@ -160,24 +162,22 @@ export default function Profile() {
   const completeness = computeChecklist(userProfile).completeness;
   const isCouple = userProfile?.profile_type === 'couple';
 
+  // Derives missing items directly from computeChecklist so the hints always
+  // match the actual completion calculation — no parallel logic that can drift.
   const calcMissingItems = () => {
-    const items = [];
-    if (!userProfile?.full_name) items.push(lang === 'fr' ? 'Ajouter votre nom' : 'Add your name');
-    if (!userProfile?.display_name) items.push(lang === 'fr' ? 'Ajouter un nom d\'affichage' : 'Add a display name');
-    if (!userProfile?.city) items.push(lang === 'fr' ? 'Ajouter votre ville' : 'Add your city');
-    if (!userProfile?.birthdate) items.push(lang === 'fr' ? 'Ajouter votre date de naissance' : 'Add your birthdate');
-    if (!userProfile?.sexual_orientation) items.push(lang === 'fr' ? 'Ajouter votre orientation' : 'Add your orientation');
-    if (!userProfile?.gender_pronoun) items.push(lang === 'fr' ? 'Ajouter votre pronom' : 'Add your pronoun');
-    if (!userProfile?.relationship_status) items.push(lang === 'fr' ? 'Ajouter votre statut' : 'Add your status');
-    if (!userProfile?.dating_archetype) items.push(lang === 'fr' ? 'Choisir un archétype' : 'Choose an archetype');
-    const photoCount = userProfile?.photo_count ?? (userProfile?.photos || []).length;
-    if (photoCount < 3) items.push(lang === 'fr' ? `Ajouter ${3 - photoCount} photo(s) (minimum 3)` : `Add ${3 - photoCount} more photo(s) (minimum 3)`);
-    const answered = Object.keys(matchingAnswers || {}).filter(k => matchingAnswers[k] && QUESTION_KEYS.has(k)).length;
-    if (answered < 21) items.push(lang === 'fr' ? `Répondre aux 21 questions (${answered}/21)` : `Answer all 21 questions (${answered}/21)`);
-    if (items.length > 0) return items;
-    if (completeness >= 100) return [lang === 'fr' ? 'Profil complet !' : 'Profile complete!'];
-    if (photoCount < 6) return [lang === 'fr' ? `Ajouter ${6 - photoCount} photo(s) pour atteindre 100%` : `Add ${6 - photoCount} more photo(s) to reach 100%`];
-    return [lang === 'fr' ? 'Profil complet !' : 'Profile complete!'];
+    const { incomplete } = computeChecklist(userProfile);
+    if (incomplete.length === 0) return [lang === 'fr' ? 'Profil complet !' : 'Profile complete!'];
+    return incomplete.map(item => {
+      if (item.key === 'photos') {
+        const current = userProfile?.photo_count ?? (userProfile?.photos?.filter(Boolean).length || 0);
+        return lang === 'fr'
+          ? `Ajouter ${3 - current} photo(s) — vous en avez ${current}, minimum 3`
+          : `Add ${3 - current} more photo(s) — you have ${current}, minimum 3`;
+      }
+      return lang === 'fr'
+        ? `Ajouter : ${item.label_fr.toLowerCase()}`
+        : `Add: ${item.label_en.toLowerCase()}`;
+    });
   };
   const tierMeta    = TIER_META[tier] || TIER_META.solar;
   const firstPhoto  = primaryPhotoUrl(myPhotoData, ownerId) || null;
@@ -296,12 +296,22 @@ export default function Profile() {
           </div>
           <div className="flex items-center gap-3 pl-12">
             <span className="text-[#F0E6FF]/40 text-xs">
-              {userProfile?.compatibility_updated_at
-                ? (lang === 'fr' ? `Mis à jour le ${new Date(userProfile.compatibility_updated_at).toLocaleDateString(lang === 'fr' ? 'fr-CA' : 'en-US')}` : `Updated ${new Date(userProfile.compatibility_updated_at).toLocaleDateString('en-US')}`)
+              {userProfile?.attachment_style
+                ? (lang === 'fr' ? 'Complété' : 'Completed')
                 : (lang === 'fr' ? 'Non encore complété' : 'Not yet completed')}
             </span>
           </div>
+          {userProfile?.attachment_style && (
+            <div className="mt-3 pt-3 border-t border-[rgba(123,47,190,0.15)]">
+              <CompatibilitySummaryCard profile={userProfile} lang={lang} />
+            </div>
+          )}
         </Link>
+      </motion.div>
+
+      {/* ═══ 3b. DAILY INSIGHT ═══ */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.12 }}>
+        <DailyInsightCard profile={userProfile} lang={lang} />
       </motion.div>
 
       {/* ═══ 4. MY PHOTOS ═══ */}
