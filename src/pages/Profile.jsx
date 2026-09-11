@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Star, Coins, Shield, Camera, ChevronRight as ChevronRightIcon, Crown, Edit3, Award, Users, Loader2, LogOut, LogIn, User as UserIcon, Trash2, AlertTriangle, Eye, Sparkles, Wallet, ShieldCheck } from 'lucide-react';
+import { Star, Coins, Shield, Camera, ChevronRight as ChevronRightIcon, Crown, Edit3, Award, Users, Loader2, LogOut, LogIn, User as UserIcon, Trash2, AlertTriangle, Eye, Sparkles, Wallet, ShieldCheck, Calendar, MessageCircle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useLang } from '@/lib/LanguageContext';
 import { useTranslation } from '@/lib/i18n';
@@ -23,6 +23,7 @@ import PeerVouchModal from '@/components/PeerVouchModal';
 // TEMP: import AmbassadorBadge from '@/components/dashboard/AmbassadorBadge';
 import { base44 } from '@/api/base44Client';
 import { getArchetypeLabel } from '@/lib/archetypes';
+import { computeChecklist } from '@/lib/profileChecklist';
 import { QUESTIONS_21 } from '@/pages/Onboarding';
 
 const QUESTION_KEYS = new Set(QUESTIONS_21.map(q => q.key));
@@ -54,6 +55,8 @@ export default function Profile() {
   const [authUser, setAuthUser]         = useState(null);
   const [userProfile, setUserProfile]   = useState(null);
   const [matchingAnswers, setMatchingAnswers] = useState(null);
+  const [connections, setConnections] = useState([]);
+  const [matchProfiles, setMatchProfiles] = useState({});
   const [loading, setLoading]           = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -70,10 +73,11 @@ export default function Profile() {
     if (authenticated) {
       const user = await base44.auth.me();
       setAuthUser(user);
-      const [profiles, answers, vouchRes] = await Promise.all([
+      const [profiles, answers, vouchRes, conns] = await Promise.all([
         base44.entities.UserProfile.filter({ user_id: user.id }),
         base44.entities.MatchingAnswers.filter({ user_id: user.id }),
         base44.functions.invoke('getVouchCount', {}).catch(() => ({ count: 0 })),
+        base44.entities.Connection.filter({ from_user_id: user.id }),
       ]);
       setVouchCount(vouchRes.count || 0);
       const profile = profiles[0] || null;
@@ -85,6 +89,16 @@ export default function Profile() {
       }
       setUserProfile(profile);
       setMatchingAnswers(answers[0] || null);
+      setConnections(conns);
+      if (conns.length > 0) {
+        const toIds = [...new Set(conns.map(c => c.to_user_id))];
+        try {
+          const res = await base44.functions.invoke('getConnectionProfiles', { user_ids: toIds });
+          setMatchProfiles(res.data?.profiles || {});
+        } catch (e) {
+          console.warn('getConnectionProfiles failed:', e.message);
+        }
+      }
     }
     setLoading(false);
   };
@@ -143,7 +157,8 @@ export default function Profile() {
   const tier        = userProfile?.subscription_tier || 'solar';
   const credits     = userProfile?.credit_balance ?? 0;
   const rewards     = userProfile?.bbp_rewards ?? 0;
-  const completeness= userProfile?.profile_completeness ?? 0;
+  const completeness = computeChecklist(userProfile).completeness;
+  const isCouple = userProfile?.profile_type === 'couple';
 
   const calcMissingItems = () => {
     const items = [];
@@ -307,6 +322,48 @@ export default function Profile() {
             {lang === 'fr' ? 'Gérer les photos' : 'Manage photos'}
           </button>
         </div>
+      </motion.div>
+
+      {/* ═══ 4b. SHORTCUT CARDS — My Connections / Upcoming Events / New Messages ═══ */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.18 }}>
+        {!isCouple ? (
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { icon: Users, label: t('home.my_connections'), count: connections.length, color: '#F5A800', to: '/connections' },
+              { icon: Calendar, label: t('home.upcoming_events'), count: 0, color: '#7B2FBE', to: '/events' },
+              { icon: MessageCircle, label: t('home.new_messages'), count: 0, color: '#A855F7', to: '/messages' },
+            ].map((stat, i) => (
+              <Link key={i} to={stat.to}>
+                <div className="glass-card rounded-2xl p-3 text-center hover:border-[rgba(245,168,0,0.15)] transition-all" style={{ borderColor: `${stat.color}20` }}>
+                  <div className="relative inline-block">
+                    <stat.icon className="w-5 h-5 mx-auto mb-1" style={{ color: stat.color }} />
+                    {stat.count > 0 && (
+                      <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#F5A800] text-[#0B0510] text-[9px] font-bold flex items-center justify-center">
+                        {stat.count}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[#F0E6FF]/50 text-[9px] leading-tight">{stat.label}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            <Link to="/events">
+              <div className="glass-card rounded-2xl p-3 text-center hover:border-[rgba(123,47,190,0.3)] transition-all" style={{ borderColor: 'rgba(123,47,190,0.2)' }}>
+                <Calendar className="w-5 h-5 mx-auto mb-1 text-[#7B2FBE]" />
+                <p className="text-[#F0E6FF]/50 text-[9px] leading-tight">{t('home.upcoming_events')}</p>
+              </div>
+            </Link>
+            <Link to="/community">
+              <div className="glass-card rounded-2xl p-3 text-center hover:border-[rgba(168,85,247,0.3)] transition-all" style={{ borderColor: 'rgba(168,85,247,0.2)' }}>
+                <MessageCircle className="w-5 h-5 mx-auto mb-1 text-[#A855F7]" />
+                <p className="text-[#F0E6FF]/50 text-[9px] leading-tight">{t('home.chat_rooms')}</p>
+              </div>
+            </Link>
+          </div>
+        )}
       </motion.div>
 
       {/* ═══ 5. WALLET & CREDITS ═══ */}

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, Users, MessageCircle, Calendar, User, Star, LogIn, Loader2, Heart, AlertCircle, RefreshCw } from 'lucide-react';
+import { Users, MessageCircle, Calendar, User, Star, LogIn, Loader2, Heart, AlertCircle, RefreshCw } from 'lucide-react';
 import LanguageToggle from './LanguageToggle';
 import ThemeToggle from './ThemeToggle';
 import StaffAccountMenu from './StaffAccountMenu';
@@ -99,13 +99,12 @@ export default function AppLayout() {
   }, []);
 
   const navItems = [
-    { path: '/home', icon: Home, label: t('nav.home') },
+    { path: '/profile', icon: User, label: t('nav.profile') },
     { path: '/connections', icon: Users, label: t('nav.connections') },
     { path: '/messages', icon: MessageCircle, label: t('nav.messages') },
     { path: '/events', icon: Calendar, label: t('nav.events') },
     { path: '/community', icon: Star, label: t('nav.community') },
-    { path: '/relationship', icon: Heart, label: lang === 'fr' ? 'Relation' : 'Relationship' },
-    { path: '/profile', icon: User, label: t('nav.profile') },
+    { path: '/relationship', icon: Heart, label: t('nav.conversations') },
   ];
 
   const isActive = (path) => location.pathname === path;
@@ -198,7 +197,7 @@ export default function AppLayout() {
       {/* Top header */}
       <header className="fixed top-0 left-0 right-0 z-50 px-4 py-3 flex items-center justify-between"
         style={{ background: 'linear-gradient(180deg, rgba(11,5,16,0.95) 0%, rgba(11,5,16,0) 100%)', backdropFilter: 'blur(20px)' }}>
-        <Link to="/home" className="flex items-center gap-2">
+        <Link to="/profile" className="flex items-center gap-2">
           <img
             src={ninaHorizontal}
             alt="Nina Purple"

@@ -21,7 +21,7 @@ export default function Relationship() {
         <div className="w-12 h-12 rounded-2xl bg-[rgba(123,47,190,0.15)] flex items-center justify-center mx-auto mb-3">
           <Heart className="w-6 h-6 text-[#7B2FBE]" />
         </div>
-        <h1 className="font-serif text-3xl text-[#F0E6FF] mb-1">{isFr ? 'Relation' : 'Relationship'}</h1>
+        <h1 className="font-serif text-3xl text-[#F0E6FF] mb-1">Conversations</h1>
         <p className="text-[#F0E6FF]/40 text-sm">{isFr ? 'Des prompts à explorer à deux, sans pression.' : 'Prompts to explore together, no pressure.'}</p>
       </motion.div>
       <div className="h-[70vh]">

@@ -8,6 +8,7 @@ export const translations = {
       events: 'Events',
       profile: 'Profile',
       community: 'Community',
+      conversations: 'Conversations',
     },
     // Landing
     landing: {
@@ -118,10 +119,6 @@ export const translations = {
       credits: 'Credits',
       add_credits: 'Add Credits',
     },
-    // Profile page subtitle
-    profile: {
-      subtitle: 'Your space to reflect and grow',
-    },
     // Connections
     connections: {
       title: 'Your Constellation',
@@ -175,6 +172,7 @@ export const translations = {
     // Profile
     profile: {
       title: 'My Sanctuary',
+      subtitle: 'Your space to reflect and grow',
       edit: 'Edit Profile',
       subscription: 'Subscription',
       credits: 'Credit Balance',
@@ -211,6 +209,7 @@ export const translations = {
       events: 'Événements',
       profile: 'Profil',
       community: 'Communauté',
+      conversations: 'Conversations',
     },
     landing: {
       tagline: 'Rencontres Conscientes.',
@@ -316,9 +315,6 @@ export const translations = {
       credits: 'Crédits',
       add_credits: 'Ajouter des Crédits',
     },
-    profile: {
-      subtitle: 'Votre espace pour réfléchir et grandir',
-    },
     connections: {
       title: 'Votre Constellation',
       subtitle: 'Profils alignés avec votre voyage',
@@ -367,6 +363,7 @@ export const translations = {
     },
     profile: {
       title: 'Mon Sanctuaire',
+      subtitle: 'Votre espace pour réfléchir et grandir',
       edit: 'Modifier le Profil',
       subscription: 'Abonnement',
       credits: 'Solde de Crédits',

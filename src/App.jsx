@@ -25,7 +25,6 @@ import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
-import Home from '@/pages/Home';
 import Connections from '@/pages/Connections';
 import Messages from '@/pages/Messages';
 import Events from '@/pages/Events';
@@ -92,7 +91,7 @@ const AuthenticatedApp = () => {
 
       {/* App routes with shared layout */}
       <Route element={<AppLayout />}>
-        <Route path="/home" element={<Home />} />
+        <Route path="/home" element={<Navigate to="/profile" replace />} />
         <Route path="/connections" element={<Connections />} />
         <Route path="/messages" element={<Messages />} />
         <Route path="/events" element={<Events />} />
