@@ -13,16 +13,16 @@ const TABS = [
   { id: 'guarantee',   en: 'Value Guarantee',  fr: 'Garantie de valeur' },
 ];
 
-// First message is included free with the connection unlock. Replies in an
-// established conversation are free. No per-message, per-reply, per-view, or
-// per-keystroke charges.
+// Single flat paid interaction (decision 1): one credit to start a
+// conversation. Replies in an established conversation are free. No per-
+// message, per-reply, per-view, or per-keystroke charges.
 const MICRO_ROWS = (lang) => [
   {
     action: lang === 'fr' ? 'Démarrer une conversation' : 'Start a conversation',
     cond:   lang === 'fr'
-      ? 'Votre premier message est inclus gratuitement avec le déverrouillage de la connexion. Les réponses dans une conversation établie sont gratuites.'
-      : 'Your first message is included free with the connection unlock. Replies in an established conversation are free.',
-    cost:   lang === 'fr' ? 'Inclus gratuitement' : 'Included free',
+      ? 'Nouveau message payant pour entamer une conversation. Les réponses dans une conversation établie sont gratuites.'
+      : 'New paid message to start a conversation. Replies in an established conversation are free.',
+    cost:   '1 BBP Credit',
   },
 ];
 

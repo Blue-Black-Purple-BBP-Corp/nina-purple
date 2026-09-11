@@ -493,7 +493,7 @@ export default function Connections() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-[#F0E6FF]/60">{lang === 'fr' ? 'Message initial' : 'First message'}</span>
-                    <span className="text-[#F5A800] font-medium">{lang === 'fr' ? 'Inclus' : 'Included'}</span>
+                    <span className="text-[#F0E6FF]/80">1 BBP</span>
                   </div>
                 </div>
                 {limitError && (
