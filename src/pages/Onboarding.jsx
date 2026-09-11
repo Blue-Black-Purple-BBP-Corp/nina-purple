@@ -21,7 +21,7 @@ import { ninaIcon, ninaCharacter } from '@/lib/images';
 import { getActiveArchetypes, getArchetypeLabel, getArchetypeDescription } from '@/lib/archetypes';
 
 // Steps: age → guidelines → segmentation → profile → archetype → photos → questions → subscription → register → complete
-const STEPS = ['age', 'guidelines', 'segmentation', 'profile', 'archetype', 'photos', 'questions', 'orientation', 'subscription', 'complete'];
+const STEPS = ['age', 'guidelines', 'segmentation', 'profile', 'archetype', 'photos', 'questions', 'subscription', 'complete'];
 
 // Coarse stable step identifiers (survive UI reordering). Persisted as
 // onboarding_current_step so route guards restore the latest incomplete step.
@@ -29,7 +29,7 @@ const COARSE_STEP = {
   age: 'age_eligibility', guidelines: 'age_eligibility', segmentation: 'age_eligibility',
   profile: 'profile_basics', archetype: 'profile_basics',
   photos: 'profile_media',
-  questions: 'compatibility', orientation: 'compatibility',
+  questions: 'compatibility',
   subscription: 'membership', complete: 'completion',
 };
 
@@ -89,7 +89,9 @@ export default function Onboarding() {
   const [profileType, setProfileType] = useState('');
   const [partnerEmail, setPartnerEmail] = useState('');
   const [partnerLinkSent, setPartnerLinkSent] = useState(false);
-  const [orientationAccepted, setOrientationAccepted] = useState(false);
+  const [ackRespect, setAckRespect] = useState(false);
+  const [ackConscious, setAckConscious] = useState(false);
+  const [ackCommunityStanding, setAckCommunityStanding] = useState(false);
   const [foundingEligibility, setFoundingEligibility] = useState(null);
   const [membershipOffer, setMembershipOffer] = useState(null);
   const [isAuthed, setIsAuthed] = useState(true);
@@ -243,7 +245,7 @@ export default function Onboarding() {
     const nextStep = STEPS[Math.min(step + 1, STEPS.length - 1)];
     // Save progress at key data-entry steps. Entering the membership step marks
     // awaiting_membership so re-entry restores there (not the age step).
-    if (['profile', 'archetype', 'photos', 'questions', 'orientation'].includes(currentStep)) {
+    if (['profile', 'archetype', 'photos', 'questions'].includes(currentStep)) {
       saveProgress(nextStep, nextStep === 'subscription');
     }
     setStep(s => Math.min(s + 1, STEPS.length - 1));
@@ -466,13 +468,11 @@ export default function Onboarding() {
     try {
       await base44.functions.invoke('ensureMemberEngagementProfile', {});
       await base44.functions.invoke('evaluateProfileCompletion', {});
-      if (orientationAccepted) {
-        await base44.functions.invoke('recordPolicyAcknowledgement', {
-          policy_type: 'community_orientation',
-          policy_version: ORIENTATION_VERSION,
-          locale: lang,
-        });
-      }
+      await base44.functions.invoke('recordPolicyAcknowledgement', {
+        policy_type: 'community_orientation',
+        policy_version: ORIENTATION_VERSION,
+        locale: lang,
+      });
     } catch (engErr) {
       console.warn('Engagement layer setup failed (non-blocking):', engErr.message);
     }
@@ -684,13 +684,33 @@ export default function Onboarding() {
             </motion.div>
           )}
 
-          {/* ── GUIDELINES ── */}
+          {/* ── GUIDELINES (merged with Community Orientation) ── */}
           {currentStep === 'guidelines' && (
             <motion.div key="guidelines" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.6 }}
               className="w-full space-y-6">
               <NinaSpeech message={t('onboarding.guidelines_intro')} />
               <h2 className="font-serif text-2xl text-foreground">{t('onboarding.guidelines_title')}</h2>
-              {[t('onboarding.honest'), t('onboarding.respectful'), t('onboarding.conscious')].map((g, i) => (
+
+              {/* Our Values — informational cards (all consent language preserved) */}
+              <p className="font-serif text-lg text-foreground/80">
+                {lang === 'fr' ? 'Nos valeurs' : 'Our Values'}
+              </p>
+              {[
+                t('onboarding.honest'),
+                ...(lang === 'fr' ? [
+                  'Nina Purple favorise les connexions intentionnelles et respectueuses.',
+                  "Les membres décident s'ils se rencontrent en personne, et quand.",
+                  "Ne partagez pas de conversations privées, captures d'écran, adresses ou informations sensibles sans consentement.",
+                  "Privilégiez les lieux publics et informez un contact de confiance lors d'une première rencontre.",
+                  "Utilisez les outils de blocage et de signalement si quelque chose ne va pas.",
+                ] : [
+                  'Nina Purple supports intentional, respectful connection.',
+                  'Members decide if and when they meet offline.',
+                  'Do not share private conversations, screenshots, addresses, or sensitive information without consent.',
+                  'Consider public venues and trusted-contact planning when meeting someone new.',
+                  'Use current block/report tools if something feels wrong.',
+                ]),
+              ].map((g, i) => (
                 <div key={i} className="glass-card rounded-2xl p-4 flex items-start gap-3 border-[rgba(245,168,0,0.15)]">
                   <div className="w-6 h-6 rounded-full bg-[rgba(245,168,0,0.15)] flex items-center justify-center mt-0.5 shrink-0">
                     <Check className="w-3.5 h-3.5 text-[#F5A800]" />
@@ -698,6 +718,37 @@ export default function Onboarding() {
                   <p className="text-foreground/80 text-sm leading-relaxed">{g}</p>
                 </div>
               ))}
+
+              {/* My Commitments — all four checkboxes required */}
+              <p className="font-serif text-lg text-foreground/80 pt-2">
+                {lang === 'fr' ? 'Mes engagements' : 'My Commitments'}
+              </p>
+
+              {/* Respect */}
+              <label className="glass-card rounded-2xl p-4 flex items-start gap-3 cursor-pointer border-[rgba(123,47,190,0.2)]">
+                <input type="checkbox" checked={ackRespect} onChange={e => setAckRespect(e.target.checked)}
+                  className="mt-1 w-4 h-4 accent-[#F5A800] shrink-0" />
+                <span className="text-foreground/70 text-xs leading-relaxed">{t('onboarding.respectful')}</span>
+              </label>
+
+              {/* Conscious */}
+              <label className="glass-card rounded-2xl p-4 flex items-start gap-3 cursor-pointer border-[rgba(123,47,190,0.2)]">
+                <input type="checkbox" checked={ackConscious} onChange={e => setAckConscious(e.target.checked)}
+                  className="mt-1 w-4 h-4 accent-[#F5A800] shrink-0" />
+                <span className="text-foreground/70 text-xs leading-relaxed">{t('onboarding.conscious')}</span>
+              </label>
+
+              {/* Community Standing disclaimer */}
+              <label className="glass-card rounded-2xl p-4 flex items-start gap-3 cursor-pointer border-[rgba(123,47,190,0.2)]">
+                <input type="checkbox" checked={ackCommunityStanding} onChange={e => setAckCommunityStanding(e.target.checked)}
+                  className="mt-1 w-4 h-4 accent-[#F5A800] shrink-0" />
+                <span className="text-foreground/70 text-xs leading-relaxed">
+                  {lang === 'fr'
+                    ? "Je comprends que la position communautaire reflète la participation; ce n'est pas une vérification d'identité, une garantie de sécurité ou une approbation d'un membre."
+                    : 'I understand that Community Standing reflects participation; it is not legal identity verification, a safety guarantee, or endorsement of a member.'}
+                </span>
+              </label>
+
               {/* Art. 9 (GDPR) explicit consent for sensitive data */}
               <label className="glass-card rounded-2xl p-4 flex items-start gap-3 cursor-pointer border-[rgba(123,47,190,0.2)]">
                 <input type="checkbox" checked={consentAccepted} onChange={e => setConsentAccepted(e.target.checked)}
@@ -708,20 +759,28 @@ export default function Onboarding() {
                     : <>I expressly consent (GDPR Art. 9 / Quebec Law 25) to Nina Purple processing my sensitive data — sexual orientation and relationship preferences — solely for compatibility matching. I may withdraw this consent at any time by deleting my account. See the <a href="/privacy" className="text-[#F5A800] underline">Privacy Policy</a>.</>}
                 </span>
               </label>
-              {!consentAccepted && (
-                <p className="text-[#F5A800]/60 text-xs text-center">
-                  {lang === 'fr' ? 'Cochez la case ci-dessus pour continuer' : 'Check the box above to continue'}
-                </p>
-              )}
-              <button onClick={() => {
-                base44.functions.invoke('saveOnboardingStep', {
-                  onboarding_step: 'segmentation',
-                }).catch(e => console.warn('guidelines save failed:', e.message));
-                goNext();
-              }} disabled={!consentAccepted}
-                className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
-                {t('onboarding.accept_guidelines')}
-              </button>
+
+              {(() => {
+                const allChecked = consentAccepted && ackRespect && ackConscious && ackCommunityStanding;
+                return (
+                  <>
+                    {!allChecked && (
+                      <p className="text-[#F5A800]/60 text-xs text-center">
+                        {lang === 'fr' ? 'Cochez toutes les cases ci-dessus pour continuer' : 'Check all boxes above to continue'}
+                      </p>
+                    )}
+                    <button onClick={() => {
+                      base44.functions.invoke('saveOnboardingStep', {
+                        onboarding_step: 'segmentation',
+                      }).catch(e => console.warn('guidelines save failed:', e.message));
+                      goNext();
+                    }} disabled={!allChecked}
+                      className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+                      {t('onboarding.accept_guidelines')}
+                    </button>
+                  </>
+                );
+              })()}
             </motion.div>
           )}
 
@@ -1029,54 +1088,6 @@ export default function Onboarding() {
                   </>
                 )}
               </div>
-            </motion.div>
-          )}
-
-          {/* ── ORIENTATION ── */}
-          {currentStep === 'orientation' && (
-            <motion.div key="orientation" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.6 }}
-              className="w-full space-y-6">
-              <NinaSpeech message={lang === 'fr' ? 'Bienvenue dans la communauté Nina Purple. Prenons un moment pour partager nos valeurs.' : 'Welcome to the Nina Purple community. Let\'s take a moment to share our values.'} />
-              <h2 className="font-serif text-2xl text-foreground">
-                {lang === 'fr' ? 'Orientation Communautaire' : 'Community Orientation'}
-              </h2>
-              <div className="space-y-3">
-                {[
-                  { fr: 'Nina Purple favorise les connexions intentionnelles et respectueuses.', en: 'Nina Purple supports intentional, respectful connection.' },
-                  { fr: 'Les membres décident s\'ils se rencontrent en personne, et quand.', en: 'Members decide if and when they meet offline.' },
-                  { fr: 'Ne partagez pas de conversations privées, captures d\'écran, adresses ou informations sensibles sans consentement.', en: 'Do not share private conversations, screenshots, addresses, or sensitive information without consent.' },
-                  { fr: 'Privilégiez les lieux publics et informez un contact de confiance lors d\'une première rencontre.', en: 'Consider public venues and trusted-contact planning when meeting someone new.' },
-                  { fr: 'Utilisez les outils de blocage et de signalement si quelque chose ne va pas.', en: 'Use current block/report tools if something feels wrong.' },
-                  { fr: 'La position communautaire reflète la participation; ce n\'est pas une vérification d\'identité, une garantie de sécurité ou une approbation.', en: 'Community Standing reflects participation; it is not legal identity verification, a safety guarantee, or endorsement of a member.' },
-                ].map((item, i) => (
-                  <div key={i} className="glass-card rounded-2xl p-4 flex items-start gap-3 border-[rgba(245,168,0,0.15)]">
-                    <div className="w-6 h-6 rounded-full bg-[rgba(245,168,0,0.15)] flex items-center justify-center mt-0.5 shrink-0">
-                      <Check className="w-3.5 h-3.5 text-[#F5A800]" />
-                    </div>
-                    <p className="text-foreground/80 text-sm leading-relaxed">
-                      {lang === 'fr' ? item.fr : item.en}
-                    </p>
-                  </div>
-                ))}
-              </div>
-              <label className="glass-card rounded-2xl p-4 flex items-start gap-3 cursor-pointer border-[rgba(123,47,190,0.2)]">
-                <input type="checkbox" checked={orientationAccepted} onChange={e => setOrientationAccepted(e.target.checked)}
-                  className="mt-1 w-4 h-4 accent-[#F5A800] shrink-0" />
-                <span className="text-foreground/70 text-xs leading-relaxed">
-                  {lang === 'fr'
-                    ? "J'ai lu et je comprends l'orientation communautaire de Nina Purple. Je comprends que la position communautaire n'est pas une vérification d'identité ni une garantie de sécurité."
-                    : "I have read and understand the Nina Purple community orientation. I understand that Community Standing is not identity verification or a safety guarantee."}
-                </span>
-              </label>
-              {!orientationAccepted && (
-                <p className="text-[#F5A800]/60 text-xs text-center">
-                  {lang === 'fr' ? 'Cochez la case ci-dessus pour continuer' : 'Check the box above to continue'}
-                </p>
-              )}
-              <button onClick={goNext} disabled={!orientationAccepted}
-                className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
-                {t('onboarding.accept_guidelines')}
-              </button>
             </motion.div>
           )}
 
