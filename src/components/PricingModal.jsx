@@ -37,7 +37,7 @@ const MICRO_ROWS = (lang) => [
     cond:   lang === 'fr'
       ? 'Révélation des photos privées. Gratuit si le profil est déjà entièrement déverrouillé.'
       : 'Reveals private photos. Free if the profile is already fully unlocked.',
-    cost:   '$10.00',
+    cost:   lang === 'fr' ? '10,00 $ (gratuit si déverrouillé)' : '$10.00 (free if unlocked)',
   },
 ];
 
