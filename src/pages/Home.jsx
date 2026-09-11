@@ -76,8 +76,11 @@ export default function Home() {
     setRooms(chatRooms);
     setMatchingAnswers(answers[0] || null);
 
-    // Compatibility Profile must be completed before matches are shown
-    if (profile && !profile.attachment_style) {
+    // Compatibility Profile must be completed before matches are shown.
+    // Couples are excluded from matching, so this redirect is skipped for
+    // couple profiles — they can use the Home dashboard (events, community,
+    // couple journey) without completing the ECR-S/Big Five quiz.
+    if (profile && !profile.attachment_style && profile.profile_type !== 'couple') {
       navigate('/compatibility-profile');
       return;
     }
