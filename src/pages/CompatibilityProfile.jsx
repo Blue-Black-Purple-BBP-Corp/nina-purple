@@ -174,8 +174,8 @@ export default function CompatibilityProfile() {
                 </h1>
                 <p className="text-[#F0E6FF]/60 text-sm leading-relaxed max-w-md mx-auto">
                   {isFr
-                    ? "Un exercice de découverte de soi en deux parties. Vos résultats nourrissent votre score de compatibilité — les correspondances se font discrètement en arrière-plan pendant que vous explorez."
-                    : "A two-part self-discovery exercise. Your results feed your compatibility scoring — matching happens quietly in the background while you explore."}
+                    ? "Un exercice de découverte de soi en deux parties pour mieux vous comprendre. Ceci est pour votre propre réflexion — cela n'affecte pas vos correspondances."
+                    : "A two-part self-discovery exercise to help you understand yourself better. This is for your own reflection — it does not affect your matches."}
                 </p>
               </div>
 
