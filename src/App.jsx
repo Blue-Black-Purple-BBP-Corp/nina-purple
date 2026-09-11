@@ -35,8 +35,7 @@ import MembershipAndAccess from '@/pages/MembershipAndAccess';
 import CompatibilityProfile from '@/pages/CompatibilityProfile';
 import BBPWallet from '@/pages/BBPWallet';
 import Relationship from '@/pages/Relationship';
-import Admin from '@/pages/Admin';
-import AdminDashboard from '@/pages/AdminDashboard';
+import AdminPanel from '@/pages/AdminPanel';
 import AppLayout from '@/components/AppLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import PrivilegedRoute from '@/components/PrivilegedRoute';
@@ -89,6 +88,12 @@ const AuthenticatedApp = () => {
       <Route path="/contact" element={<Contact />} />
       <Route path="/bbp-rewards" element={<BBPRewards />} />
 
+      {/* Admin console — dedicated shell, no member AppLayout */}
+      <Route path="/admin/members" element={<Navigate to="/admin" replace />} />
+      <Route element={<PrivilegedRoute context="admin" />}>
+        <Route path="/admin" element={<AdminPanel />} />
+      </Route>
+
       {/* App routes with shared layout */}
       <Route element={<AppLayout />}>
         <Route path="/home" element={<Navigate to="/profile" replace />} />
@@ -102,10 +107,6 @@ const AuthenticatedApp = () => {
         <Route path="/compatibility-profile" element={<CompatibilityProfile />} />
         <Route path="/wallet" element={<BBPWallet />} />
         <Route path="/relationship" element={<Relationship />} />
-        <Route element={<PrivilegedRoute context="admin" />}>
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/members" element={<Admin />} />
-        </Route>
         <Route element={<PrivilegedRoute context="trust_safety" />}>
           <Route path="/trust-safety" element={<TrustSafety />} />
         </Route>
