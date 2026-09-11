@@ -47,6 +47,11 @@
       "type": "number",
       "description": "Optional maximum distance (in km) preference for matching. Null/absent = no distance restriction. Requires both users to have latitude/longitude populated; if either lacks coordinates, no distance restriction is applied."
     },
+    "high_compat_pass_cooldown_until": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Cooldown expiry for the high-compatibility pass-and-replenish flow. When a member passes a match with compatibility > 60%, the replacement slot refills only once every 30 days. This records when the current cooldown expires. Null/absent/past = no cooldown active."
+    },
     "phone": {
       "type": "string"
     },

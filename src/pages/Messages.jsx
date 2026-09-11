@@ -143,8 +143,16 @@ export default function Messages() {
           {messagesLoading ? (
             <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 text-[#F5A800] animate-spin" /></div>
           ) : messages.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-[#F0E6FF]/30 text-sm">{lang === 'fr' ? 'Commencez la conversation…' : 'Start the conversation…'}</p>
+            <div className="text-center py-12 space-y-3">
+              <Sparkles className="w-6 h-6 text-[#F5A800]/50 mx-auto" />
+              <p className="text-[#F0E6FF]/60 text-sm font-serif">
+                {lang === 'fr' ? 'Démarrez la conversation' : 'Start the conversation'}
+              </p>
+              <p className="text-[#F0E6FF]/40 text-xs leading-relaxed max-w-xs mx-auto">
+                {lang === 'fr'
+                  ? 'Votre premier message lance la conversation et coûte 1 BBP. Soyez authentique — partagez ce qui vous a attiré dans cette connexion. Les réponses sont gratuites.'
+                  : 'Your first message starts the conversation and costs 1 BBP Credit. Be genuine — share what drew you to this connection. Replies are free.'}
+              </p>
             </div>
           ) : (
             messages.map(msg => {

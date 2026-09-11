@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lock, Unlock, Camera, MessageCircle, Loader2, Heart, ShieldOff } from 'lucide-react';
+import { Lock, Unlock, Camera, MessageCircle, Loader2, Heart, ShieldOff, X, Clock } from 'lucide-react';
 import { useLang } from '@/lib/LanguageContext';
 import { useTranslation, getPricingForCompatibility } from '@/lib/i18n';
 import PricingModal from '@/components/PricingModal';
@@ -31,6 +31,7 @@ export default function Connections() {
   const [currentUser, setCurrentUser] = useState(null);
   const [limitError, setLimitError] = useState('');
   const [revealLoading, setRevealLoading] = useState(null);
+  const [passingId, setPassingId] = useState(null);
   const [view, setView] = useState('outgoing');
   const { data: limitsData, refresh: refreshLimits } = usePlanLimits();
 
@@ -49,7 +50,8 @@ export default function Connections() {
     refreshLimits();
 
     // Load connections where current user is involved
-    const conns = await base44.entities.Connection.filter({ from_user_id: user.id });
+    const allConns = await base44.entities.Connection.filter({ from_user_id: user.id });
+    const conns = allConns.filter(c => c.status !== 'declined' && c.status !== 'blocked');
 
     // Load profiles via server-mediated projection (enforces connection check, hides PII)
     const toIds = [...new Set(conns.map(c => c.to_user_id))];
@@ -104,6 +106,56 @@ export default function Connections() {
     }
   };
 
+  const handlePass = async (conn) => {
+    setPassingId(conn.id);
+    try {
+      const res = await base44.functions.invoke('passConnection', { connection_id: conn.id });
+      if (res.data?.success) {
+        setConnections(prev => prev.filter(c => c.id !== conn.id));
+        if (res.data?.replacement_allowed) {
+          try {
+            await base44.functions.invoke('generateMatches', { max_matches: 1 });
+            await loadData();
+          } catch (e) {
+            console.warn('Replacement generation failed:', e.message);
+          }
+        }
+        if (currentUser) {
+          base44.entities.UserProfile.filter({ user_id: currentUser.id }).then(r => setMyProfile(r[0]));
+        }
+        if (res.data?.cooldown?.active) {
+          toast({
+            title: lang === 'fr' ? 'Correspondance passée' : 'Match passed',
+            description: lang === 'fr'
+              ? `Votre prochaine correspondance à haute compatibilité ouvre dans ${res.data.cooldown.days_remaining} jour${res.data.cooldown.days_remaining !== 1 ? 's' : ''}. Les belles connexions méritent l'attente.`
+              : `Your next high-compatibility match opens in ${res.data.cooldown.days_remaining} day${res.data.cooldown.days_remaining !== 1 ? 's' : ''}. Great connections are worth the wait.`,
+          });
+        } else if (res.data?.was_high_compat && res.data?.replacement_allowed) {
+          toast({
+            title: lang === 'fr' ? 'Nouvelle correspondance' : 'New match',
+            description: lang === 'fr'
+              ? 'Une nouvelle correspondance est disponible. La prochaine à haute compatibilité ouvre dans 30 jours.'
+              : 'A new match is available. Your next high-compatibility match opens in 30 days.',
+          });
+        }
+      } else {
+        toast({
+          title: lang === 'fr' ? 'Impossible de passer' : 'Cannot pass',
+          description: res.data?.reason || (lang === 'fr' ? 'Une erreur est survenue.' : 'Something went wrong.'),
+          variant: 'destructive',
+        });
+      }
+    } catch (e) {
+      toast({
+        title: lang === 'fr' ? 'Erreur' : 'Error',
+        description: e?.response?.data?.error || (lang === 'fr' ? 'Une erreur est survenue.' : 'Something went wrong.'),
+        variant: 'destructive',
+      });
+    } finally {
+      setPassingId(null);
+    }
+  };
+
   const handleRequestReveal = async (conn) => {
     setRevealLoading(conn.id);
     try {
@@ -150,6 +202,14 @@ export default function Connections() {
       base44.entities.UserProfile.filter({ user_id: currentUser.id }).then(res => setMyProfile(res[0]));
     }
   }, [currentUser]);
+
+  const cooldownInfo = (() => {
+    if (!myProfile?.high_compat_pass_cooldown_until) return null;
+    const until = new Date(myProfile.high_compat_pass_cooldown_until);
+    if (until <= new Date()) return null;
+    const daysRemaining = Math.ceil((until.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    return { active: true, daysRemaining };
+  })();
 
   const tabs = [
     { id: 'all',    label: t('connections.all') },
@@ -234,6 +294,24 @@ export default function Connections() {
         ))}
       </div>
 
+      {cooldownInfo?.active && (
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="glass-card-orchid rounded-2xl p-4 mb-6">
+          <div className="flex items-start gap-3">
+            <Clock className="w-5 h-5 text-[#7B2FBE] shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-serif text-sm text-[#F0E6FF] mb-1">
+                {lang === 'fr'
+                  ? `Votre prochaine correspondance à haute compatibilité ouvre dans ${cooldownInfo.daysRemaining} jour${cooldownInfo.daysRemaining !== 1 ? 's' : ''}.`
+                  : `Your next high-compatibility match opens in ${cooldownInfo.daysRemaining} day${cooldownInfo.daysRemaining !== 1 ? 's' : ''}.`}
+              </h3>
+              <p className="text-[#F0E6FF]/50 text-xs leading-relaxed">
+                {lang === 'fr' ? 'Les belles connexions méritent l\u2019attente.' : 'Great connections are worth the wait.'}
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {filtered.length === 0 ? (
         <div className="text-center py-16 space-y-3">
           <div className="w-16 h-16 rounded-full bg-[rgba(123,47,190,0.1)] flex items-center justify-center mx-auto">
@@ -256,6 +334,11 @@ export default function Connections() {
             const compColor = getCompatibilityColor(score);
             const archetypeColor = getArchetypeColor(profile.dating_archetype);
             const archetypeLabel = getArchetypeLabel(profile.dating_archetype, lang);
+            const connType = conn.is_unlocked || conn.status === 'connected'
+              ? { label: lang === 'fr' ? 'Connecté' : 'Connected', color: '#F5A800' }
+              : conn.from_unlock_paid || conn.status === 'pending_payment'
+              ? { label: lang === 'fr' ? 'En attente' : 'Pending', color: '#A855F7' }
+              : { label: lang === 'fr' ? 'Nouvelle' : 'New', color: '#7B2FBE' };
 
             return (
               <motion.div key={conn.id}
@@ -303,6 +386,10 @@ export default function Connections() {
                 {/* Badges */}
                 <div className="px-5 pb-3 flex items-center gap-2 flex-wrap">
                   <span className="px-2.5 py-1 rounded-full text-xs border"
+                    style={{ color: connType.color, borderColor: `${connType.color}30`, background: `${connType.color}10` }}>
+                    {connType.label}
+                  </span>
+                  <span className="px-2.5 py-1 rounded-full text-xs border"
                     style={{ color: archetypeColor, borderColor: `${archetypeColor}30`, background: `${archetypeColor}10` }}>
                     {archetypeLabel}
                   </span>
@@ -333,11 +420,22 @@ export default function Connections() {
                 {/* Actions */}
                 <div className="p-4 flex gap-2">
                   {!conn.is_unlocked ? (
+                    <>
                     <button onClick={() => setSelectedUnlock(conn)}
                       className="flex-1 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all bg-[rgba(245,168,0,0.1)] border border-[rgba(245,168,0,0.3)] text-[#F5A800] hover:bg-[rgba(245,168,0,0.2)]">
                       <Unlock className="w-4 h-4" />
                       {t('connections.unlock')} · ${pricing.unlock}
                     </button>
+                    {!conn.from_unlock_paid && conn.status === 'pending' && (
+                      <button onClick={() => handlePass(conn)} disabled={passingId === conn.id}
+                        className="px-4 py-3 glass-card rounded-xl text-[#F0E6FF]/40 hover:text-[#F0E6FF]/70 transition-all disabled:opacity-50"
+                        title={lang === 'fr' ? 'Passer cette correspondance' : 'Pass this match'}>
+                        {passingId === conn.id
+                          ? <Loader2 className="w-4 h-4 animate-spin" />
+                          : <X className="w-4 h-4" />}
+                      </button>
+                    )}
+                    </>
                   ) : (
                     <button className="flex-1 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 bg-[#F5A800] text-[#0B0510] hover:bg-yellow-400 transition-all">
                       <MessageCircle className="w-4 h-4" />
