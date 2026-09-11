@@ -82,6 +82,10 @@ function TermsEN() {
           30 N Gould St Ste R, Sheridan, WY 82801, USA<br />
           Email: <a href="mailto:contact@NinaPurple.love" className="text-[#F5A800] underline">contact@NinaPurple.love</a></p>
         </Section>
+
+        <Section title="14. Credits & Data Sources">
+          <p>City location data is provided by the <a href="https://simplemaps.com/data/world-cities" className="text-[#F5A800] underline">SimpleMaps World Cities Database</a> (Basic version), licensed under <a href="https://creativecommons.org/licenses/by/4.0/" className="text-[#F5A800] underline">Creative Commons Attribution 4.0 International (CC BY 4.0)</a>.</p>
+        </Section>
       </div>
     </div>
   );
@@ -156,6 +160,10 @@ function TermsFR() {
           <p><strong>Nina Purple</strong><br />
           30 N Gould St Ste R, Sheridan, WY 82801, États-Unis<br />
           Courriel : <a href="mailto:contact@NinaPurple.love" className="text-[#F5A800] underline">contact@NinaPurple.love</a></p>
+        </Section>
+
+        <Section title="14. Crédits et sources de données">
+          <p>Les données de localisation des villes sont fournies par la <a href="https://simplemaps.com/data/world-cities" className="text-[#F5A800] underline">base de données mondiale des villes SimpleMaps</a> (version Basic), sous licence <a href="https://creativecommons.org/licenses/by/4.0/" className="text-[#F5A800] underline">Creative Commons Attribution 4.0 International (CC BY 4.0)</a>.</p>
         </Section>
       </div>
     </div>

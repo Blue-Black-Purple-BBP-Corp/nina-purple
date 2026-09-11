@@ -788,6 +788,7 @@ export default function Onboarding() {
                     setLocationValid(isValid);
                     if (data?.country) setProfile(p => ({ ...p, country: data.country }));
                   }}
+                  showNotActiveMessage
                   placeholder={lang === 'fr' ? 'Entrez votre ville (ex: Montréal…)' : 'Enter your city (e.g., Montreal…)'} />
 
               </div>

@@ -68,6 +68,7 @@ export const translations = {
       complete: 'Welcome to Nina Purple',
       complete_desc: "You are now part of a conscious community. Let's find your connections.",
       go_home: 'Enter the Sanctuary',
+      not_active_yet: "You're one of the first in {city}! Nina Purple isn't officially active in {city} yet — but that's exactly what makes you a founding voice. Join now, build your profile, and you'll be ready the moment we launch in your area, with founding-member perks already secured.",
     },
     // Subscriptions
     plans: {
@@ -263,6 +264,7 @@ export const translations = {
       complete: 'Bienvenue chez Nina Purple',
       complete_desc: "Vous faites désormais partie d'une communauté consciente. Trouvons vos connexions.",
       go_home: 'Entrez dans le Sanctuaire',
+      not_active_yet: "Vous êtes parmi les premiers à {ville}! Nina Purple n'est pas encore officiellement active à {ville} — et c'est justement ce qui fait de vous une voix fondatrice. Inscrivez-vous dès maintenant, complétez votre profil, et vous serez prêt(e) dès notre lancement dans votre région, avantages de membre fondateur déjà assurés.",
     },
     plans: {
       solar: 'Solaire',
