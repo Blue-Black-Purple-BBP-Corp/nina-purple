@@ -88,71 +88,18 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, message, free_reply: true });
     }
 
-    // ── Nina Membership: check free outreach allowance first ──
-    if (tier === 'nina_membership' && limits.free_messages > 0) {
-      const freeUsed = profile.free_messages_used || 0;
-      if (freeUsed < limits.free_messages) {
-        const message = await base44.asServiceRole.entities.Message.create({
-          conversation_id,
-          from_user_id: user.id,
-          to_user_id,
-          content: content.trim(),
-          cost: 0,
-          message_type: 'text',
-        });
-        await base44.asServiceRole.entities.UserProfile.update(profile.id, {
-          free_messages_used: freeUsed + 1,
-        });
-        return Response.json({ success: true, message, free_outreach: true });
-      }
-    }
-
-    // ── Paid initial outreach: debit one credit (decision 2) ──
-    const OUTREACH_COST = 1.0; // one credit = $1
-    const idempotencyKey = `outreach-${conversation_id}-${user.id}`;
-    const debit = await debitInteraction(base44, {
-      native_user_id: user.id,
-      amount: OUTREACH_COST,
-      entry_type: 'debit_outreach',
-      source_type: 'outreach',
-      source_reference: conversation_id,
-      idempotency_key: idempotencyKey,
-      description: 'Initial message to start a conversation',
-      correlation_id: idempotencyKey,
+    // ── First message: included free with the connection unlock ──
+    // The connection unlock payment (both parties) includes the first message.
+    // Per-message charges, if any, begin with the second message; replies are free.
+    const message = await base44.asServiceRole.entities.Message.create({
+      conversation_id,
+      from_user_id: user.id,
+      to_user_id,
+      content: content.trim(),
+      cost: 0,
+      message_type: 'text',
     });
-    if (!debit.success) {
-      return Response.json({
-        error: debit.reason === 'insufficient_credits'
-          ? 'You need more Interaction Credits to start a new conversation.'
-          : 'Unable to send the message.',
-        code: debit.reason,
-        balance: debit.balance,
-        required: debit.required,
-      }, { status: 403 });
-    }
-
-    try {
-      const message = await base44.asServiceRole.entities.Message.create({
-        conversation_id,
-        from_user_id: user.id,
-        to_user_id,
-        content: content.trim(),
-        cost: OUTREACH_COST,
-        message_type: 'text',
-      });
-      return Response.json({ success: true, message, balance_after: debit.balance_after });
-    } catch (createErr) {
-      console.error('[sendMessage] message create failed:', createErr.message);
-      await reverseDebit(base44, {
-        native_user_id: user.id,
-        original_ledger_id: debit.ledger_id,
-        amount: OUTREACH_COST,
-        reason: 'message_create_failed',
-        idempotency_key: `reverse-${idempotencyKey}`,
-        correlation_id: idempotencyKey,
-      });
-      return Response.json({ error: 'Unable to send the message.' }, { status: 500 });
-    }
+    return Response.json({ success: true, message, free_first_message: true });
   } catch (error) {
     console.error('sendMessage error:', error.message);
     return Response.json({ error: error.message }, { status: 500 });

@@ -150,8 +150,8 @@ export default function Messages() {
               </p>
               <p className="text-[#F0E6FF]/40 text-xs leading-relaxed max-w-xs mx-auto">
                 {lang === 'fr'
-                  ? 'Votre premier message lance la conversation et coûte 1 BBP. Soyez authentique — partagez ce qui vous a attiré dans cette connexion. Les réponses sont gratuites.'
-                  : 'Your first message starts the conversation and costs 1 BBP Credit. Be genuine — share what drew you to this connection. Replies are free.'}
+                  ? 'Votre premier message est inclus gratuitement avec le déverrouillage de la connexion. Soyez authentique — partagez ce qui vous a attiré dans cette connexion. Les réponses sont gratuites.'
+                  : 'Your first message is included free with the connection unlock. Be genuine — share what drew you to this connection. Replies are free.'}
               </p>
             </div>
           ) : (
