@@ -4,17 +4,19 @@ import { motion } from 'framer-motion';
 import { Crown, Check, Lock, Unlock, MessageCircle, Camera, Users, Calendar, Star, ArrowRight, CreditCard, Loader2, Sparkles, RefreshCw } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LanguageContext';
+import FoundingMemberOffer from '@/components/onboarding/FoundingMemberOffer';
 
-// Private "Membership & access" page. Driven entirely by
-// getMemberAccessEntitlement — no hard-coded status text. Shows current
-// membership/trial status, plan, trial dates, renewal/cancellation, a feature
-// matrix (Feature | Current access | Requirement | Next action), wallet
-// balance + recharge, founding benefit status, and the exact next action.
+// Private "Membership & access" page. Reuses the exact same checkout logic as
+// the onboarding membership step — no divergent payment path. The server-side
+// getMembershipOfferForMember decides which offer to show; the client renders
+// it and calls the matching checkout function (startFoundingMemberTrial for
+// founding-eligible members, createCheckout for standard/reactivation).
 export default function MembershipAndAccess() {
   const { lang } = useLang();
   const isFr = lang === 'fr';
   const [entitlement, setEntitlement] = useState(null);
   const [offer, setOffer] = useState(null);
+  const [foundingEligibility, setFoundingEligibility] = useState({ eligibility_status: 'ineligible' });
   const [loading, setLoading] = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState('');
@@ -22,13 +24,15 @@ export default function MembershipAndAccess() {
   useEffect(() => {
     (async () => {
       try {
-        const [entRes, offerRes] = await Promise.all([
+        const [entRes, offerRes, eligRes] = await Promise.all([
           base44.functions.invoke('getMemberAccessEntitlement', {}),
           base44.functions.invoke('getMembershipOfferForMember', {}),
+          base44.functions.invoke('getFoundingMemberEligibility', {}),
         ]);
         if (entRes.data?.data) setEntitlement(entRes.data.data);
         else if (entRes.data) setEntitlement(entRes.data);
         if (offerRes.data) setOffer(offerRes.data);
+        if (eligRes.data) setFoundingEligibility(eligRes.data);
       } catch (e) {
         console.warn('Membership access load failed:', e.message);
       } finally {
@@ -37,7 +41,12 @@ export default function MembershipAndAccess() {
     })();
   }, []);
 
-  const startReactivationCheckout = async () => {
+  // Unified checkout handler — mirrors the onboarding membership step exactly.
+  //   founding_member_trial (or awaiting_confirmation with founding tag)
+  //     → startFoundingMemberTrial (3-month free trial, then $20/mo)
+  //   standard_membership / membership_reactivation / awaiting_payment_confirmation
+  //     → createCheckout with nina_membership_1m ($20/mo)
+  const handleCheckout = async () => {
     setCheckoutLoading(true);
     setCheckoutError('');
     try {
@@ -47,13 +56,32 @@ export default function MembershipAndAccess() {
         return;
       }
       const origin = window.location.origin;
-      const res = await base44.functions.invoke('createCheckout', {
-        price_key: 'nina_membership_1m',
-        success_url: `${origin}/home?payment=success`,
-        cancel_url: `${origin}/membership?payment=cancelled`,
-      });
-      if (res.data?.url) {
-        window.location.href = res.data.url;
+      const successUrl = `${origin}/membership?payment=success`;
+      const cancelUrl = `${origin}/membership?payment=cancelled`;
+
+      const offerType = offer?.offer_type;
+      const isFoundingPath = offerType === 'founding_member_trial'
+        || (offerType === 'awaiting_payment_confirmation' && offer?.founding_member_tag);
+
+      if (isFoundingPath) {
+        const res = await base44.functions.invoke('startFoundingMemberTrial', {
+          success_url: successUrl,
+          cancel_url: cancelUrl,
+        });
+        if (res.data?.url) {
+          window.location.href = res.data.url;
+          return;
+        }
+      } else {
+        const res = await base44.functions.invoke('createCheckout', {
+          price_key: 'nina_membership_1m',
+          success_url: successUrl,
+          cancel_url: cancelUrl,
+        });
+        if (res.data?.url) {
+          window.location.href = res.data.url;
+          return;
+        }
       }
     } catch (e) {
       setCheckoutError(e.message || (isFr ? 'Échec du paiement.' : 'Checkout failed.'));
@@ -158,56 +186,85 @@ export default function MembershipAndAccess() {
         )}
       </motion.div>
 
-      {/* Reactivation / Payment update / Cancelled message */}
+      {/* Payment status messages */}
       {new URLSearchParams(window.location.search).get('payment') === 'cancelled' && (
         <div className="px-4 py-3 rounded-xl bg-[rgba(245,168,0,0.08)] border border-[rgba(245,168,0,0.25)] text-[#F5A800] text-sm text-center">
           {isFr ? 'Le paiement n\'a pas été complété. Votre profil a été sauvegardé.' : 'Payment was not completed. Your profile has been saved.'}
         </div>
       )}
-      {offer?.offer_type === 'membership_reactivation' && (
-        <div className="glass-card-gold rounded-2xl p-5 space-y-4">
-          <div className="text-center space-y-1">
-            <h2 className="font-serif text-xl text-foreground">{isFr ? 'Réactiver l\'adhésion Nina Purple' : 'Reactivate Nina Purple Membership'}</h2>
-            <div className="text-3xl font-serif font-bold text-[#F5A800]">$20<span className="text-base font-body font-normal text-foreground/50">/{isFr ? 'mois' : 'month'}</span></div>
-            <p className="text-foreground/50 text-xs">{isFr ? 'Restaurez votre accès membre complet' : 'Restore full member access'}</p>
-          </div>
-          {checkoutError && <p className="text-red-400 text-xs text-center">{checkoutError}</p>}
-          <button onClick={startReactivationCheckout} disabled={checkoutLoading}
-            className="w-full py-3 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-            {checkoutLoading ? <><Loader2 className="w-4 h-4 animate-spin" /> {isFr ? 'Traitement…' : 'Processing…'}</> : <><RefreshCw className="w-4 h-4" /> {isFr ? 'Continuer le paiement' : 'Continue to payment'}</>}
-          </button>
+      {new URLSearchParams(window.location.search).get('payment') === 'success' && (
+        <div className="px-4 py-3 rounded-xl bg-[rgba(245,168,0,0.08)] border border-[rgba(245,168,0,0.25)] text-[#F5A800] text-sm text-center">
+          {isFr ? 'Paiement réussi — confirmation en cours.' : 'Payment successful — confirming your membership.'}
         </div>
       )}
-      {offer?.offer_type === 'payment_update_required' && (
-        <div className="glass-card-gold rounded-2xl p-5 space-y-4">
-          <div className="text-center space-y-1">
-            <h2 className="font-serif text-xl text-foreground">{isFr ? 'Votre paiement nécessite votre attention' : 'Your membership payment needs attention'}</h2>
-            <p className="text-foreground/50 text-sm leading-relaxed">
-              {isFr ? 'Mettez à jour votre méthode de paiement pour restaurer votre accès membre complet.' : 'Update your payment method to restore full member access.'}
-            </p>
-          </div>
-          {checkoutError && <p className="text-red-400 text-xs text-center">{checkoutError}</p>}
-          <button onClick={startReactivationCheckout} disabled={checkoutLoading}
-            className="w-full py-3 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-            {checkoutLoading ? <><Loader2 className="w-4 h-4 animate-spin" /> {isFr ? 'Traitement…' : 'Processing…'}</> : <><CreditCard className="w-4 h-4" /> {isFr ? 'Mettre à jour' : 'Update payment'}</>}
-          </button>
+      {checkoutError && (
+        <div className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm text-center">
+          {checkoutError}
         </div>
       )}
-      {offer?.offer_type === 'awaiting_payment_confirmation' && (
-        <div className="glass-card-gold rounded-2xl p-5 space-y-3 text-center">
-          <Loader2 className="w-6 h-6 text-[#F5A800] animate-spin mx-auto" />
-          <h2 className="font-serif text-lg text-foreground">{isFr ? 'Confirmation en cours' : 'Confirming membership'}</h2>
-          <p className="text-foreground/50 text-sm">{isFr ? 'Cela peut prendre un moment.' : 'This can take a moment.'}</p>
-          <div className="space-y-2">
-            <button onClick={startReactivationCheckout} disabled={checkoutLoading}
-              className="w-full py-3 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-              {checkoutLoading ? <><Loader2 className="w-4 h-4 animate-spin" /> {isFr ? 'Traitement…' : 'Processing…'}</> : (isFr ? 'Réessayer le paiement' : 'Retry checkout')}
-            </button>
-            <button onClick={() => window.location.reload()} className="text-[#F5A800] text-xs font-semibold hover:underline">
+
+      {/* ── Founding Member trial offer (eligible or active) ──
+          Reuses the same FoundingMemberOffer component as onboarding. */}
+      {(offer?.offer_type === 'founding_member_trial' || foundingEligibility?.eligibility_status === 'eligible' || foundingEligibility?.eligibility_status === 'active') && (
+        <FoundingMemberOffer
+          status={foundingEligibility?.eligibility_status || (offer?.offer_type === 'founding_member_trial' ? 'eligible' : 'active')}
+          trialEndsAt={foundingEligibility?.trial_ends_at}
+          lang={lang}
+          loading={checkoutLoading}
+          onStart={handleCheckout}
+          onContinue={() => window.location.reload()}
+        />
+      )}
+
+      {/* ── Standard / Reactivation / Payment-update / Awaiting-confirmation ──
+          All non-founding paths use createCheckout with nina_membership_1m. */}
+      {['standard_membership', 'membership_reactivation', 'payment_update_required', 'awaiting_payment_confirmation'].includes(offer?.offer_type) && foundingEligibility?.eligibility_status !== 'eligible' && (
+        <div className="glass-card-gold rounded-2xl p-5 space-y-4">
+          <div className="text-center space-y-1">
+            {offer?.offer_type === 'membership_reactivation' && (
+              <h2 className="font-serif text-xl text-foreground">{isFr ? 'Réactiver l\'adhésion Nina Purple' : 'Reactivate Nina Purple Membership'}</h2>
+            )}
+            {offer?.offer_type === 'payment_update_required' && (
+              <h2 className="font-serif text-xl text-foreground">{isFr ? 'Votre paiement nécessite votre attention' : 'Your membership payment needs attention'}</h2>
+            )}
+            {offer?.offer_type === 'awaiting_payment_confirmation' && (
+              <h2 className="font-serif text-xl text-foreground">{isFr ? 'Confirmation en cours' : 'Confirming membership'}</h2>
+            )}
+            {offer?.offer_type === 'standard_membership' && (
+              <h2 className="font-serif text-xl text-foreground">{isFr ? 'Adhésion Nina Purple' : 'Nina Purple Membership'}</h2>
+            )}
+            {offer?.offer_type === 'awaiting_payment_confirmation' ? (
+              <p className="text-foreground/50 text-sm">{isFr ? 'Cela peut prendre un moment.' : 'This can take a moment.'}</p>
+            ) : (
+              <>
+                <div className="text-3xl font-serif font-bold text-[#F5A800]">$20<span className="text-base font-body font-normal text-foreground/50">/{isFr ? 'mois' : 'month'}</span></div>
+                <p className="text-foreground/50 text-xs">
+                  {offer?.offer_type === 'payment_update_required'
+                    ? (isFr ? 'Mettez à jour votre méthode de paiement' : 'Update your payment method')
+                    : (isFr ? 'Accès membre complet · annulez à tout moment' : 'Full member access · cancel anytime')}
+                </p>
+              </>
+            )}
+          </div>
+          <button onClick={handleCheckout} disabled={checkoutLoading}
+            className="w-full py-3 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+            {checkoutLoading
+              ? <><Loader2 className="w-4 h-4 animate-spin" /> {isFr ? 'Traitement…' : 'Processing…'}</>
+              : <>
+                  {offer?.offer_type === 'payment_update_required'
+                    ? <><CreditCard className="w-4 h-4" /> {isFr ? 'Mettre à jour' : 'Update payment'}</>
+                    : offer?.offer_type === 'membership_reactivation'
+                    ? <><RefreshCw className="w-4 h-4" /> {isFr ? 'Continuer le paiement' : 'Continue to payment'}</>
+                    : offer?.offer_type === 'awaiting_payment_confirmation'
+                    ? (isFr ? 'Réessayer le paiement' : 'Retry checkout')
+                    : (isFr ? 'Continuer le paiement' : 'Continue to payment')}
+                </>}
+          </button>
+          {offer?.offer_type === 'awaiting_payment_confirmation' && (
+            <button onClick={() => window.location.reload()} className="w-full text-[#F5A800] text-xs font-semibold hover:underline">
               {isFr ? 'Vérifier le statut' : 'Check status'}
             </button>
-          </div>
-          {checkoutError && <p className="text-red-400 text-xs text-center">{checkoutError}</p>}
+          )}
         </div>
       )}
 
