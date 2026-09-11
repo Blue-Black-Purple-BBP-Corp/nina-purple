@@ -76,14 +76,10 @@ export default function Home() {
     setRooms(chatRooms);
     setMatchingAnswers(answers[0] || null);
 
-    // Compatibility Profile must be completed before matches are shown.
-    // Couples are excluded from matching, so this redirect is skipped for
-    // couple profiles — they can use the Home dashboard (events, community,
-    // couple journey) without completing the ECR-S/Big Five quiz.
-    if (profile && !profile.attachment_style && profile.profile_type !== 'couple') {
-      navigate('/compatibility-profile');
-      return;
-    }
+    // Compatibility Profile (ECR-S attachment + Big Five) is optional personal
+    // insight — NOT a matching prerequisite. Matching uses the 21-question
+    // base score only. No hard redirect; the link card below serves as a
+    // gentle nudge for users who haven't completed it yet.
 
     // Load display names for connections via server-mediated projection (never direct UserProfile access)
     if (conns.length > 0) {
@@ -180,7 +176,7 @@ export default function Home() {
           </div>
           <div className="flex-1">
             <p className="text-[#F0E6FF] text-sm font-medium">{lang === 'fr' ? 'Profil de compatibilité' : 'Compatibility profile'}</p>
-            <p className="text-[#F0E6FF]/50 text-xs">{lang === 'fr' ? 'Revisitez les réponses qui façonnent vos correspondances' : 'Revisit the answers that shape your matches'}</p>
+            <p className="text-[#F0E6FF]/50 text-xs">{lang === 'fr' ? "Un aperçu personnel de votre style d'attachement et de votre personnalité" : "Personal insight into your attachment style and personality"}</p>
           </div>
           <ChevronRightIcon className="w-4 h-4 text-[#F0E6FF]/30 group-hover:text-[#7B2FBE] transition-colors" />
         </Link>
