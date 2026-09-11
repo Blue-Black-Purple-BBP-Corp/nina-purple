@@ -288,17 +288,21 @@ export async function approvePhotoRevealRequest(base44: any, opts: {
 
   const now = new Date().toISOString();
 
-  // Convert the hold to a debit.
-  const { convertHoldToDebit } = await import('./interactionCredits.ts');
-  const convert = await convertHoldToDebit(base44, {
-    native_user_id: req.viewer_native_user_id,
-    reservation_id: req.reservation_id,
-    description: `Photo reveal approved — ${req.quoted_price_bbp_credits} BBP Credits`,
-    idempotency_key: `convert-${req.request_id}`,
-    correlation_id: req.correlation_id || req.request_id,
-  });
-  if (!convert.success) {
-    return { success: false, reason: 'convert_failed', detail: convert.reason };
+  // Convert the hold to a debit. Free reveals (already-unlocked connection)
+  // have no reservation to convert — nothing was held.
+  let convert = { success: true, ledger_id: null };
+  if (req.reservation_id) {
+    const { convertHoldToDebit } = await import('./interactionCredits.ts');
+    convert = await convertHoldToDebit(base44, {
+      native_user_id: req.viewer_native_user_id,
+      reservation_id: req.reservation_id,
+      description: `Photo reveal approved — ${req.quoted_price_bbp_credits} BBP Credits`,
+      idempotency_key: `convert-${req.request_id}`,
+      correlation_id: req.correlation_id || req.request_id,
+    });
+    if (!convert.success) {
+      return { success: false, reason: 'convert_failed', detail: convert.reason };
+    }
   }
 
   // Grant the entitlement (owner_approval_required, linked to request).
@@ -339,15 +343,17 @@ export async function declinePhotoRevealRequest(base44: any, opts: {
   const now = new Date();
   const cooldown_until = new Date(now.getTime() + COOLDOWN_DAYS * 24 * 60 * 60 * 1000).toISOString();
 
-  // Release the held credits.
-  const { releaseHold } = await import('./interactionCredits.ts');
-  await releaseHold(base44, {
-    native_user_id: req.viewer_native_user_id,
-    reservation_id: req.reservation_id,
-    reason: 'owner_declined',
-    idempotency_key: `release-${req.request_id}`,
-    correlation_id: req.correlation_id || req.request_id,
-  });
+  // Release the held credits, if any were held (free reveals hold nothing).
+  if (req.reservation_id) {
+    const { releaseHold } = await import('./interactionCredits.ts');
+    await releaseHold(base44, {
+      native_user_id: req.viewer_native_user_id,
+      reservation_id: req.reservation_id,
+      reason: 'owner_declined',
+      idempotency_key: `release-${req.request_id}`,
+      correlation_id: req.correlation_id || req.request_id,
+    });
+  }
 
   await base44.asServiceRole.entities.PhotoRevealRequest.update(req.id, {
     request_status: 'declined',
@@ -376,15 +382,17 @@ export async function cancelPhotoRevealRequest(base44: any, opts: {
   const now = new Date();
   const cooldown_until = new Date(now.getTime() + COOLDOWN_DAYS * 24 * 60 * 60 * 1000).toISOString();
 
-  // Release the held credits.
-  const { releaseHold } = await import('./interactionCredits.ts');
-  await releaseHold(base44, {
-    native_user_id: req.viewer_native_user_id,
-    reservation_id: req.reservation_id,
-    reason: 'viewer_cancelled',
-    idempotency_key: `release-${req.request_id}`,
-    correlation_id: req.correlation_id || req.request_id,
-  });
+  // Release the held credits, if any were held (free reveals hold nothing).
+  if (req.reservation_id) {
+    const { releaseHold } = await import('./interactionCredits.ts');
+    await releaseHold(base44, {
+      native_user_id: req.viewer_native_user_id,
+      reservation_id: req.reservation_id,
+      reason: 'viewer_cancelled',
+      idempotency_key: `release-${req.request_id}`,
+      correlation_id: req.correlation_id || req.request_id,
+    });
+  }
 
   await base44.asServiceRole.entities.PhotoRevealRequest.update(req.id, {
     request_status: 'cancelled',
@@ -404,15 +412,17 @@ export async function expirePhotoRevealRequest(base44: any, request: any) {
   const now = new Date();
   const cooldown_until = new Date(now.getTime() + COOLDOWN_DAYS * 24 * 60 * 60 * 1000).toISOString();
 
-  // Release the held credits.
-  const { releaseHold } = await import('./interactionCredits.ts');
-  await releaseHold(base44, {
-    native_user_id: request.viewer_native_user_id,
-    reservation_id: request.reservation_id,
-    reason: 'expired_no_owner_response',
-    idempotency_key: `release-${request.request_id}`,
-    correlation_id: request.correlation_id || request.request_id,
-  });
+  // Release the held credits, if any were held (free reveals hold nothing).
+  if (request.reservation_id) {
+    const { releaseHold } = await import('./interactionCredits.ts');
+    await releaseHold(base44, {
+      native_user_id: request.viewer_native_user_id,
+      reservation_id: request.reservation_id,
+      reason: 'expired_no_owner_response',
+      idempotency_key: `release-${request.request_id}`,
+      correlation_id: request.correlation_id || request.request_id,
+    });
+  }
 
   await base44.asServiceRole.entities.PhotoRevealRequest.update(request.id, {
     request_status: 'expired',
@@ -478,6 +488,22 @@ export async function isBlocked(base44: any, user_a: string, user_b: string): Pr
     return [...outgoing, ...incoming].some((c) => c.status === "blocked");
   } catch (e) {
     console.error("[photoAccess] isBlocked error:", e?.message || e);
+    return false;
+  }
+}
+
+// Checks whether a mutual (both-paid) connection already exists between two
+// users. Gallery Unlock (photo reveal) is free when the profile is already
+// fully unlocked — this is what that check is against.
+export async function isConnectionUnlocked(base44: any, user_a: string, user_b: string): Promise<boolean> {
+  try {
+    const [outgoing, incoming] = await Promise.all([
+      base44.asServiceRole.entities.Connection.filter({ from_user_id: user_a, to_user_id: user_b }),
+      base44.asServiceRole.entities.Connection.filter({ from_user_id: user_b, to_user_id: user_a }),
+    ]);
+    return [...outgoing, ...incoming].some((c) => c.is_unlocked);
+  } catch (e) {
+    console.error("[photoAccess] isConnectionUnlocked error:", e?.message || e);
     return false;
   }
 }

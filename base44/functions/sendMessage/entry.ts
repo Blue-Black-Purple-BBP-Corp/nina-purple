@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.36';
-import { PLAN_LIMITS } from '../../shared/planLimits.ts';
+import { PLAN_LIMITS, getPricingForCompatibility } from '../../shared/planLimits.ts';
 import { computeMembershipStatus, isEntitledForPaidActions } from '../../shared/membershipState.ts';
 import { evaluateFoundingEligibility } from '../../shared/foundingMembers.ts';
 import { debitInteraction, reverseDebit } from '../../shared/interactionCredits.ts';
@@ -64,9 +64,10 @@ Deno.serve(async (req) => {
       }, { status: 403 });
     }
 
-    // ── Initial outreach vs reply (decision 2) ──
-    // The first message this user sends in a conversation is a paid initial
-    // outreach (one credit). Replies in an existing conversation are free.
+    // ── First message vs reply (decision 2) ──
+    // Message 1 in a conversation is included free with the connection unlock.
+    // Message 2+ is charged the per-message rate for this connection's
+    // compatibility tier (never a flat rate, never free).
     let hasSentBefore = false;
     try {
       const priorMsgs = await base44.asServiceRole.entities.Message.filter({ conversation_id, from_user_id: user.id });
@@ -75,8 +76,8 @@ Deno.serve(async (req) => {
       console.warn('sendMessage: could not check prior messages:', e.message);
     }
 
-    if (hasSentBefore) {
-      // Reply — free.
+    if (!hasSentBefore) {
+      // First message — free (included with the connection unlock).
       const message = await base44.asServiceRole.entities.Message.create({
         conversation_id,
         from_user_id: user.id,
@@ -85,45 +86,28 @@ Deno.serve(async (req) => {
         cost: 0,
         message_type: 'text',
       });
-      return Response.json({ success: true, message, free_reply: true });
+      return Response.json({ success: true, message, free_first_message: true });
     }
 
-    // ── Nina Membership: check free outreach allowance first ──
-    if (tier === 'nina_membership' && limits.free_messages > 0) {
-      const freeUsed = profile.free_messages_used || 0;
-      if (freeUsed < limits.free_messages) {
-        const message = await base44.asServiceRole.entities.Message.create({
-          conversation_id,
-          from_user_id: user.id,
-          to_user_id,
-          content: content.trim(),
-          cost: 0,
-          message_type: 'text',
-        });
-        await base44.asServiceRole.entities.UserProfile.update(profile.id, {
-          free_messages_used: freeUsed + 1,
-        });
-        return Response.json({ success: true, message, free_outreach: true });
-      }
-    }
-
-    // ── Paid initial outreach: debit one credit (decision 2) ──
-    const OUTREACH_COST = 1.0; // one credit = $1
-    const idempotencyKey = `outreach-${conversation_id}-${user.id}`;
+    // ── Message 2+: debit the per-message rate for this compatibility tier ──
+    const score = conn.compatibility_score || 0;
+    const pricing = getPricingForCompatibility(score);
+    const MSG_COST = pricing.msg;
+    const idempotencyKey = `msg-${conversation_id}-${crypto.randomUUID()}`;
     const debit = await debitInteraction(base44, {
       native_user_id: user.id,
-      amount: OUTREACH_COST,
+      amount: MSG_COST,
       entry_type: 'debit_outreach',
       source_type: 'outreach',
       source_reference: conversation_id,
       idempotency_key: idempotencyKey,
-      description: 'Initial message to start a conversation',
+      description: `Message (${score}% compatibility)`,
       correlation_id: idempotencyKey,
     });
     if (!debit.success) {
       return Response.json({
         error: debit.reason === 'insufficient_credits'
-          ? 'You need more Interaction Credits to start a new conversation.'
+          ? 'You need more Interaction Credits to send this message.'
           : 'Unable to send the message.',
         code: debit.reason,
         balance: debit.balance,
@@ -137,7 +121,7 @@ Deno.serve(async (req) => {
         from_user_id: user.id,
         to_user_id,
         content: content.trim(),
-        cost: OUTREACH_COST,
+        cost: MSG_COST,
         message_type: 'text',
       });
       return Response.json({ success: true, message, balance_after: debit.balance_after });
@@ -146,7 +130,7 @@ Deno.serve(async (req) => {
       await reverseDebit(base44, {
         native_user_id: user.id,
         original_ledger_id: debit.ledger_id,
-        amount: OUTREACH_COST,
+        amount: MSG_COST,
         reason: 'message_create_failed',
         idempotency_key: `reverse-${idempotencyKey}`,
         correlation_id: idempotencyKey,
