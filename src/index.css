@@ -72,8 +72,10 @@
 [data-theme="light"] .text-starlight      { color: #1A0A2E !important; }
 
 /* opacity variants — map to dark-on-light equivalents */
+[data-theme="light"] .text-\[\#F0E6FF\]\/85 { color: rgba(26, 10, 46, 0.85) !important; }
 [data-theme="light"] .text-\[\#F0E6FF\]\/80 { color: rgba(26, 10, 46, 0.80) !important; }
 [data-theme="light"] .text-\[\#F0E6FF\]\/70 { color: rgba(26, 10, 46, 0.70) !important; }
+[data-theme="light"] .text-\[\#F0E6FF\]\/65 { color: rgba(26, 10, 46, 0.65) !important; }
 [data-theme="light"] .text-\[\#F0E6FF\]\/60 { color: rgba(26, 10, 46, 0.60) !important; }
 [data-theme="light"] .text-\[\#F0E6FF\]\/50 { color: rgba(26, 10, 46, 0.55) !important; }
 [data-theme="light"] .text-\[\#F0E6FF\]\/40 { color: rgba(26, 10, 46, 0.45) !important; }
