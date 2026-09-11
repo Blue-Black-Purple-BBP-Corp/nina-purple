@@ -27,6 +27,26 @@
     "country": {
       "type": "string"
     },
+    "latitude": {
+      "type": "number",
+      "description": "Latitude of the member's city, for distance-based match filtering. Populated when available; null/absent = no distance restriction applied."
+    },
+    "longitude": {
+      "type": "number",
+      "description": "Longitude of the member's city, for distance-based match filtering. Populated when available; null/absent = no distance restriction applied."
+    },
+    "match_age_min": {
+      "type": "number",
+      "description": "Optional minimum age preference for matching. Null/absent = no lower-bound age restriction."
+    },
+    "match_age_max": {
+      "type": "number",
+      "description": "Optional maximum age preference for matching. Null/absent = no upper-bound age restriction."
+    },
+    "match_distance_max": {
+      "type": "number",
+      "description": "Optional maximum distance (in km) preference for matching. Null/absent = no distance restriction. Requires both users to have latitude/longitude populated; if either lacks coordinates, no distance restriction is applied."
+    },
     "phone": {
       "type": "string"
     },

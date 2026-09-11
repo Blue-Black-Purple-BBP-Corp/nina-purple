@@ -1,6 +1,17 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.36';
 import { computeScoreFromStored } from '../../shared/compatibilityScoring.ts';
 
+// Haversine distance in km between two lat/lng points.
+function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371;
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 // Matching-pool generator. Creates Connection records for a single user against
 // other SINGLE users with completed onboarding + compatibility answers.
 //
@@ -70,6 +81,14 @@ Deno.serve(async (req) => {
       ...blocksOfMe.map(b => b.blocker_user_id),
     ]);
 
+    // Matching preferences (pre-filters, not scoring inputs).
+    // When unset, no restriction is applied on that dimension.
+    const ageMin = myProfile.match_age_min;
+    const ageMax = myProfile.match_age_max;
+    const distMax = myProfile.match_distance_max;
+    const myLat = myProfile.latitude;
+    const myLng = myProfile.longitude;
+
     // SEGREGATION: only individual (single) profiles with completed onboarding
     const allProfiles = await base44.asServiceRole.entities.UserProfile.list('-created_date', 1000);
     const candidates = allProfiles.filter(p =>
@@ -83,7 +102,15 @@ Deno.serve(async (req) => {
       // Pre-filter (Question 4): sexual orientation must be an exact match.
       // Only enforced when both users have a orientation set, so missing data
       // never blocks matching.
-      (!myProfile.sexual_orientation || !p.sexual_orientation || p.sexual_orientation === myProfile.sexual_orientation)
+      (!myProfile.sexual_orientation || !p.sexual_orientation || p.sexual_orientation === myProfile.sexual_orientation) &&
+      // Age pre-filter: skip candidates outside the preferred age range.
+      // Missing age on either side = no restriction (never blocks).
+      (!ageMin || !p.age || p.age >= ageMin) &&
+      (!ageMax || !p.age || p.age <= ageMax) &&
+      // Distance pre-filter: skip candidates farther than the preferred max distance.
+      // Missing coordinates on either side = no restriction (never blocks).
+      (!distMax || !myLat || !myLng || !p.latitude || !p.longitude ||
+        haversineKm(myLat, myLng, p.latitude, p.longitude) <= distMax)
     );
 
     const scored = [];
