@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Loader2, Share2, Sparkles, Check, Edit3 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, Share2, Sparkles, Check, Edit3, Heart } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LanguageContext';
 import { ninaIcon } from '@/lib/images';
 import CompatibilityResultCard from '@/components/CompatibilityResultCard';
 import EditProfileModal from '@/components/profile/EditProfileModal';
+import ShareCompatibilityModal from '@/components/ShareCompatibilityModal';
 import { getArchetypeLabel } from '@/lib/archetypes';
 import {
   ECRS_ITEMS, BIG5_ITEMS, LIKERT_7, LIKERT_5,
@@ -35,6 +36,7 @@ export default function CompatibilityProfile() {
   const [userProfile, setUserProfile] = useState(null);
   const [matchingAnswers, setMatchingAnswers] = useState(null);
   const [editOpen, setEditOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const cardRef = useRef(null);
 
   useEffect(() => {
@@ -92,7 +94,8 @@ export default function CompatibilityProfile() {
       localStorage.setItem(RAW_STORAGE_KEY, JSON.stringify(allAnswers));
     } catch (e) { /* ignore quota errors */ }
 
-    // Sync only the derived tags to the profile
+    // Sync the derived tags + completion metadata to the profile
+    const nowIso = new Date().toISOString();
     try {
       await base44.functions.invoke('updateProfile', {
         attachment_style: attachment.style,
@@ -103,6 +106,9 @@ export default function CompatibilityProfile() {
         big5_extraversion: big5.extraversion,
         big5_agreeableness: big5.agreeableness,
         big5_neuroticism: big5.neuroticism,
+        compatibility_updated_at: nowIso,
+        compatibility_last_completed_at: nowIso,
+        compatibility_edit_status: 'saved',
       });
     } catch (e) {
       console.error('updateProfile (compatibility) failed:', e.message);
@@ -168,40 +174,45 @@ export default function CompatibilityProfile() {
                 </h1>
                 <p className="text-[#F0E6FF]/65 text-sm leading-relaxed max-w-md mx-auto">
                   {isFr
-                    ? "Un questionnaire unique, en deux parties, qui révèle votre style d\u2019attachement et vos cinq grands traits de personnalité. Cela alimente vos correspondances et la personnalisation de votre expérience."
-                    : "A one-time, two-part questionnaire that reveals your attachment style and your Big Five personality traits. It feeds your matches and personalizes your experience."}
+                    ? "Un exercice de découverte de soi en deux parties. Vos résultats nourrissent votre score de compatibilité — les correspondances se font discrètement en arrière-plan pendant que vous explorez."
+                    : "A two-part self-discovery exercise. Your results feed your compatibility scoring — matching happens quietly in the background while you explore."}
                 </p>
               </div>
 
-              <div className="glass-card rounded-2xl p-4 text-left space-y-3 max-w-md mx-auto">
-                <div className="flex items-start gap-3">
-                  <Sparkles className="w-4 h-4 text-[#F5A800] shrink-0 mt-0.5" />
-                  <div>
+              <div className="glass-card rounded-2xl p-4 text-left space-y-4 max-w-md mx-auto">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-[#F5A800] shrink-0" />
                     <div className="text-[#F0E6FF] text-sm font-medium">
-                      {isFr ? '12 questions — Style d\u2019attachement (ECR-S)' : '12 questions — Attachment style (ECR-S)'}
-                    </div>
-                    <div className="text-[#F0E6FF]/45 text-xs mt-0.5">
-                      {isFr ? 'Échelle de 1 à 7' : '1 to 7 scale'}
+                      {isFr ? 'Partie 1 — Style d\u2019attachement (ECR-S)' : 'Part 1 — Attachment style (ECR-S)'}
                     </div>
                   </div>
+                  <p className="text-[#F0E6FF]/55 text-xs leading-relaxed pl-6">
+                    {isFr
+                      ? "12 questions · échelle de 1 à 7. Révèle comment vous vous connectez, faites confiance et réagissez dans vos relations intimes."
+                      : "12 questions · 1 to 7 scale. Reveals how you connect, trust, and respond in close relationships."}
+                  </p>
                 </div>
-                <div className="flex items-start gap-3">
-                  <Sparkles className="w-4 h-4 text-[#7B2FBE] shrink-0 mt-0.5" />
-                  <div>
+                <div className="h-px bg-[rgba(240,230,255,0.06)]" />
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-[#7B2FBE] shrink-0" />
                     <div className="text-[#F0E6FF] text-sm font-medium">
-                      {isFr ? '20 questions — Cinq grands traits (Mini-IPIP)' : '20 questions — Big Five traits (Mini-IPIP)'}
-                    </div>
-                    <div className="text-[#F0E6FF]/45 text-xs mt-0.5">
-                      {isFr ? 'Échelle de 1 à 5' : '1 to 5 scale'}
+                      {isFr ? 'Partie 2 — Personnalité (Mini-IPIP)' : 'Part 2 — Big Five personality (Mini-IPIP)'}
                     </div>
                   </div>
+                  <p className="text-[#F0E6FF]/55 text-xs leading-relaxed pl-6">
+                    {isFr
+                      ? "20 questions · échelle de 1 à 5. Carte votre personnalité selon cinq dimensions : ouverture, conscience, extraversion, agréabilité et névrotisme."
+                      : "20 questions · 1 to 5 scale. Maps your personality across five dimensions: openness, conscientiousness, extraversion, agreeableness, and neuroticism."}
+                  </p>
                 </div>
               </div>
 
               <div className="text-[#F0E6FF]/40 text-xs max-w-md mx-auto leading-relaxed">
                 {isFr
-                  ? "Vos réponses brutes restent sur votre appareil. Seuls vos profils dérivés (style d\u2019attachement et niveaux de traits) sont enregistrés sur votre compte."
-                  : "Your raw answers stay on your device. Only the derived tags (attachment style and trait levels) are saved to your account."}
+                  ? "Ce n\u2019est pas un formulaire d\u2019admission obligatoire — c\u2019est un exercice réflexif que vous pouvez reprendre à tout moment. Vos réponses brutes restent sur votre appareil ; seuls les résultats dérivés sont enregistrés sur votre compte."
+                  : "This is not a mandatory intake form — it's a reflective exercise you can revisit anytime. Your raw answers stay on your device; only the derived results are saved to your account."}
               </div>
 
               <button onClick={() => { setIndex(0); setPhase('quiz'); }}
@@ -355,15 +366,21 @@ export default function CompatibilityProfile() {
               )}
 
               {/* Actions */}
-              <div className="flex gap-3">
-                <button onClick={handleShare}
-                  className="flex-1 py-3 glass-card-gold rounded-full text-[#F5A800] font-bold hover:opacity-80 transition-all flex items-center justify-center gap-2">
-                  {isFr ? <><Share2 className="w-4 h-4" /> Partager</> : <><Share2 className="w-4 h-4" /> Share</>}
-                </button>
+              <div className="space-y-3">
                 <button onClick={() => navigate('/home')}
-                  className="flex-1 py-3 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all flex items-center justify-center gap-2">
-                  <Check className="w-4 h-4" /> {isFr ? 'Continuer' : 'Continue'}
+                  className="w-full py-4 bg-[#F5A800] text-[#0B0510] rounded-full font-bold uppercase tracking-widest hover:bg-yellow-400 transition-all flex items-center justify-center gap-2">
+                  <Check className="w-4 h-4" /> {isFr ? 'Continuer vers l\u2019accueil' : 'Continue to Home'}
                 </button>
+                <div className="flex gap-3">
+                  <button onClick={() => setShareOpen(true)}
+                    className="flex-1 py-3 glass-card-orchid rounded-full text-[#F0E6FF] font-bold hover:border-[rgba(123,47,190,0.4)] transition-all flex items-center justify-center gap-2">
+                    <Heart className="w-4 h-4 text-[#7B2FBE]" /> {isFr ? 'Partager à une connexion' : 'Share with a connection'}
+                  </button>
+                  <button onClick={handleShare}
+                    className="flex-1 py-3 glass-card-gold rounded-full text-[#F5A800] font-bold hover:opacity-80 transition-all flex items-center justify-center gap-2">
+                    {isFr ? <><Share2 className="w-4 h-4" /> Image</> : <><Share2 className="w-4 h-4" /> Image</>}
+                  </button>
+                </div>
               </div>
             </motion.div>
           )}
@@ -379,6 +396,13 @@ export default function CompatibilityProfile() {
         onAnswersUpdate={setMatchingAnswers}
         lang={lang}
         initialTab="archetype"
+      />
+
+      <ShareCompatibilityModal
+        isOpen={shareOpen}
+        onClose={() => setShareOpen(false)}
+        attachment={result?.attachment}
+        displayName={displayName}
       />
     </div>
   );
