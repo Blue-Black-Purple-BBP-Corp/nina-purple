@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Eye, Lock, ArrowLeft, Heart, MapPin, Camera } from 'lucide-react';
+import VouchIndicator from '@/components/VouchIndicator';
 import { base44 } from '@/api/base44Client';
 import { useLang } from '@/lib/LanguageContext';
 import FoundingMemberBadge from '@/components/FoundingMemberBadge';
@@ -119,6 +120,7 @@ export default function ProfilePreview() {
               </span>
             )}
             {preview.is_founding_member && <FoundingMemberBadge />}
+            {preview.vouch_count > 0 && <VouchIndicator count={preview.vouch_count} lang={lang} />}
           </div>
 
           {/* Bio — visible to all members (not paywalled) */}

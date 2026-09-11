@@ -1,0 +1,71 @@
+{
+  "name": "PeerVouch",
+  "type": "object",
+  "description": "Lightweight peer vouch \u2014 one member confirming another is a real person. MVP: no scoring weight, no badges, no points. method 'event' = met at a Nina Purple event (cross-checked via EventAttendance); method 'contact' = known via email/phone.",
+  "properties": {
+    "voucher_user_id": {
+      "type": "string",
+      "description": "Platform user ID of the member giving the vouch."
+    },
+    "vouched_for_user_id": {
+      "type": "string",
+      "description": "Platform user ID of the member being vouched for."
+    },
+    "method": {
+      "type": "string",
+      "enum": [
+        "event",
+        "contact"
+      ],
+      "description": "event = met at a Nina Purple event (EventAttendance cross-checked); contact = known via email/phone."
+    },
+    "event_id": {
+      "type": "string",
+      "description": "Reference to the Event where the two members met. Set when method is 'event'."
+    },
+    "vouched_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "voucher_user_id",
+    "vouched_for_user_id",
+    "method"
+  ],
+  "rls": {
+    "create": {
+      "data.voucher_user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.voucher_user_id": "{{user.id}}"
+        },
+        {
+          "data.vouched_for_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

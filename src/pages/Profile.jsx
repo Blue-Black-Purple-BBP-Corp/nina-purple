@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Star, Coins, Shield, Camera, ChevronRight as ChevronRightIcon, Crown, Edit3, Award, Users, Loader2, LogOut, LogIn, User as UserIcon, Trash2, AlertTriangle, Eye, Sparkles, Wallet } from 'lucide-react';
+import { Star, Coins, Shield, Camera, ChevronRight as ChevronRightIcon, Crown, Edit3, Award, Users, Loader2, LogOut, LogIn, User as UserIcon, Trash2, AlertTriangle, Eye, Sparkles, Wallet, ShieldCheck } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useLang } from '@/lib/LanguageContext';
 import { useTranslation } from '@/lib/i18n';
@@ -18,6 +18,8 @@ import ExperienceModeSwitch from '@/components/profile/ExperienceModeSwitch';
 import { usePhotoAccess, primaryPhotoUrl } from '@/hooks/usePhotoAccess';
 import CommunityStandingCard from '@/components/bbp/CommunityStandingCard';
 import UsageIndicator from '@/components/dashboard/UsageIndicator';
+import VouchIndicator from '@/components/VouchIndicator';
+import PeerVouchModal from '@/components/PeerVouchModal';
 // TEMP: import AmbassadorBadge from '@/components/dashboard/AmbassadorBadge';
 import { base44 } from '@/api/base44Client';
 import { getArchetypeLabel } from '@/lib/archetypes';
@@ -44,6 +46,8 @@ export default function Profile() {
   const [privacyOpen, setPrivacyOpen]   = useState(false);
   const [referralOpen, setReferralOpen] = useState(false);
   const [editProfileOpen, setEditProfileOpen] = useState(false);
+  const [vouchOpen, setVouchOpen] = useState(false);
+  const [vouchCount, setVouchCount] = useState(0);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteReason, setDeleteReason] = useState('');
@@ -66,10 +70,12 @@ export default function Profile() {
     if (authenticated) {
       const user = await base44.auth.me();
       setAuthUser(user);
-      const [profiles, answers] = await Promise.all([
+      const [profiles, answers, vouchRes] = await Promise.all([
         base44.entities.UserProfile.filter({ user_id: user.id }),
         base44.entities.MatchingAnswers.filter({ user_id: user.id }),
+        base44.functions.invoke('getVouchCount', {}).catch(() => ({ count: 0 })),
       ]);
+      setVouchCount(vouchRes.count || 0);
       const profile = profiles[0] || null;
       if (profile) {
         try {
@@ -197,6 +203,7 @@ export default function Profile() {
                 {userProfile?.is_ambassador && (
                   <span className="text-[#F5A800] text-xs px-2 py-0.5 rounded-full" style={{ background: 'rgba(245,168,0,0.1)', border: '1px solid rgba(245,168,0,0.2)' }}>★ Ambassador</span>
                 )}
+                {vouchCount > 0 && <VouchIndicator count={vouchCount} lang={lang} />}
               </div>
             </div>
           </div>
@@ -354,6 +361,21 @@ export default function Profile() {
         </button>
       </motion.div>
 
+      {/* ═══ 8b. VOUCH FOR A MEMBER ═══ */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.375 }}>
+        <button onClick={() => setVouchOpen(true)}
+          className="w-full glass-card rounded-2xl p-4 flex items-center gap-3 hover:border-[rgba(123,47,190,0.25)] transition-all group text-left focus:outline-none focus:ring-2 focus:ring-[#7B2FBE]/30">
+          <div className="w-10 h-10 rounded-xl bg-[rgba(123,47,190,0.1)] flex items-center justify-center shrink-0">
+            <ShieldCheck className="w-5 h-5 text-[#7B2FBE]" />
+          </div>
+          <div className="flex-1">
+            <p className="text-[#F0E6FF] text-sm font-medium">{lang === 'fr' ? 'Garantir un membre' : 'Vouch for a member'}</p>
+            <p className="text-[#F0E6FF]/50 text-xs">{lang === 'fr' ? 'Confirmez qu\'un membre que vous connaissez est une vraie personne.' : 'Confirm a member you know is a real person.'}</p>
+          </div>
+          <ChevronRightIcon className="w-4 h-4 text-[#F0E6FF]/20 group-hover:text-[#7B2FBE] transition-colors" />
+        </button>
+      </motion.div>
+
       {/* ═══ 9. ACCOUNT / SUPPORT / LEGAL ═══ */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }} className="space-y-3 pt-2">
         {/* Experience mode switch — Single / Couple */}
@@ -428,6 +450,7 @@ export default function Profile() {
 
       {/* Modals */}
       <PricingModal isOpen={pricingOpen} onClose={() => setPricingOpen(false)} />
+      <PeerVouchModal isOpen={vouchOpen} onClose={() => setVouchOpen(false)} method="contact" />
       <CreditsModal isOpen={creditsOpen} onClose={() => setCreditsOpen(false)} />
       <UpgradeModal isOpen={upgradeOpen} onClose={() => setUpgradeOpen(false)} lang={lang} currentTier={tier} />
       {userProfile && (

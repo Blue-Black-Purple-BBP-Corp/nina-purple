@@ -45,6 +45,17 @@ Deno.serve(async (req) => {
       console.warn('[getProfilePreview] photo count failed:', e?.message || e);
     }
 
+    // Count peer vouches (public indicator — no voucher identities exposed).
+    let vouchCount = 0;
+    try {
+      const vouches = await base44.asServiceRole.entities.PeerVouch.filter({
+        vouched_for_user_id: user.id,
+      });
+      vouchCount = vouches.length;
+    } catch (e) {
+      console.warn('[getProfilePreview] vouch count failed:', e?.message || e);
+    }
+
     const preview = {
       user_id: profile.user_id,
       display_name: profile.show_in_listings !== false ? profile.display_name : null,
@@ -61,6 +72,7 @@ Deno.serve(async (req) => {
       has_photos: photoCount > 0,
       photo_count: photoCount,
       photos_locked: true, // standard non-entitled viewer sees locked photos
+      vouch_count: vouchCount,
       viewer_context: 'standard_member_preview',
     };
 

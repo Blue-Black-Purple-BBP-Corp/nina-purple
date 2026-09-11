@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, User, Clock, Check, Loader2, Globe, MapPin, Plus, X, Share2, Link as LinkIcon, Copy } from 'lucide-react';
+import { Calendar, User, Clock, Check, Loader2, Globe, MapPin, Plus, X, Share2, Link as LinkIcon, Copy, ShieldCheck } from 'lucide-react';
 import { useLang } from '@/lib/LanguageContext';
 import { useTranslation } from '@/lib/i18n';
 import { base44 } from '@/api/base44Client';
+import PeerVouchModal from '@/components/PeerVouchModal';
 
 const EVENT_TYPE_COLORS = {
   meet_greet:         '#F5A800',
@@ -240,6 +241,7 @@ export default function Events() {
   const [bookedIds, setBookedIds] = useState(new Set());
   const [showCreate, setShowCreate] = useState(false);
   const [shareEvent, setShareEvent] = useState(null);
+  const [vouchEvent, setVouchEvent] = useState(null);
 
   useEffect(() => { loadEvents(); }, []);
 
@@ -435,6 +437,13 @@ export default function Events() {
                         : isBooked ? <><X className="w-4 h-4" /> {lang === 'fr' ? 'Annuler' : 'Cancel'}</>
                         : t('events.book_now')}
                     </button>
+                    {isBooked && (
+                      <button onClick={() => setVouchEvent(event)}
+                        className="px-4 py-3 glass-card rounded-xl text-[#7B2FBE] hover:text-[#9236d8] transition-colors"
+                        title={lang === 'fr' ? 'Garantir un membre rencontré' : 'Vouch for a member you met'}>
+                        <ShieldCheck className="w-4 h-4" />
+                      </button>
+                    )}
                     <button onClick={() => setShareEvent(event)}
                       className="px-4 py-3 glass-card rounded-xl text-[#F0E6FF]/50 hover:text-[#F5A800] transition-colors">
                       <Share2 className="w-4 h-4" />
@@ -471,6 +480,17 @@ export default function Events() {
           <ShareSheet event={shareEvent} onClose={() => setShareEvent(null)} lang={lang} />
         )}
       </AnimatePresence>
+
+      {/* Peer Vouch (event method) */}
+      {vouchEvent && (
+        <PeerVouchModal
+          isOpen={true}
+          onClose={() => setVouchEvent(null)}
+          method="event"
+          eventId={vouchEvent.id}
+          eventTitle={lang === 'fr' ? (vouchEvent.title_fr || vouchEvent.title_en) : vouchEvent.title_en}
+        />
+      )}
     </div>
   );
 }
